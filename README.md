@@ -90,9 +90,30 @@ docs: 문서 수정
 
 ## 환경 변수
 
-`.env.example`을 복사해 `.env.local`을 만들어 사용하세요.  
-`.env` 파일은 절대 커밋하지 마세요.
+### 초기 설정
+
+`.env.example`을 복사해 `.env.local`을 만든 뒤 실제 키 값을 입력하세요.
 
 ```bash
+# Mac / Linux
 cp .env.example .env.local
+
+# Windows
+copy .env.example .env.local
 ```
+
+### 항목 설명
+
+| 키 | 설명 |
+|----|------|
+| `CLAUDE_API_KEY` | Claude AI API 키 ([console.anthropic.com](https://console.anthropic.com)) |
+| `SUPABASE_URL` | Supabase 프로젝트 URL (Project Settings > API) |
+| `SUPABASE_ANON_KEY` | Supabase 익명 공개 키 (Project Settings > API) |
+| `NAVER_CLIENT_ID` | 네이버 개발자 앱 Client ID ([developers.naver.com](https://developers.naver.com)) |
+| `NAVER_CLIENT_SECRET` | 네이버 개발자 앱 Client Secret |
+
+### 주의사항
+
+- `.env.local` 등 실제 키가 담긴 파일은 **절대 커밋하지 마세요**
+- `.env.example`에는 키 이름만 남기고 값은 비워두세요
+- 키를 새로 추가했다면 `.env.example`에도 항목을 추가해 주세요
