@@ -1,38 +1,64 @@
-# CLAUDE.md
+# Newstock — Claude Code 프로젝트 가이드
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 서비스 개요
 
-## Environment
+뉴스를 읽고 퀴즈를 풀어 주식을 배우는 모의 투자 학습 서비스
 
-- **System Python**: Python 3.14.2 (default in terminal)
-- **Pose model env**: `mp_env\` — Python 3.11.2 venv created with `C:\Program Files\Python311\python.exe`; use this for `pose_model\pose_model.py` because MediaPipe requires Python ≤ 3.11
-- Run scripts: `python script.py` (system) or `mp_env\Scripts\python.exe script.py` (pose model)
-- Run notebooks: `jupyter notebook` or open `.ipynb` in VSCode
+- **레포**: https://github.com/wooonc6/Newstock
+- **타겟**: 주식 입문자, 경제 뉴스에 관심 있는 10~30대
 
-## Projects
+## 기술 스택
 
-### `my_vscode\` — School Python Exercises
+| 영역 | 기술 |
+|------|------|
+| FE | React / Next.js (TypeScript) |
+| BE | Node.js or Python (미확정) |
+| DB | Supabase (PostgreSQL) |
+| 인증 | Supabase Auth |
+| 뉴스 API | 네이버 검색 API |
+| AI | Claude API (Anthropic) |
+| 호스팅 | TBD (Vercel 검토 중) |
 
-Python class assignments organized by module:
+## 팀 구성 및 브랜치
 
-| Prefix | Topic |
-|--------|-------|
-| `m1_*` | Basics: conditionals, input, random (rock-scissors-paper, BMI, hourly rate, projectile) |
-| `m2_*` | Functions & classes: factorial, dice, virtual dog game |
-| `m3_*` | Algorithms: greedy, brute-force, bug-finding, prime sieve, Fibonacci |
+| 이름 | 역할 | 담당 브랜치 |
+|------|------|------------|
+| 최원준 | PM / FE | `feat/auth-flow` `feat/quiz-unlock` `feat/page-routing` |
+| 김성준 | Backend | `feat/news-collector` `feat/trade-logic` `feat/unlock-backend` |
+| 이은우 | DB | `feat/db-schema` `feat/db-sync` |
+| 김승민A | API / FE | `feat/news-feed-ui` `feat/stock-price-ui` `feat/ranking-ui` |
+| 허조영 | UI/UX | `feat/design-system` `feat/stock-card-ui` `feat/onboarding-ui` |
 
-`exercise_function.ipynb` is the main Jupyter notebook for function exercises. Middle exam files (`middle_exam_*.py`) are reference solutions for exam practice problems.
+## Git 워크플로우
 
-Run any exercise: `python my_vscode\<filename>.py`
+```
+feat/기능명 → PR → dev → PR → main
+```
 
-### `pose_model\` — Human Pose Estimation
+- `main`: 배포용, 직접 push 금지
+- `dev`: 통합 개발 브랜치
+- `feat/*`: 기능 단위 브랜치
 
-`pose_model\pose_model.py` reads numbered images (`1.png` – `10.png`) from the same folder, runs MediaPipe Pose, computes **2D joint angles** (right elbow: shoulder–elbow–wrist; right knee: hip–knee–ankle), draws landmarks on the image, and saves results as `output_N.jpg`.
+커밋 컨벤션: `feat` / `fix` / `chore` / `style` / `refactor` / `docs`
 
-Key dependencies (must use `mp_env`): `opencv-python`, `mediapipe`, `numpy`
+## 개발 환경 설정
 
-Run: `mp_env\Scripts\python.exe pose_model\pose_model.py`
+```bash
+git --version   # 2.x 이상
+node --version  # 18.x 이상
 
-Input images must be named `1.png` through `10.png` (or `.jpg`/`.jpeg`) and placed in `pose_model\`. The script auto-detects missing numbers and skips undetectable images.
+copy .env.example .env.local
+# .env.local에 각자 발급받은 키 입력
+```
 
-The knee angle correction `if knee_angle < 100: knee_angle = 180 - knee_angle` handles MediaPipe's landmark direction inconsistency for standing vs. seated poses.
+### 환경변수 항목
+
+| 키 | 설명 |
+|----|------|
+| `CLAUDE_API_KEY` | Claude AI API 키 |
+| `SUPABASE_URL` | Supabase 프로젝트 URL |
+| `SUPABASE_ANON_KEY` | Supabase 익명 공개 키 |
+| `NAVER_CLIENT_ID` | 네이버 개발자 앱 Client ID |
+| `NAVER_CLIENT_SECRET` | 네이버 개발자 앱 Client Secret |
+
+> `.env.local`은 절대 커밋하지 말 것 (`.gitignore`에 포함됨)
