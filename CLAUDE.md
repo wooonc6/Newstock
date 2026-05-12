@@ -15,8 +15,8 @@
 | BE | Node.js (Express) |
 | DB | Supabase (PostgreSQL) |
 | 인증 | Supabase Auth |
-| 뉴스 API | 네이버 검색 API |
-| AI | Claude API (Anthropic) |
+| 주가 데이터 | Yahoo Finance API (yahoo-finance2) — 국내 종목 전용 |
+| AI | Claude API (라이브 트랙 추가 시 사용 예정) |
 | 호스팅 | TBD (Vercel 검토 중) |
 
 ## 팀 구성 및 브랜치
