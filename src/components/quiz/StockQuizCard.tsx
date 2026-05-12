@@ -3,10 +3,59 @@
 import Link from "next/link";
 import type { Stock, UnlockStatus } from "@/types";
 import { SECTOR_BADGE_CLASSES } from "@/lib/stocks";
+import { useStockPrice } from "@/hooks/useStockPrice";
 
 interface Props {
   stock: Stock;
   status: UnlockStatus;
+}
+
+function PriceTag({ ticker }: { ticker: string }) {
+  const { data, loading } = useStockPrice(ticker);
+
+  if (loading) {
+    return (
+      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", color: "var(--text-muted)" }}>
+        ···
+      </span>
+    );
+  }
+
+  if (!data || data.price === null) return null;
+
+  const up = (data.changePercent ?? 0) >= 0;
+  const pctStr = data.changePercent !== null
+    ? `${up ? "+" : ""}${data.changePercent.toFixed(2)}%`
+    : null;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+      <span
+        style={{
+          fontFamily: "'Space Mono', monospace",
+          fontSize: "13px",
+          fontWeight: 700,
+          color: "var(--text)",
+        }}
+      >
+        ₩{data.price.toLocaleString()}
+      </span>
+      {pctStr && (
+        <span
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: "11px",
+            padding: "2px 7px",
+            borderRadius: "5px",
+            background: up ? "rgba(0,229,176,0.1)" : "rgba(239,68,68,0.1)",
+            color: up ? "var(--accent)" : "var(--danger)",
+          }}
+        >
+          {pctStr}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export default function StockQuizCard({ stock, status }: Props) {
@@ -26,7 +75,6 @@ export default function StockQuizCard({ stock, status }: Props) {
         overflow: "hidden",
       }}
     >
-      {/* 언락 완료 배지 */}
       {unlocked && (
         <div
           style={{
@@ -60,6 +108,10 @@ export default function StockQuizCard({ stock, status }: Props) {
             </span>
           </div>
 
+          <div style={{ marginBottom: "8px" }}>
+            <PriceTag ticker={stock.ticker} />
+          </div>
+
           <div style={{ fontSize: "12px", color: "var(--text-dim)", marginBottom: "10px" }}>
             {stock.description}
           </div>
@@ -72,10 +124,9 @@ export default function StockQuizCard({ stock, status }: Props) {
               marginBottom: "12px",
             }}
           >
-            {stock.ticker} · 시총 {stock.marketCap}
+            {stock.ticker}
           </div>
 
-          {/* 진행 바 */}
           {!unlocked && (
             <div>
               <div
@@ -136,14 +187,6 @@ export default function StockQuizCard({ stock, status }: Props) {
       </div>
     </div>
   );
-
-  if (unlocked) {
-    return (
-      <Link href={`/quiz/${encodeURIComponent(stock.ticker)}`} style={{ textDecoration: "none" }}>
-        {card}
-      </Link>
-    );
-  }
 
   return (
     <Link href={`/quiz/${encodeURIComponent(stock.ticker)}`} style={{ textDecoration: "none" }}>
