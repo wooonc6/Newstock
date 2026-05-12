@@ -33,3 +33,10 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Ouroboros (Claude Code 도구 — 개인 설정)
+ouroboros/
+
+# Next.js
+.next/
+out/
