@@ -12,7 +12,7 @@
 | 영역 | 기술 |
 |------|------|
 | FE | React / Next.js (TypeScript) |
-| BE | Node.js or Python (미확정) |
+| BE | Node.js (Express) |
 | DB | Supabase (PostgreSQL) |
 | 인증 | Supabase Auth |
 | 뉴스 API | 네이버 검색 API |
