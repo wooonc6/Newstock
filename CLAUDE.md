@@ -12,7 +12,7 @@
 | 영역 | 기술 |
 |------|------|
 | FE | React / Next.js (TypeScript) |
-| BE | Node.js (Express) |
+| BE | Next.js API Routes (별도 Express 서버 없음 — Vercel 무료티어 통합 배포) |
 | DB | Supabase (PostgreSQL) |
 | 인증 | Supabase Auth |
 | 주가 데이터 | Yahoo Finance API (yahoo-finance2) — 국내 종목 전용 |

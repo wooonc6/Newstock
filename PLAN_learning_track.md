@@ -80,13 +80,18 @@ alter table quiz_sessions add column track_type text default 'learning';
 
 ---
 
-## 4. 백엔드 API (김성준) — `server/`
+## 4. 백엔드 API (김성준) — `pages/api/`
+
+> **Express 서버 대신 Next.js API Routes 사용.**  
+> 이유: 별도 서버 호스팅 비용 없이 Vercel 무료티어로 프론트+백 통합 배포 가능.  
+> `server/` 폴더는 deprecated — 사용하지 말 것.
 
 구현 완료된 파일:
-- `server/index.js` — Express 서버 (포트 4000)
-- `server/lib/yahooFinance.js` — 과거 주가 조회 + 퀴즈 선택지 생성
-- `server/lib/supabase.js` — Supabase 클라이언트
-- `server/routes/learning.js` — 아래 엔드포인트 구현
+- `lib/yahooFinance.js` — 과거 주가 조회 + 퀴즈 선택지 생성
+- `lib/supabase.js` — Supabase 클라이언트
+- `pages/api/learning/news.js` — 뉴스 목록
+- `pages/api/learning/news/[id].js` — 뉴스 상세
+- `pages/api/learning/quiz/[newsId].js` — 퀴즈 데이터
 
 | Method | 경로 | 설명 |
 |--------|------|------|
@@ -155,10 +160,10 @@ alter table quiz_sessions add column track_type text default 'learning';
 
 ### 김성준 (Backend) — `feat/news-collector`, `feat/trade-logic`
 
-- [x] yahoo-finance2 과거 주가 조회 모듈 (`server/lib/yahooFinance.js`)
-- [x] `/api/learning/news`, `/api/learning/quiz/:newsId` 엔드포인트
+- [x] yahoo-finance2 과거 주가 조회 모듈 (`lib/yahooFinance.js`)
+- [x] `/api/learning/news`, `/api/learning/quiz/[newsId]` 엔드포인트 (Next.js API Routes)
 - [x] 퀴즈 선택지 자동 생성 로직
-- [ ] `npm install` 후 로컬 동작 확인
+- [ ] 루트에서 `npm install` 후 로컬 동작 확인
 - [ ] 실제 티커로 Yahoo Finance 조회 테스트
 
 ### 이은우 (DB) — `feat/db-schema`, `feat/db-sync`
@@ -203,13 +208,14 @@ alter table quiz_sessions add column track_type text default 'learning';
 
 ---
 
-## 8. 서버 실행 방법 (김성준 참고)
+## 8. 로컬 실행 방법
 
 ```bash
-cd server
+# 루트에서 실행
 npm install
-# 루트의 .env.local에 SUPABASE_URL, SUPABASE_ANON_KEY 입력 후
-npm run dev   # http://localhost:4000
+# .env.local에 SUPABASE_URL, SUPABASE_ANON_KEY 입력 후
+npm run dev   # http://localhost:3000
+# API: http://localhost:3000/api/learning/news
 ```
 
 ---

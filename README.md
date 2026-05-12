@@ -16,13 +16,15 @@
 
 | 영역 | 기술 |
 |------|------|
-| FE | React / Next.js (TypeScript) |
-| BE | Node.js + Express |
+| FE + BE | Next.js (TypeScript) — API Routes로 백엔드 통합 |
 | DB | Supabase (PostgreSQL) |
 | 인증 | Supabase Auth |
 | 주가 데이터 | Yahoo Finance API (yahoo-finance2) |
 | AI | Claude API (라이브 트랙 추가 시 사용 예정) |
-| 호스팅 | TBD (Vercel 검토 중) |
+| 호스팅 | Vercel 무료티어 (프론트+백 통합 배포) |
+
+> **Express 별도 서버를 쓰지 않는 이유**: Next.js API Routes를 쓰면 Vercel 무료티어 하나로
+> 프론트엔드와 백엔드를 함께 배포할 수 있어 별도 서버 호스팅 비용이 발생하지 않습니다.
 
 ---
 
@@ -81,15 +83,16 @@ docs: 문서 수정
 ## 로컬 환경 설정
 
 ```bash
-# 1. 의존성 설치
-cd server && npm install
+# 1. 의존성 설치 (루트에서)
+npm install
 
 # 2. 환경변수 설정
 copy .env.example .env.local
 # .env.local에 각자 발급받은 키 입력
 
-# 3. 서버 실행
-npm run dev   # http://localhost:4000
+# 3. 개발 서버 실행
+npm run dev   # http://localhost:3000
+# API: http://localhost:3000/api/learning/news
 ```
 
 ### 환경변수 항목
