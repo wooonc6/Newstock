@@ -3,343 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Newstock — 미리보기</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>Newstock</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#080d17;--surface:#0f1724;--surface2:#162033;--surface3:#1c2a42;
-  --accent:#00e5b0;--accent2:#3b82f6;--warn:#f59e0b;--danger:#ef4444;
-  --text:#eef2ff;--text-muted:#4b5a72;--text-dim:#8899b4;
-  --border:rgba(255,255,255,0.06);--coin:#fbbf24;
-}
+:root{--bg:#080d17;--surface:#0f1724;--surface2:#162033;--accent:#00e5b0;--text:#eef2ff;--text-muted:#4b5a72;--text-dim:#8899b4;--border:rgba(255,255,255,0.06);--warn:#f59e0b;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(0,229,176,.05),transparent),radial-gradient(ellipse 50% 40% at 80% 90%,rgba(59,130,246,.05),transparent);pointer-events:none;z-index:0;}
-
-/* ── LOGIN ── */
-#s-login{min-height:100vh;display:none;align-items:center;justify-content:center;padding:20px;}
-#s-login.active{display:flex;}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:40px 36px;width:100%;max-width:400px;animation:fadeUp .4s ease;}
-.logo-txt{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px;}
-.logo-sub{font-size:13px;color:var(--text-muted);margin-bottom:28px;}
-.field-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;display:block;}
-.field-input{width:100%;padding:11px 15px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;margin-bottom:14px;display:block;transition:border-color .2s;}
-.field-input:focus{border-color:rgba(0,229,176,.4);}
-.field-input::placeholder{color:var(--text-muted);}
-.btn-primary{width:100%;padding:12px;border-radius:100px;border:none;background:var(--accent);color:#071013;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(0,229,176,.05),transparent),radial-gradient(ellipse 50% 40% at 80% 90%,rgba(59,130,246,.05),transparent);pointer-events:none;}
+.wrap{max-width:560px;width:100%;position:relative;z-index:1;}
+.logo{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+.tagline{font-size:14px;color:var(--text-dim);margin-bottom:32px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 24px;margin-bottom:12px;}
+.card-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:100px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;border:none;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#071013;}
 .btn-primary:hover{background:#1fffc4;transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,229,176,.22);}
-.err-txt{font-size:12px;color:var(--danger);min-height:16px;margin-bottom:10px;}
-.toggle-row{text-align:center;margin-top:14px;font-size:13px;color:var(--text-muted);}
-.link{color:var(--accent);cursor:pointer;}
-.link:hover{text-decoration:underline;}
-.hidden{display:none!important;}
-
-/* ── MAIN APP ── */
-#s-main{display:none;}
-#s-main.active{display:block;}
-.app{max-width:740px;margin:0 auto;padding:24px 18px;}
-
-/* ── HEADER ── */
-.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding:13px 18px;background:var(--surface);border:1px solid var(--border);border-radius:16px;}
-.hdr-logo{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);}
-.hdr-logo span{color:var(--text-muted);font-weight:400;}
-.hdr-r{display:flex;align-items:center;gap:10px;}
-.streak-pill{display:flex;align-items:center;gap:5px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);padding:6px 11px;border-radius:100px;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--warn);}
-.coin-pill{display:flex;align-items:center;gap:7px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);padding:6px 13px;border-radius:100px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--coin);}
-.user-pill{display:flex;align-items:center;gap:7px;padding:6px 13px;border-radius:100px;background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--text-dim);cursor:pointer;transition:all .2s;}
-.user-pill:hover{border-color:rgba(255,255,255,.15);color:var(--text);}
-
-/* ── TABS ── */
-.nav-tabs{display:flex;gap:3px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:5px;}
-.tab{flex:1;padding:9px 6px;border-radius:10px;border:none;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:500;color:var(--text-muted);background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap;}
-.tab.active{background:var(--surface2);color:var(--text);}
-.tab:hover:not(.active){color:var(--text-dim);}
-
-/* ── TAB CONTENT ── */
-.tab-pane{display:none;}
-.tab-pane.active{display:block;}
-
-/* ── INFO BANNER ── */
-.info-banner{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px;}
-.info-banner-icon{font-size:20px;flex-shrink:0;}
-.info-banner-title{font-size:13px;font-weight:700;margin-bottom:3px;}
-.info-banner-sub{font-size:12px;color:var(--text-dim);}
-
-/* ── SECTION LABEL ── */
-.section-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);}
-.section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.unlock-count{font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted);}
-.unlock-count.has{color:var(--accent);}
-
-/* ── STOCK CARD ── */
-.stock-cards{display:flex;flex-direction:column;gap:10px;}
-.stock-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
-.stock-card:hover{border-color:rgba(0,229,176,.22);background:rgba(0,229,176,.02);}
-.stock-card.unlocked{border-color:rgba(0,229,176,.22);}
-.stock-card-inner{display:flex;align-items:flex-start;gap:14px;}
-.stock-card-body{flex:1;}
-.stock-card-arrow{font-size:20px;color:var(--text-muted);flex-shrink:0;padding-top:2px;}
-.stock-card.unlocked .stock-card-arrow{color:var(--accent);}
-.sc-title-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.sc-name{font-size:16px;font-weight:700;}
-.sc-badge{padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;}
-.sc-badge.blue{background:rgba(59,130,246,.15);color:#60a5fa;}
-.sc-badge.green{background:rgba(0,229,176,.12);color:var(--accent);}
-.sc-badge.amber{background:rgba(245,158,11,.12);color:var(--warn);}
-.sc-desc{font-size:12px;color:var(--text-dim);margin-bottom:10px;}
-.sc-ticker{font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:12px;}
-.unlock-badge{position:absolute;top:14px;right:14px;background:rgba(0,229,176,.12);border:1px solid rgba(0,229,176,.3);border-radius:100px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--accent);}
-.prog-meta{display:flex;justify-content:space-between;margin-bottom:6px;font-size:11px;color:var(--text-muted);}
-.prog-meta span:last-child{font-family:'Space Mono',monospace;}
-.prog-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
-.prog-fill{height:100%;border-radius:2px;background:var(--accent2);transition:width .6s ease;}
-.prog-hint{margin-top:6px;font-size:11px;color:var(--text-muted);}
-.unlocked-msg{font-size:12px;color:var(--accent);}
-
-/* ── PLACEHOLDER TABS ── */
-.placeholder{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:44px 24px;text-align:center;}
-.placeholder-icon{font-size:28px;margin-bottom:12px;}
-.placeholder-title{font-size:15px;font-weight:700;margin-bottom:6px;}
-.placeholder-sub{font-size:13px;color:var(--text-dim);}
-
-/* ── QUIZ PAGE ── */
-.back-btn{font-size:12px;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:18px;border:none;background:none;}
-.back-btn:hover{color:var(--accent);}
-.quiz-stock-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;}
-.qs-sector{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
-.qs-name{font-size:20px;font-weight:700;margin-bottom:6px;}
-.qs-ticker{font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted);margin-bottom:12px;}
-.qs-desc{font-size:13px;color:var(--text-dim);}
-.quiz-pending{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--text-dim);}
-
-/* ── DEMO BADGE ── */
-.demo-notice{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(0,229,176,.1);border:1px solid rgba(0,229,176,.25);border-radius:100px;padding:7px 16px;font-size:11px;color:var(--accent);font-family:'Space Mono',monospace;z-index:999;white-space:nowrap;pointer-events:none;}
-
-/* ── SIM BOX ── */
-.sim-box{margin-top:16px;padding:16px;background:var(--surface);border:1px solid rgba(245,158,11,.2);border-radius:12px;text-align:center;}
-.sim-label{font-size:11px;color:var(--text-muted);margin-bottom:10px;}
-.sim-btn{padding:9px 22px;border-radius:100px;border:none;background:var(--accent);color:#071013;font-weight:700;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s;}
-.sim-btn:hover{background:#1fffc4;}
-.sim-msg{margin-top:8px;font-size:12px;color:var(--text-muted);}
-
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.anim{animation:fadeUp .35s ease;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+.btn-outline:hover{border-color:rgba(255,255,255,.18);color:var(--text);}
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;}
+.badge-green{background:rgba(0,229,176,.12);color:var(--accent);}
+.badge-amber{background:rgba(245,158,11,.12);color:var(--warn);}
+.file-list{display:flex;flex-direction:column;gap:8px;}
+.file-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:10px;}
+.file-icon{font-size:16px;flex-shrink:0;}
+.file-name{font-family:'Space Mono',monospace;font-size:12px;color:var(--text);flex:1;}
+.file-desc{font-size:11px;color:var(--text-muted);}
+.divider{height:1px;background:var(--border);margin:14px 0;}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <div class="logo">Newstock</div>
+  <div class="tagline">뉴스로 배우는 투자 교육 플랫폼 — 개발 진행 중</div>
 
-<div class="demo-notice">🔬 UI 프리뷰 — 실제 서비스 개발 중</div>
+  <div class="card">
+    <div class="card-title">UI 프리뷰</div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.7;">
+      현재 구현된 로그인·퀴즈 언락 UI를 직접 체험할 수 있습니다.<br>
+      실제 DB 연동 전 단계의 프로토타입입니다.
+    </p>
+    <a class="btn btn-primary" href="preview.html">UI 프리뷰 열기 →</a>
+  </div>
 
-<!-- ════════ 로그인 ════════ -->
-<div id="s-login" class="active">
-  <div class="login-card">
-    <div id="lm-login">
-      <div class="logo-txt">Newstock</div>
-      <div class="logo-sub">뉴스로 배우는 투자 교육 플랫폼</div>
-      <label class="field-label">이메일</label>
-      <input class="field-input" id="l-email" type="email" placeholder="이메일" onkeydown="if(event.key==='Enter')doLogin()">
-      <label class="field-label">비밀번호</label>
-      <input class="field-input" id="l-pw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()">
-      <div class="err-txt" id="l-err"></div>
-      <button class="btn-primary" onclick="doLogin()">시작하기 →</button>
-      <div class="toggle-row">처음이신가요? <span class="link" onclick="authMode('signup')">회원가입</span></div>
+  <div class="card">
+    <div class="card-title">파일 목록</div>
+    <div class="file-list">
+      <div class="file-row">
+        <div class="file-icon">🎨</div>
+        <div>
+          <div class="file-name">preview.html</div>
+          <div class="file-desc">로그인·대시보드·퀴즈 언락 UI 프리뷰 (인터랙티브)</div>
+        </div>
+        <span class="badge badge-green">최신</span>
+      </div>
     </div>
-    <div id="lm-signup" class="hidden">
-      <div class="logo-txt">Newstock</div>
-      <div class="logo-sub">뉴스로 배우는 투자 교육 플랫폼</div>
-      <label class="field-label">닉네임</label>
-      <input class="field-input" id="r-name" type="text" placeholder="닉네임 (2~12자)" maxlength="12">
-      <label class="field-label">이메일</label>
-      <input class="field-input" id="r-email" type="email" placeholder="이메일">
-      <label class="field-label">비밀번호</label>
-      <input class="field-input" id="r-pw" type="password" placeholder="비밀번호 (6자 이상)" onkeydown="if(event.key==='Enter')doSignup()">
-      <div class="err-txt" id="r-err"></div>
-      <button class="btn-primary" onclick="doSignup()">가입하고 시작 →</button>
-      <div class="toggle-row"><span class="link" onclick="authMode('login')">← 로그인으로 돌아가기</span></div>
+    <div class="divider"></div>
+    <p style="font-size:11px;color:var(--text-muted);">
+      실제 서비스는 Next.js + Supabase로 개발 중입니다.<br>
+      소스코드: <a href="https://github.com/wooonc6/Newstock" style="color:var(--accent);">github.com/wooonc6/Newstock</a>
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">구현 현황</div>
+    <div class="file-list">
+      <div class="file-row"><div class="file-icon">✅</div><div><div class="file-name" style="font-family:'Noto Sans KR',sans-serif;">페이지 라우팅</div><div class="file-desc">App Router 구조, 탭 네비게이션</div></div></div>
+      <div class="file-row"><div class="file-icon">✅</div><div><div class="file-name" style="font-family:'Noto Sans KR',sans-serif;">인증 흐름</div><div class="file-desc">Supabase Auth 로그인 / 회원가입</div></div></div>
+      <div class="file-row"><div class="file-icon">✅</div><div><div class="file-name" style="font-family:'Noto Sans KR',sans-serif;">퀴즈 언락 UI</div><div class="file-desc">삼성전자 · LG화학 · 두산에너빌리티</div></div></div>
+      <div class="file-row"><div class="file-icon">🔧</div><div><div class="file-name" style="font-family:'Noto Sans KR',sans-serif;">뉴스 수집 · 퀴즈 생성</div><div class="file-desc">feat/news-collector 브랜치 진행 중</div></div><span class="badge badge-amber">진행 중</span></div>
     </div>
   </div>
 </div>
-
-<!-- ════════ 메인 ════════ -->
-<div id="s-main">
-  <div class="app">
-    <header class="hdr">
-      <div class="hdr-logo">Newstock<span>.quiz</span></div>
-      <div class="hdr-r">
-        <div class="streak-pill">🔥 <span id="hdr-streak">0</span>일</div>
-        <div class="coin-pill">🪙 <span id="hdr-coins">0</span></div>
-        <div class="user-pill" onclick="doLogout()">
-          <span id="hdr-name">유저</span>
-          <span style="font-size:10px;color:var(--text-muted)">로그아웃</span>
-        </div>
-      </div>
-    </header>
-
-    <nav class="nav-tabs">
-      <button class="tab active" onclick="switchTab('quiz')">📰 퀴즈</button>
-      <button class="tab" onclick="switchTab('portfolio')">📈 모의투자</button>
-      <button class="tab" onclick="switchTab('ranking')">🏆 랭킹</button>
-      <button class="tab" onclick="switchTab('history')">📋 기록</button>
-      <button class="tab" onclick="switchTab('stats')">📊 분석</button>
-    </nav>
-
-    <div id="tab-quiz" class="tab-pane active">
-      <div id="view-dashboard">
-        <div class="info-banner">
-          <div class="info-banner-icon">📰</div>
-          <div>
-            <div class="info-banner-title">종목별 뉴스 퀴즈를 풀어 투자 감각을 키우세요</div>
-            <div class="info-banner-sub">각 종목 퀴즈를 3번 완료하면 모의 투자 기능이 활성화됩니다.</div>
-          </div>
-        </div>
-        <div class="section-row">
-          <div class="section-label">종목별 퀴즈</div>
-          <div class="unlock-count" id="unlock-summary">0 / 3 언락</div>
-        </div>
-        <div class="stock-cards" id="stock-cards"></div>
-      </div>
-
-      <div id="view-quiz" class="hidden anim">
-        <button class="back-btn" onclick="backToDashboard()">← 종목 목록</button>
-        <div class="quiz-stock-card" id="quiz-stock-info"></div>
-        <div class="quiz-pending">💡 퀴즈 기능은 뉴스 데이터 연동 후 활성화됩니다. <em>(feat/news-collector 브랜치 대기 중)</em></div>
-        <div class="sim-box">
-          <div class="sim-label">[ 프리뷰 전용 — 퀴즈 완료 시뮬레이션 ]</div>
-          <button class="sim-btn" onclick="simulateComplete()">✓ 퀴즈 1회 완료 처리</button>
-          <div class="sim-msg" id="sim-msg"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-portfolio" class="tab-pane">
-      <div class="placeholder"><div class="placeholder-icon">📈</div><div class="placeholder-title">모의투자</div><div class="placeholder-sub">퀴즈를 완료하면 코인으로 모의 주식을 살 수 있어요.<br>거래 기능은 feat/trade-logic 브랜치에서 구현 예정입니다.</div></div>
-    </div>
-    <div id="tab-ranking" class="tab-pane">
-      <div class="placeholder"><div class="placeholder-icon">🏆</div><div class="placeholder-title">랭킹</div><div class="placeholder-sub">전체 사용자 코인 순위가 여기에 표시됩니다.<br>feat/ranking-ui 브랜치에서 구현 예정입니다.</div></div>
-    </div>
-    <div id="tab-history" class="tab-pane">
-      <div class="placeholder"><div class="placeholder-icon">📋</div><div class="placeholder-title">퀴즈 기록</div><div class="placeholder-sub">풀었던 퀴즈의 결과와 정답 이력이 여기에 표시됩니다.<br>DB 연동 후 활성화됩니다.</div></div>
-    </div>
-    <div id="tab-stats" class="tab-pane">
-      <div class="placeholder"><div class="placeholder-icon">📊</div><div class="placeholder-title">분석</div><div class="placeholder-sub">정답률, 취약 분야, 성장 그래프가 여기에 표시됩니다.<br>DB 연동 후 활성화됩니다.</div></div>
-    </div>
-  </div>
-</div>
-
-<script>
-const STOCKS=[{ticker:"005930.KS",name:"삼성전자",sector:"IT / 반도체",sectorColor:"blue",desc:"세계 최대 메모리 반도체·스마트폰 제조사. KOSPI 시가총액 1위",marketCap:"약 380조원"},{ticker:"051910.KS",name:"LG화학",sector:"화학 / 배터리",sectorColor:"green",desc:"국내 최대 종합화학 기업. 전기차 배터리 글로벌 선도 (LG에너지솔루션 분리상장)",marketCap:"약 18조원"},{ticker:"034020.KS",name:"두산에너빌리티",sector:"에너지 / 발전",sectorColor:"amber",desc:"원자력·가스터빈 등 발전설비 전문. 소형모듈원자로(SMR) 핵심 수혜주",marketCap:"약 5조원"}];
-
-let currentUser=null,unlockMap={},currentTicker=null;
-
-function getC(t){return parseInt(localStorage.getItem("quiz_"+t)||"0");}
-function buildMap(){const m={};STOCKS.forEach(s=>{const c=getC(s.ticker);m[s.ticker]={completed:c,required:3,unlocked:c>=3};});return m;}
-
-function authMode(m){
-  document.getElementById("lm-login").classList.toggle("hidden",m!=="login");
-  document.getElementById("lm-signup").classList.toggle("hidden",m!=="signup");
-  document.getElementById("l-err").textContent="";
-  document.getElementById("r-err").textContent="";
-}
-
-function doLogin(){
-  const email=document.getElementById("l-email").value.trim();
-  const pw=document.getElementById("l-pw").value;
-  if(!email||!pw){document.getElementById("l-err").textContent="이메일과 비밀번호를 입력해 주세요.";return;}
-  const users=JSON.parse(localStorage.getItem("ns_users")||"{}");
-  if(!users[email]){document.getElementById("l-err").textContent="등록되지 않은 이메일입니다.";return;}
-  if(users[email].pw!==pw){document.getElementById("l-err").textContent="비밀번호가 올바르지 않습니다.";return;}
-  currentUser={email,nickname:users[email].nickname};
-  enterApp();
-}
-
-function doSignup(){
-  const name=document.getElementById("r-name").value.trim();
-  const email=document.getElementById("r-email").value.trim();
-  const pw=document.getElementById("r-pw").value;
-  if(name.length<2){document.getElementById("r-err").textContent="닉네임은 2자 이상이어야 합니다.";return;}
-  if(!email.includes("@")){document.getElementById("r-err").textContent="올바른 이메일을 입력해 주세요.";return;}
-  if(pw.length<6){document.getElementById("r-err").textContent="비밀번호는 6자 이상이어야 합니다.";return;}
-  const users=JSON.parse(localStorage.getItem("ns_users")||"{}");
-  if(users[email]){document.getElementById("r-err").textContent="이미 가입된 이메일입니다.";return;}
-  users[email]={nickname:name,pw};
-  localStorage.setItem("ns_users",JSON.stringify(users));
-  currentUser={email,nickname:name};
-  enterApp();
-}
-
-function doLogout(){
-  currentUser=null;
-  document.getElementById("s-main").style.display="none";
-  document.getElementById("s-login").classList.add("active");
-  document.getElementById("l-email").value="";document.getElementById("l-pw").value="";
-  authMode("login");
-}
-
-function enterApp(){
-  document.getElementById("s-login").classList.remove("active");
-  document.getElementById("s-main").style.display="block";
-  document.getElementById("hdr-name").textContent=currentUser.nickname;
-  unlockMap=buildMap();renderCards();updateSummary();switchTab("quiz");
-}
-
-function renderCards(){
-  const c=document.getElementById("stock-cards");c.innerHTML="";
-  STOCKS.forEach(s=>{
-    const st=unlockMap[s.ticker];
-    const pct=Math.min(st.completed/st.required,1)*100;
-    const el=document.createElement("div");
-    el.className="stock-card"+(st.unlocked?" unlocked":"");
-    el.onclick=()=>openQuiz(s.ticker);
-    el.innerHTML=`${st.unlocked?'<div class="unlock-badge">✓ 투자 허용</div>':''}<div class="stock-card-inner"><div class="stock-card-body"><div class="sc-title-row"><span class="sc-name">${s.name}</span><span class="sc-badge ${s.sectorColor}">${s.sector}</span></div><div class="sc-desc">${s.desc}</div><div class="sc-ticker">${s.ticker} · 시총 ${s.marketCap}</div>${st.unlocked?'<div class="unlocked-msg">✅ 모의 투자가 가능한 종목입니다</div>':`<div><div class="prog-meta"><span>퀴즈 완료</span><span>${st.completed} / ${st.required}</span></div><div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div><div class="prog-hint">🔒 퀴즈 ${st.required-st.completed}개 더 풀면 모의 투자 가능</div></div>`}</div><div class="stock-card-arrow">${st.unlocked?"→":"🔒"}</div></div>`;
-    c.appendChild(el);
-  });
-}
-
-function updateSummary(){
-  const done=STOCKS.filter(s=>unlockMap[s.ticker]?.unlocked).length;
-  const el=document.getElementById("unlock-summary");
-  el.textContent=`${done} / ${STOCKS.length} 언락`;
-  el.className="unlock-count"+(done>0?" has":"");
-}
-
-function switchTab(name){
-  const names=["quiz","portfolio","ranking","history","stats"];
-  document.querySelectorAll(".tab").forEach((t,i)=>t.classList.toggle("active",names[i]===name));
-  document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
-  document.getElementById("tab-"+name).classList.add("active");
-  if(name==="quiz")backToDashboard();
-}
-
-function openQuiz(ticker){
-  const s=STOCKS.find(x=>x.ticker===ticker);
-  currentTicker=ticker;
-  document.getElementById("view-dashboard").classList.add("hidden");
-  document.getElementById("view-quiz").classList.remove("hidden");
-  document.getElementById("quiz-stock-info").innerHTML=`<div class="qs-sector">${s.sector.toUpperCase()}</div><div class="qs-name">${s.name}</div><div class="qs-ticker">${s.ticker}</div><div class="qs-desc">${s.desc}</div>`;
-  document.getElementById("sim-msg").textContent="";
-}
-
-function simulateComplete(){
-  if(!currentTicker)return;
-  const key="quiz_"+currentTicker;
-  const prev=parseInt(localStorage.getItem(key)||"0");
-  if(prev>=3){document.getElementById("sim-msg").textContent="이미 최대 완료 횟수입니다.";return;}
-  localStorage.setItem(key,prev+1);
-  unlockMap=buildMap();
-  const st=unlockMap[currentTicker];
-  const s=STOCKS.find(x=>x.ticker===currentTicker);
-  const msg=document.getElementById("sim-msg");
-  if(st.unlocked){msg.style.color="var(--accent)";msg.textContent=`🎉 ${s.name} 언락 완료! 모의 투자가 가능해졌습니다.`;}
-  else{msg.style.color="var(--text-muted)";msg.textContent=`완료 ${st.completed}/${st.required}회 — ${st.required-st.completed}회 더 남았습니다.`;}
-}
-
-function backToDashboard(){
-  currentTicker=null;
-  document.getElementById("view-dashboard").classList.remove("hidden");
-  document.getElementById("view-quiz").classList.add("hidden");
-  unlockMap=buildMap();renderCards();updateSummary();
-}
-</script>
 </body>
 </html>
