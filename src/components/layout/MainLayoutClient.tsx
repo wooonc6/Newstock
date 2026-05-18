@@ -1,0 +1,37 @@
+"use client";
+
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import Header from "./Header";
+import NavTabs from "./NavTabs";
+
+export default function MainLayoutClient({ children }: { children: React.ReactNode }) {
+  const { user, loading, signOut } = useAuth();
+  const router = useRouter();
+
+  async function handleLogout() {
+    await signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", color: "var(--text-muted)" }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  const nickname = (user?.user_metadata?.nickname as string) ?? user?.email?.split("@")[0] ?? "유저";
+
+  return (
+    <div style={{ maxWidth: "740px", margin: "0 auto", padding: "24px 18px", position: "relative", zIndex: 1 }}>
+      <Header nickname={nickname} coins={0} streak={0} onLogout={handleLogout} />
+      <NavTabs />
+      {children}
+    </div>
+  );
+}
