@@ -72,10 +72,14 @@ export default function AuthForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ? createClient() : null as any;
 
   async function handleLogin() {
     setError("");
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      setError("Supabase 환경변수가 설정되지 않았습니다. (.env.local 확인)");
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
@@ -89,6 +93,10 @@ export default function AuthForm() {
 
   async function handleSignup() {
     setError("");
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      setError("Supabase 환경변수가 설정되지 않았습니다. (.env.local 확인)");
+      return;
+    }
     if (nickname.trim().length < 2) {
       setError("닉네임은 2자 이상이어야 합니다.");
       return;

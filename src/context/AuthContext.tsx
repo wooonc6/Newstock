@@ -18,13 +18,19 @@ const AuthContext = createContext<AuthContextValue>({
   signOut: async () => {},
 });
 
+const hasSupabase =
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [loading, setLoading] = useState(hasSupabase);
 
   useEffect(() => {
+    if (!hasSupabase) return;
+
+    const supabase = createClient();
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -43,6 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function signOut() {
+    if (!hasSupabase) return;
+    const supabase = createClient();
     await supabase.auth.signOut();
   }
 

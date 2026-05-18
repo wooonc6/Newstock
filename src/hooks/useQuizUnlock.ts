@@ -10,10 +10,11 @@ const QUIZZES_TO_UNLOCK = 3;
 export function useQuizUnlock(userId: string | undefined) {
   const [unlockMap, setUnlockMap] = useState<Record<string, UnlockStatus>>({});
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   const fetchStatus = useCallback(async () => {
-    if (!userId) {
+    const noSupabase = !process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+    if (!userId || noSupabase) {
       const defaultMap: Record<string, UnlockStatus> = {};
       STOCKS.forEach((s) => {
         defaultMap[s.ticker] = {
@@ -28,6 +29,7 @@ export function useQuizUnlock(userId: string | undefined) {
       return;
     }
 
+    const supabase = createClient();
     const { data, error } = await supabase
       .from("quiz_sessions")
       .select("stock_ticker")
