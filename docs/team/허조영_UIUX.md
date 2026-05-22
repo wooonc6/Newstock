@@ -45,3 +45,49 @@ HTML의 CSS 변수 → `src/app/globals.css`에 반영:
 1. 서비스 소개
 2. 3단계 안내: 뉴스 읽기 → 퀴즈 풀기 → 투자하기
 3. 시작하기 버튼
+
+---
+
+## GitHub에 올리는 방법
+
+### 처음 한 번만 — 레포 클론
+
+```bash
+git clone https://github.com/wooonc6/Newstock.git
+cd Newstock
+npm install
+```
+
+### 작업 시작
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feat/design-system
+```
+
+### 작업 후 올리기
+
+```bash
+git add .
+git commit -m "feat: 공통 UI 컴포넌트 추가"
+git push origin feat/design-system
+```
+
+다음 브랜치로 넘어갈 때마다:
+
+```bash
+git checkout dev && git pull origin dev
+git checkout -b feat/stock-card-ui   # 또는 feat/onboarding-ui
+# 작업 후
+git add . && git commit -m "feat: 카드 언락 애니메이션 추가"
+git push origin feat/stock-card-ui
+```
+
+### PR 올리기
+
+1. https://github.com/wooonc6/Newstock 접속
+2. **"Compare & pull request"** 클릭
+3. base 브랜치 → `dev` 확인 후 PR 생성
+
+> ⚠️ `main`에 직접 push 금지

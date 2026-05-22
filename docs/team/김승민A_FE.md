@@ -39,3 +39,49 @@ npm run dev  # 에러 없이 실행되면 완료
 - 내 순위 강조 표시
 
 > 디자인: `reference/design_reference.html` 랭킹 탭 참고
+
+---
+
+## GitHub에 올리는 방법
+
+### 처음 한 번만 — 레포 클론
+
+```bash
+git clone https://github.com/wooonc6/Newstock.git
+cd Newstock
+npm install
+```
+
+### 작업 시작
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feat/stock-price-ui
+```
+
+### 작업 후 올리기
+
+```bash
+git add .
+git commit -m "fix: yahoo-finance2 webpack 빌드 에러 수정"
+git push origin feat/stock-price-ui
+```
+
+다음 브랜치로 넘어갈 때마다:
+
+```bash
+git checkout dev && git pull origin dev
+git checkout -b feat/news-feed-ui   # 또는 feat/ranking-ui
+# 작업 후
+git add . && git commit -m "feat: 퀴즈 뉴스 피드 UI 구현"
+git push origin feat/news-feed-ui
+```
+
+### PR 올리기
+
+1. https://github.com/wooonc6/Newstock 접속
+2. **"Compare & pull request"** 클릭
+3. base 브랜치 → `dev` 확인 후 PR 생성
+
+> ⚠️ `main`에 직접 push 금지

@@ -238,12 +238,52 @@ Week 4   dev 통합 테스트 → main PR
 
 ---
 
-## Git 규칙
+## GitHub에 올리는 방법
 
-- `feat/기능명` → PR → `dev` → PR → `main`
-- `main` 직접 push 금지
-- PR 전 `dev` 최신 pull 받고 충돌 해결 후 올리기
-- 커밋: `feat` / `fix` / `chore` / `style` / `refactor` / `docs`
+### 1. 처음 한 번만 — 레포 클론
+
+```bash
+git clone https://github.com/wooonc6/Newstock.git
+cd Newstock
+npm install
+```
+
+### 2. 작업 시작 — 내 브랜치로 이동
+
+```bash
+# dev 최신 내용 먼저 받기
+git checkout dev
+git pull origin dev
+
+# 내 브랜치로 이동 (없으면 새로 생성됨)
+git checkout -b feat/내브랜치명
+# 이미 있으면: git checkout feat/내브랜치명
+```
+
+### 3. 작업 후 — 저장하고 올리기
+
+```bash
+# 변경된 파일 확인
+git status
+
+# 파일 추가
+git add .
+
+# 커밋 (메시지 규칙: feat/fix/chore/style/refactor/docs)
+git commit -m "feat: 작업한 내용 한 줄 설명"
+
+# 깃허브에 올리기
+git push origin feat/내브랜치명
+```
+
+### 4. PR 올리기 — dev 브랜치로 합치기
+
+1. https://github.com/wooonc6/Newstock 접속
+2. 상단에 뜨는 **"Compare & pull request"** 버튼 클릭
+3. base 브랜치: `dev` 확인 후 PR 생성
+4. 팀원 리뷰 후 머지
+
+> ⚠️ `main`에 직접 push 금지 — 반드시 `dev` 거쳐서 PR로 합칠 것
 
 ---
 

@@ -47,3 +47,49 @@ body: { ticker, type: 'buy' | 'sell', quantity }
 현재 야후 주가 조회 → users.coins 차감/증가
 → portfolio, trades 테이블 업데이트
 ```
+
+---
+
+## GitHub에 올리는 방법
+
+### 처음 한 번만 — 레포 클론
+
+```bash
+git clone https://github.com/wooonc6/Newstock.git
+cd Newstock
+npm install
+```
+
+### 작업 시작
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feat/news-collector
+```
+
+### 작업 후 올리기
+
+```bash
+git add .
+git commit -m "feat: 네이버 뉴스 수집 및 퀴즈 문제 생성 API"
+git push origin feat/news-collector
+```
+
+다음 브랜치로 넘어갈 때마다:
+
+```bash
+git checkout dev && git pull origin dev
+git checkout -b feat/unlock-backend   # 또는 feat/trade-logic
+# 작업 후
+git add . && git commit -m "feat: 퀴즈 채점 및 코인 지급 API"
+git push origin feat/unlock-backend
+```
+
+### PR 올리기
+
+1. https://github.com/wooonc6/Newstock 접속
+2. **"Compare & pull request"** 클릭
+3. base 브랜치 → `dev` 확인 후 PR 생성
+
+> ⚠️ `main`에 직접 push 금지

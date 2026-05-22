@@ -41,3 +41,31 @@
 
 - 매수/매도 거래 API 연결
 - 실시간 야후 주가 기반 수익률 표시
+
+---
+
+## GitHub에 올리는 방법
+
+### 작업 시작
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feat/quiz-unlock   # 또는 feat/page-routing
+```
+
+### 작업 후 올리기
+
+```bash
+git add .
+git commit -m "feat: 헤더 코인/스트릭 DB 연결"
+git push origin feat/quiz-unlock
+```
+
+### PR 올리기
+
+1. https://github.com/wooonc6/Newstock 접속
+2. **"Compare & pull request"** 클릭
+3. base 브랜치 → `dev` 확인 후 PR 생성
+
+> ⚠️ `main`에 직접 push 금지

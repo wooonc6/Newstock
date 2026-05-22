@@ -71,3 +71,49 @@ create table portfolio (
 
 - 회원가입 시 `users` 테이블 자동 생성 트리거
 - 각 테이블 RLS 설정 (본인 데이터만 읽기/쓰기 가능)
+
+---
+
+## GitHub에 올리는 방법
+
+### 처음 한 번만 — 레포 클론
+
+```bash
+git clone https://github.com/wooonc6/Newstock.git
+cd Newstock
+npm install
+```
+
+### 작업 시작
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feat/db-schema
+```
+
+### 작업 후 올리기
+
+```bash
+git add .
+git commit -m "feat: Supabase 테이블 생성"
+git push origin feat/db-schema
+```
+
+두 번째 브랜치:
+
+```bash
+git checkout dev && git pull origin dev
+git checkout -b feat/db-sync
+# 작업 후
+git add . && git commit -m "feat: RLS 및 회원가입 트리거 추가"
+git push origin feat/db-sync
+```
+
+### PR 올리기
+
+1. https://github.com/wooonc6/Newstock 접속
+2. **"Compare & pull request"** 클릭
+3. base 브랜치 → `dev` 확인 후 PR 생성
+
+> ⚠️ `main`에 직접 push 금지
