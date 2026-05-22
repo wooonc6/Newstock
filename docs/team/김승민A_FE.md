@@ -179,6 +179,55 @@ git push origin feat/ranking-ui
 
 ---
 
+## GitHub 브랜치 읽는 법
+
+**https://github.com/wooonc6/Newstock/tree/feat/news-feed-ui** 접속하면 아래처럼 보임.
+
+```
+feat/news-feed-ui ▼   17 Branches
+
+This branch is 28 commits behind main.          ← ① 정상. 의도적인 것
+                                      [Contribute ▼]
+
+wooonc6  feat: 퀴즈 뉴스 피드 UI 구현   🕐 3 Commits   ← ②
+
+📁 src/                feat: 퀴즈 뉴스 피드 UI 구현    last week   ← ③
+📄 .gitignore          Initial commit: Newstock...    2 weeks ago
+```
+
+**① "X commits behind main"**
+→ main에 더 많은 커밋이 있다는 뜻. **문제 아님.** 내 브랜치엔 UI 관련 커밋만 있으면 됨.
+
+**② 커밋 수 + 마지막 커밋 메시지**
+→ 이 브랜치에 총 몇 개 커밋이 있는지, 가장 최근 커밋이 뭔지.
+
+**③ 파일/폴더 목록 + 마지막으로 수정한 커밋**
+→ 각 파일이 어느 커밋에서 바뀌었는지. 내가 커밋하면 여기에 표시됨.
+→ `src` → `app` → `(main)` → `quiz` 폴더로 들어가면 내가 만든 파일 확인 가능.
+
+---
+
+### 이 프로젝트 폴더 구조 (FE 담당 관련)
+
+```
+Newstock/
+├── src/
+│   └── app/
+│       └── (main)/                 ← 로그인 후 보이는 화면들
+│           ├── quiz/
+│           │   └── [stock]/
+│           │       └── page.tsx    ← 내가 만들 파일 (퀴즈 화면 UI)
+│           └── ranking/
+│               └── page.tsx        ← 내가 만들 파일 (랭킹 페이지)
+├── next.config.mjs                 ← 빌드 에러 수정 대상
+└── reference/
+    └── design_reference.html       ← 디자인 참고용 (브라우저로 열기)
+```
+
+> `(main)` 괄호 폴더는 URL에는 안 나타남. `/quiz/삼성전자`, `/ranking` 이런 식으로 접근됨.
+
+---
+
 ### 완료 확인 체크리스트
 
 - [ ] `npm run dev` 에러 없이 실행

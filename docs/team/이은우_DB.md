@@ -231,6 +231,50 @@ git push origin feat/db-sync
 
 ---
 
+## GitHub 브랜치 읽는 법
+
+**https://github.com/wooonc6/Newstock/tree/feat/db-schema** 접속하면 아래처럼 보임.
+
+```
+feat/db-schema ▼   17 Branches
+
+This branch is 28 commits behind main.          ← ① 정상. 의도적인 것
+                                      [Contribute ▼]
+
+wooonc6  feat: Supabase 테이블 생성   🕐 2 Commits   ← ②
+
+📁 docs/db/        feat: Supabase 테이블 생성    last week   ← ③
+📄 .gitignore      Initial commit: Newstock...   2 weeks ago
+```
+
+**① "X commits behind main"**
+→ main에 더 많은 커밋이 있다는 뜻. **문제 아님.** 내 브랜치엔 DB 관련 커밋만 있으면 됨.
+
+**② 커밋 수 + 마지막 커밋 메시지**
+→ 이 브랜치에 총 몇 개 커밋이 있는지, 가장 최근 커밋이 뭔지.
+
+**③ 파일/폴더 목록 + 마지막으로 수정한 커밋**
+→ 각 파일이 어느 커밋에서 바뀌었는지. 내가 커밋하면 여기에 표시됨.
+
+---
+
+### 이 프로젝트 폴더 구조 (DB 담당 관련)
+
+```
+Newstock/
+├── docs/db/               ← SQL 파일 저장 위치 (직접 만들기)
+│   ├── 01_schema.sql          테이블 생성 SQL
+│   └── 02_rls.sql             RLS + 트리거 SQL
+├── src/lib/supabase/
+│   ├── client.ts              브라우저용 Supabase 연결 설정
+│   └── server.ts              서버용 Supabase 연결 설정
+└── .env.local             ← Supabase URL/KEY 입력 (커밋 금지)
+```
+
+> DB 작업 대부분은 Supabase 대시보드에서 직접 실행, SQL 파일은 `docs/db/`에 저장해서 커밋.
+
+---
+
 ### 완료 확인 체크리스트
 
 - [ ] Supabase Table Editor에서 테이블 5개 확인

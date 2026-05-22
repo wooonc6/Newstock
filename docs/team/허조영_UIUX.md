@@ -204,6 +204,60 @@ git push origin feat/onboarding-ui
 
 ---
 
+## GitHub 브랜치 읽는 법
+
+**https://github.com/wooonc6/Newstock/tree/feat/design-system** 접속하면 아래처럼 보임.
+
+```
+feat/design-system ▼   17 Branches
+
+This branch is 28 commits behind main.          ← ① 정상. 의도적인 것
+                                      [Contribute ▼]
+
+wooonc6  feat: 공통 UI 컴포넌트 추가   🕐 3 Commits   ← ②
+
+📁 src/                feat: 공통 UI 컴포넌트 추가      last week   ← ③
+📄 .gitignore          Initial commit: Newstock...    2 weeks ago
+```
+
+**① "X commits behind main"**
+→ main에 더 많은 커밋이 있다는 뜻. **문제 아님.** 내 브랜치엔 UI 관련 커밋만 있으면 됨.
+
+**② 커밋 수 + 마지막 커밋 메시지**
+→ 이 브랜치에 총 몇 개 커밋이 있는지, 가장 최근 커밋이 뭔지.
+
+**③ 파일/폴더 목록 + 마지막으로 수정한 커밋**
+→ 각 파일이 어느 커밋에서 바뀌었는지. 내가 커밋하면 여기에 표시됨.
+→ `src` → `components` → `ui` 폴더로 들어가면 내가 만든 컴포넌트 파일 확인 가능.
+
+---
+
+### 이 프로젝트 폴더 구조 (UI/UX 담당 관련)
+
+```
+Newstock/
+├── src/
+│   ├── app/
+│   │   ├── globals.css             ← CSS 변수 추가 위치 (--accent, --bg 등)
+│   │   └── (main)/
+│   │       └── onboarding/
+│   │           └── page.tsx        ← 내가 만들 파일 (온보딩 화면)
+│   └── components/
+│       ├── ui/                     ← 내가 만들 폴더 + 파일들
+│       │   ├── Button.tsx              공통 버튼
+│       │   ├── Badge.tsx               배지/메달
+│       │   ├── Card.tsx                카드 래퍼
+│       │   └── Toast.tsx               토스트 알림
+│       └── quiz/
+│           └── StockQuizCard.tsx   ← 언락 애니메이션 수정 대상
+└── reference/
+    └── design_reference.html       ← 디자인 참고용 (브라우저로 열기)
+```
+
+> `src/components/ui/`는 없는 폴더라 직접 만들어야 함. VS Code에서 우클릭 → New Folder.
+
+---
+
 ### 완료 확인 체크리스트
 
 - [ ] `globals.css`에 CSS 변수 추가 완료

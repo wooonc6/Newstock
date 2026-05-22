@@ -245,3 +245,59 @@ git push origin feat/page-routing
 5. 제목 입력 후 **"Create pull request"** 클릭
 
 > ⚠️ `main`에 직접 push 금지
+
+---
+
+## GitHub 브랜치 읽는 법
+
+**https://github.com/wooonc6/Newstock/tree/feat/quiz-unlock** 접속하면 아래처럼 보임.
+
+```
+feat/quiz-unlock ▼   17 Branches
+
+This branch is 28 commits behind main.          ← ① 정상. 의도적인 것
+                                      [Contribute ▼]
+
+wooonc6 and claude  feat: 종목별 퀴즈 언락 UI 구현   🕐 3 Commits   ← ②
+
+📁 src/                feat: 종목별 퀴즈 언락 UI 구현   last week   ← ③
+📄 .gitignore          Initial commit: Newstock...    2 weeks ago
+```
+
+**① "X commits behind main"**
+→ main에 더 많은 커밋이 있다는 뜻. **문제 아님.** 이 브랜치엔 퀴즈 언락 관련 커밋만 있으면 됨.
+→ 추가 작업(헤더 DB 연결 등) 커밋하면 숫자가 줄어들거나, PR 올리면 해소됨.
+
+**② 커밋 수 + 마지막 커밋 메시지**
+→ 이 브랜치에 총 몇 개 커밋이 있는지, 가장 최근 커밋이 뭔지.
+
+**③ 파일/폴더 목록 + 마지막으로 수정한 커밋**
+→ 각 파일이 어느 커밋에서 바뀌었는지.
+→ `src` → `components` → `layout` → `Header.tsx` 클릭하면 현재 코드 바로 확인 가능.
+
+---
+
+### 이 프로젝트 폴더 구조 (PM/FE 담당 관련)
+
+```
+Newstock/
+└── src/
+    ├── app/
+    │   ├── (auth)/
+    │   │   └── login/page.tsx          → /login 페이지 (완료)
+    │   └── (main)/
+    │       ├── dashboard/
+    │       │   ├── page.tsx            → /dashboard (완료)
+    │       │   └── DashboardClient.tsx → 퀴즈 언락 UI (완료)
+    │       ├── quiz/[stock]/page.tsx   → /quiz/삼성전자 등 (연결 작업 필요)
+    │       └── portfolio/page.tsx      → /portfolio (거래 API 연결 필요)
+    ├── components/
+    │   ├── layout/
+    │   │   ├── Header.tsx              → 헤더 (DB 연결 필요)
+    │   │   └── NavTabs.tsx             → 하단 탭바 (완료)
+    │   └── quiz/
+    │       └── StockQuizCard.tsx       → 종목 카드 (완료)
+    ├── context/AuthContext.tsx         → 로그인 상태 전역 관리 (완료)
+    ├── hooks/useQuizUnlock.ts          → 언락 상태 조회 훅 (완료)
+    └── middleware.ts                   → 비로그인 차단 (완료)
+```
