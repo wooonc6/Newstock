@@ -1,341 +1,259 @@
-# Newstock 팀 개발 가이드
+# Newstock 팀 가이드
 
 > 뉴스를 읽고 주가 등락을 예측하며 모의 투자를 배우는 학습 게임 서비스
 
 ---
 
-## 디자인 레퍼런스 파일
-
-**`reference/design_reference.html`** — 전체 UI가 완성된 HTML 파일이 있습니다.
-
-브라우저에서 바로 열어서 확인 가능:
-- 로그인 / 퀴즈 / 모의투자 / 랭킹 / 기록 / 통계 화면 전부 구현됨
-- 다크 테마, 색상 변수, 컴포넌트 스타일 모두 참고 가능
-- **각자 담당 화면을 이 HTML 보고 React 컴포넌트로 변환하면 됩니다**
-
-> ⚠️ HTML의 퀴즈 로직(Claude API 사용)과 주가(랜덤 시뮬레이션)는 우리 방식과 다름 — 아래 참고
-
----
-
-## 서비스 핵심 플로우
+## 서비스 플로우
 
 ```
-과거 뉴스 기사 (1/3/6개월 전 종목 관련 뉴스)
-        ↓
-  "이 뉴스 이후 주가가 올랐을까요, 내렸을까요?"
-        ↓
-    정답 맞히면 해당 종목 투자 권한 해제
-        ↓
-  실시간 야후 주가로 모의 투자 시작
-        ↓
-    포트폴리오 수익률로 랭킹 경쟁
+과거 뉴스 (1/3/6개월 전) → "이 뉴스 이후 주가가 올랐을까요?" → 정답 맞히면 투자 권한 해제
+→ 실시간 야후 주가로 모의투자 → 수익률로 랭킹 경쟁
 ```
 
----
-
-## 퀴즈 방식 상세
-
-### 핵심 아이디어
-- 1개월 전 / 3개월 전 / 6개월 전에 실제로 해당 종목 주가에 직접적 영향을 준 뉴스 기사를 보여줌
-- 야후 파이낸스에서 뉴스 발생일 기준 주가 변동 데이터를 가져와서 정답으로 활용
-- 사용자는 "주가 상승" / "주가 하락" 중 하나를 선택
-- **Claude API 불필요** — 뉴스 + 야후 주가 데이터만으로 문제 구성 가능
-
-### 문제 구성 예시
-```
-[뉴스] 삼성전자, HBM 납품 계약 체결 (2024년 11월)
-
-이 뉴스가 발표된 다음 날 삼성전자 주가는?
-  ① 상승했다   ② 하락했다
-
-정답: ① 상승 (+3.2%, 78,400원 → 80,900원)
-```
-
-### 야후 파이낸스 연동 방식
-- `yahoo-finance2` 라이브러리로 과거 주가 조회 가능
-- 뉴스 발생일 D, 그 다음날 D+1 종가 비교 → 상승/하락 판정
-- 종목별 3문제 풀면 해당 종목 모의투자 해제
+- 퀴즈: 뉴스 발생일 D vs D+1 야후 종가 비교 → 상승/하락 자동 판정 (Claude API 불필요)
+- 주가: yahoo-finance2 실시간 연동 (이미 구현됨)
+- 뉴스: 네이버 뉴스 API
 
 ---
 
-## 모의 투자 방식
+## 디자인 레퍼런스
 
-### 퀴즈 통과 후 활성화
-- 종목별 퀴즈 3문제 모두 통과 → 해당 종목 투자 권한 해제
-- 실시간 야후 주가 데이터로 매수 / 매도 가능
-- 초기 시드 머니: 모든 사용자 동일 (1,000,000 코인 / 코인 1개 = ₩1,000)
-
-### 수익률 계산
-- 매수 시점 주가 vs 현재 주가로 실시간 수익률 표시
-- 포트폴리오 전체 수익률 = 랭킹 기준
+`reference/design_reference.html` — 브라우저로 열면 전체 UI 확인 가능  
+담당 화면 CSS/구조를 보고 `.tsx` 컴포넌트로 변환해서 `feat/*` 브랜치에 작업
 
 ---
 
-## 랭킹 시스템
-- 전체 사용자 포트폴리오 수익률 순위
-- 주간 / 전체 기간 랭킹 분리
-- 상위 랭커 메달 표시 (🥇🥈🥉)
-
----
-
-## 기술 스택
-
-| 영역 | 기술 |
-|------|------|
-| FE | Next.js 14 (TypeScript) + Tailwind CSS |
-| BE | Next.js API Routes |
-| DB | Supabase (PostgreSQL) |
-| 인증 | Supabase Auth |
-| 주가 데이터 | Yahoo Finance API (yahoo-finance2) |
-| 뉴스 데이터 | 네이버 뉴스 API |
-| 호스팅 | Vercel |
-
----
-
-## 현재 구현 완료된 것
+## 현재 완료된 것
 
 | 기능 | 상태 |
 |------|------|
-| 로그인 / 회원가입 | ✅ 완료 |
-| 페이지 라우팅 전체 | ✅ 완료 |
-| 실시간 주가 조회 API | ✅ 완료 |
-| 대시보드 (종목 카드 목록) | ✅ 완료 |
-| 퀴즈 언락 UI | ✅ 완료 |
-| 헤더 / 네비게이션 | ✅ 완료 |
-
----
-
-## Supabase 테이블 SQL
-
-> Supabase 대시보드 → SQL Editor에 붙여넣기
-
-```sql
--- 사용자 정보
-CREATE TABLE users (
-  local_id  TEXT PRIMARY KEY,
-  username  TEXT,
-  coins     INT  DEFAULT 1000000,
-  streak    INT  DEFAULT 0,
-  sessions  INT  DEFAULT 0,
-  last_date TEXT,
-  tag_stats JSONB DEFAULT '{}',
-  portfolio JSONB DEFAULT '{}',
-  history   JSONB DEFAULT '[]'
-);
-
--- 퀴즈 문제 (뉴스 + 야후 주가 정답)
-CREATE TABLE quiz_questions (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  stock_ticker TEXT,
-  news_title   TEXT,
-  news_url     TEXT,
-  news_date    DATE,
-  price_before NUMERIC,
-  price_after  NUMERIC,
-  answer       TEXT CHECK (answer IN ('up', 'down')),
-  created_at   TIMESTAMPTZ DEFAULT now()
-);
-
--- 퀴즈 세션 기록
-CREATE TABLE quiz_sessions (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_local_id TEXT,
-  news_snippet  TEXT,
-  score         INT,
-  total_q       INT,
-  pct           INT,
-  coins_earned  INT,
-  played_at     TIMESTAMPTZ DEFAULT now()
-);
-
--- 퀴즈 문항별 답안
-CREATE TABLE quiz_answers (
-  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id UUID,
-  tag        TEXT,
-  is_correct BOOLEAN
-);
-
--- 거래 기록
-CREATE TABLE trades (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_local_id TEXT,
-  ticker        TEXT,
-  stock_name    TEXT,
-  trade_type    TEXT CHECK (trade_type IN ('buy', 'sell')),
-  quantity      NUMERIC,
-  price         NUMERIC,
-  coins_delta   INT,
-  traded_at     TIMESTAMPTZ DEFAULT now()
-);
-
--- 포트폴리오
-CREATE TABLE portfolio (
-  user_local_id TEXT,
-  ticker        TEXT,
-  stock_name    TEXT,
-  quantity      NUMERIC,
-  avg_cost      NUMERIC,
-  updated_at    TIMESTAMPTZ,
-  PRIMARY KEY (user_local_id, ticker)
-);
-```
+| 로그인 / 회원가입 | ✅ |
+| 페이지 라우팅 전체 | ✅ |
+| 실시간 야후 주가 API | ✅ |
+| 대시보드 + 퀴즈 언락 UI | ✅ |
+| 헤더 / 네비게이션 | ✅ |
 
 ---
 
 ## 팀원별 할 일
 
-### 이은우 (DB) — `feat/db-schema` `feat/db-sync`
-> ⚡ 다른 모든 기능이 DB에 의존하므로 가장 먼저 완료 필요
+---
 
-**`feat/db-schema`**
-- 위 SQL을 Supabase에 실행해서 테이블 생성
-- RLS (Row Level Security) 설정 — 본인 데이터만 읽기/쓰기 가능하도록
+### 이은우 (DB)
+**브랜치: `feat/db-schema` → `feat/db-sync`**
 
-**`feat/db-sync`**
+> ⚡ 다른 기능 전부 DB에 의존 — 가장 먼저 완료 필요
+
+**1. Supabase 테이블 생성** (`feat/db-schema`)
+
+Supabase 대시보드 → SQL Editor에 아래 SQL 실행:
+
+```sql
+create table users (
+  local_id  text primary key,
+  username  text,
+  coins     int  default 1000000,
+  streak    int  default 0,
+  sessions  int  default 0,
+  last_date text,
+  portfolio jsonb default '{}',
+  history   jsonb default '[]'
+);
+
+create table quiz_questions (
+  id           uuid primary key default gen_random_uuid(),
+  stock_ticker text,
+  news_title   text,
+  news_url     text,
+  news_date    date,
+  price_before numeric,
+  price_after  numeric,
+  answer       text check (answer in ('up', 'down')),
+  created_at   timestamptz default now()
+);
+
+create table quiz_sessions (
+  id            uuid primary key default gen_random_uuid(),
+  user_local_id text,
+  stock_ticker  text,
+  score         int,
+  total_q       int,
+  coins_earned  int,
+  played_at     timestamptz default now()
+);
+
+create table trades (
+  id            uuid primary key default gen_random_uuid(),
+  user_local_id text,
+  ticker        text,
+  trade_type    text check (trade_type in ('buy', 'sell')),
+  quantity      numeric,
+  price         numeric,
+  coins_delta   int,
+  traded_at     timestamptz default now()
+);
+
+create table portfolio (
+  user_local_id text,
+  ticker        text,
+  quantity      numeric,
+  avg_cost      numeric,
+  updated_at    timestamptz,
+  primary key (user_local_id, ticker)
+);
+```
+
+**2. 인증 연동** (`feat/db-sync`)
 - 회원가입 시 `users` 테이블 자동 생성 트리거
-- Next.js `AuthContext.tsx`의 Supabase 인증과 연동 확인
+- 각 테이블 RLS 설정 (본인 데이터만 읽기/쓰기)
 
 ---
 
-### 김성준 (Backend) — `feat/news-collector` `feat/trade-logic` `feat/unlock-backend`
+### 김성준 (Backend)
+**브랜치: `feat/news-collector` → `feat/unlock-backend` → `feat/trade-logic`**
 
-**`feat/news-collector` — 뉴스 수집 + 퀴즈 문제 생성**
+**1. 뉴스 수집 + 퀴즈 문제 생성** (`feat/news-collector`)
 
 ```
 GET /api/news/collect?ticker=005930.KS&period=1m
-  1. 네이버 뉴스 API로 1개월 전 해당 종목 뉴스 수집
-  2. yahoo-finance2로 뉴스 발생일(D)과 다음날(D+1) 주가 조회
-  3. price_before vs price_after → answer = 'up' or 'down' 자동 판정
-  4. quiz_questions 테이블에 저장
+
+흐름:
+네이버 뉴스 API → 1개월 전 종목 관련 뉴스 수집
+→ yahoo-finance2로 뉴스 날짜(D), 다음날(D+1) 종가 조회
+→ price_before vs price_after 비교 → answer = 'up' | 'down' 자동 판정
+→ quiz_questions 테이블 저장
 ```
 
-**`feat/unlock-backend` — 퀴즈 채점 + 코인 지급**
+**2. 퀴즈 채점 + 코인 지급** (`feat/unlock-backend`)
 
 ```
 POST /api/quiz/submit
-  body: { question_id, user_answer: 'up' | 'down' }
-  → 정답 확인 후 quiz_sessions 저장
-  → 해당 종목 3문제 통과 시 포트폴리오 접근 권한 부여
-  → 정답 시 users.coins 증가
+body: { question_id, user_answer: 'up' | 'down' }
+
+흐름:
+정답 확인 → quiz_sessions 저장
+→ 해당 종목 3문제 통과 시 투자 권한 해제
+→ 정답 시 users.coins 증가
 ```
 
-**`feat/trade-logic` — 매수/매도**
+**3. 매수/매도 처리** (`feat/trade-logic`)
 
 ```
 POST /api/trade
-  body: { ticker, type: 'buy' | 'sell', quantity }
-  → 현재 야후 주가 조회
-  → users.coins 차감/증가
-  → portfolio, trades 테이블 업데이트
+body: { ticker, type: 'buy' | 'sell', quantity }
+
+흐름:
+현재 야후 주가 조회 → users.coins 차감/증가
+→ portfolio, trades 테이블 업데이트
 ```
 
 ---
 
-### 김승민A (API/FE) — `feat/news-feed-ui` `feat/stock-price-ui` `feat/ranking-ui`
+### 김승민A (API/FE)
+**브랜치: `feat/stock-price-ui` → `feat/news-feed-ui` → `feat/ranking-ui`**
 
-**`feat/stock-price-ui` — 빌드 에러 수정 (우선순위 1)**
-- `next.config.mjs` webpack 설정 — yahoo-finance2 Deno 의존성 에러 해결 중
+**1. 빌드 에러 수정** (`feat/stock-price-ui`) — 우선순위 1
 
-**`feat/news-feed-ui` — 퀴즈 화면 UI**
+`next.config.mjs` webpack 설정 수정  
+현재 `yahoo-finance2` Deno 의존성 에러 발생 중 → 해결 후 `npm run dev` 정상 확인
 
-`src/app/(main)/quiz/[stock]/page.tsx` 구현:
+**2. 퀴즈 화면 UI** (`feat/news-feed-ui`)
+
+`src/app/(main)/quiz/[stock]/page.tsx`
 - 뉴스 기사 제목 / 날짜 표시
-- "주가 상승" / "주가 하락" 선택 버튼 2개
-- 정답 후 실제 주가 변동 결과 애니메이션 표시
+- "주가 상승" / "주가 하락" 버튼 2개
+- 정답 후 실제 주가 변동 결과 표시
 
-> UI 참고: `reference/design_reference.html` 퀴즈 탭
+> 디자인: `reference/design_reference.html` 퀴즈 탭 참고
 
-**`feat/ranking-ui` — 랭킹 페이지**
+**3. 랭킹 페이지** (`feat/ranking-ui`)
 
-`src/app/(main)/ranking/page.tsx` 구현:
+`src/app/(main)/ranking/page.tsx`
 - 포트폴리오 수익률 기준 전체 순위
-- 주간 / 전체 탭 전환
-- 1~3위 메달 강조
+- 1~3위 🥇🥈🥉 메달 표시
+- 내 순위 강조
 
-> UI 참고: `reference/design_reference.html` 랭킹 탭
+> 디자인: `reference/design_reference.html` 랭킹 탭 참고
 
 ---
 
-### 허조영 (UI/UX) — `feat/design-system` `feat/stock-card-ui` `feat/onboarding-ui`
+### 허조영 (UI/UX)
+**브랜치: `feat/design-system` → `feat/stock-card-ui` → `feat/onboarding-ui`**
 
-> 🎨 `reference/design_reference.html`을 브라우저로 열면 전체 디자인 확인 가능
+> 🎨 `reference/design_reference.html` 브라우저로 열어서 각 화면 확인 후 React로 변환
 
-**`feat/design-system` — 공통 컴포넌트**
+**1. 공통 컴포넌트** (`feat/design-system`)
 
 `src/components/ui/` 폴더에 생성:
-- `Button.tsx` — primary / outline / danger 변형
+- `Button.tsx` — primary / outline / danger
 - `Badge.tsx` — 섹터 배지, 랭킹 메달
 - `Card.tsx` — 공통 카드 래퍼
-- `Toast.tsx` — 토스트 알림 (HTML의 showToast 참고)
+- `Toast.tsx` — 토스트 알림
 
-HTML의 CSS 변수 (`--accent`, `--bg`, `--surface` 등)를 `globals.css`에 반영
+HTML의 CSS 변수 (`--accent`, `--bg`, `--surface` 등) → `globals.css`에 반영
 
-**`feat/stock-card-ui` — StockQuizCard 개선**
-- 퀴즈 완료 시 잠금 해제 애니메이션
-- 모바일 반응형 레이아웃
+**2. 카드 UI 개선** (`feat/stock-card-ui`)
+- 퀴즈 통과 시 잠금 해제 애니메이션
+- 모바일 반응형 점검
 
-**`feat/onboarding-ui` — 온보딩 화면**
-- 첫 로그인 시 3단계 안내: 뉴스 읽기 → 퀴즈 풀기 → 투자하기
-- HTML의 웰컴 토스트 참고
+**3. 온보딩 화면** (`feat/onboarding-ui`)
+
+첫 로그인 시 표시:
+1. 서비스 소개
+2. 뉴스 읽기 → 퀴즈 풀기 → 투자하기 3단계 안내
 
 ---
 
-### 최원준 (PM/FE) — `feat/quiz-unlock` `feat/page-routing`
+### 최원준 (PM/FE)
+**브랜치: `feat/quiz-unlock` → `feat/page-routing`**
 
-**완료된 작업** — 로그인/회원가입, 미들웨어, 라우팅, 대시보드 카드
+> 로그인/회원가입, 미들웨어, 라우팅은 이미 완료
 
-**남은 작업**
+**1. 헤더 DB 연결** (이은우 완료 후)
 
-1. `next.config.mjs` 빌드 에러 수정 (김승민A와 협의)
-2. `Header.tsx` — coins, streak를 `users` 테이블에서 실제로 불러오기 (이은우 DB 완료 후)
-3. `quiz/[stock]/page.tsx` — 퀴즈 화면 연결 (김성준 API 완료 후)
-4. `portfolio/page.tsx` — 모의투자 화면 완성 (김성준 trade-logic 완료 후)
+`src/components/layout/Header.tsx`  
+코인 수, 스트릭 → `users` 테이블에서 실제 값 불러오도록 수정
+
+**2. 퀴즈 화면 연결** (김성준 완료 후)
+
+`src/app/(main)/quiz/[stock]/page.tsx`  
+김성준 뉴스 API + 채점 API 연결
+
+**3. 포트폴리오 화면 완성** (김성준 완료 후)
+
+`src/app/(main)/portfolio/page.tsx`  
+매수/매도 거래 API 연결 + 실시간 수익률 표시
 
 ---
 
 ## 개발 순서
 
 ```
-Week 1
-  이은우: Supabase 테이블 생성 → dev 머지
-  김승민A: 빌드 에러 수정
-
-Week 2
-  김성준: 뉴스 수집 API + 퀴즈 채점 API
-  허조영: 공통 컴포넌트 + 퀴즈/랭킹 UI 참고 구현
-
-Week 3
-  최원준: 퀴즈 화면 + 포트폴리오 화면 연결
-  김승민A: 뉴스 피드 UI + 랭킹 페이지
-
-Week 4
-  전체: dev 브랜치 통합 테스트 → main PR
+Week 1   이은우 DB 생성 + 김승민A 빌드 에러 수정
+Week 2   김성준 뉴스/채점 API + 허조영 공통 컴포넌트
+Week 3   최원준 화면 연결 + 김승민A 퀴즈/랭킹 UI
+Week 4   dev 통합 테스트 → main PR
 ```
 
 ---
 
 ## Git 규칙
 
-```
-feat/기능명 → PR → dev → PR → main
-```
-
+- `feat/기능명` → PR → `dev` → PR → `main`
 - `main` 직접 push 금지
-- PR 전 반드시 `dev` 최신 pull 받고 충돌 해결 후 올리기
-- 커밋 컨벤션: `feat` / `fix` / `chore` / `style` / `refactor` / `docs`
+- PR 전 `dev` 최신 pull 받고 충돌 해결 후 올리기
+- 커밋: `feat` / `fix` / `chore` / `style` / `refactor` / `docs`
 
 ---
 
 ## 환경 변수
 
-`.env.example` 복사해서 `.env.local` 만들고 키 입력
+`.env.example` 복사 → `.env.local` 만들고 키 입력 (절대 커밋 금지)
 
-```bash
+```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NAVER_CLIENT_ID=
 NAVER_CLIENT_SECRET=
 ```
-
-> `.env.local`은 절대 커밋하지 말 것
