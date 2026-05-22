@@ -1,6 +1,12 @@
 # 김승민A — API/FE 담당
 
-**브랜치: `feat/stock-price-ui` → `feat/news-feed-ui` → `feat/ranking-ui`**
+## 담당 브랜치
+
+| 브랜치 | 작업 내용 | 순서 |
+|--------|----------|------|
+| `feat/stock-price-ui` | yahoo-finance2 빌드 에러 수정 | 1번 ⚡ |
+| `feat/news-feed-ui` | 퀴즈 화면 뉴스 피드 UI | 2번 |
+| `feat/ranking-ui` | 랭킹 페이지 구현 | 3번 |
 
 ---
 

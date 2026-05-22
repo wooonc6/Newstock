@@ -1,6 +1,12 @@
 # 김성준 — Backend 담당
 
-**브랜치: `feat/news-collector` → `feat/unlock-backend` → `feat/trade-logic`**
+## 담당 브랜치
+
+| 브랜치 | 작업 내용 | 순서 |
+|--------|----------|------|
+| `feat/news-collector` | 네이버 뉴스 수집 + 퀴즈 문제 생성 API | 1번 |
+| `feat/unlock-backend` | 퀴즈 채점 + 코인 지급 | 2번 |
+| `feat/trade-logic` | 매수/매도 처리 | 3번 |
 
 ---
 

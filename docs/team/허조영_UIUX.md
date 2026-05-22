@@ -1,6 +1,12 @@
 # 허조영 — UI/UX 담당
 
-**브랜치: `feat/design-system` → `feat/stock-card-ui` → `feat/onboarding-ui`**
+## 담당 브랜치
+
+| 브랜치 | 작업 내용 | 순서 |
+|--------|----------|------|
+| `feat/design-system` | 공통 UI 컴포넌트 제작 | 1번 |
+| `feat/stock-card-ui` | 종목 카드 UI 개선 | 2번 |
+| `feat/onboarding-ui` | 온보딩 화면 | 3번 |
 
 > 🎨 `reference/design_reference.html` 브라우저로 열면 전체 디자인 확인 가능  
 > 담당 화면 CSS/구조 보고 `.tsx` 컴포넌트로 변환하면 됩니다

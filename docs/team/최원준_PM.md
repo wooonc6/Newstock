@@ -1,6 +1,12 @@
 # 최원준 — PM/FE 담당
 
-**브랜치: `feat/quiz-unlock` → `feat/page-routing`**
+## 담당 브랜치
+
+| 브랜치 | 작업 내용 | 순서 |
+|--------|----------|------|
+| `feat/auth-flow` | 로그인/회원가입 | ✅ 완료 |
+| `feat/quiz-unlock` | 헤더 DB 연결 + 퀴즈 화면 연결 | 진행 중 |
+| `feat/page-routing` | 포트폴리오 화면 완성 | 이후 |
 
 ---
 
