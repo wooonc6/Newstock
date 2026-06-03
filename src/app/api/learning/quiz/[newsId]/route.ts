@@ -26,7 +26,7 @@ async function getStockChanges(ticker: string, baseDate: string) {
   const mapped = periods.map(({ label, months }) => {
     const target = new Date(base);
     target.setMonth(target.getMonth() + months);
-    const row = result.find(r => {
+    const row = result.find((r: any) => {
       const d = new Date(r.date);
       return d.getFullYear() === target.getFullYear() && d.getMonth() === target.getMonth();
     });
