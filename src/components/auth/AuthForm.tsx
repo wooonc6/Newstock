@@ -135,39 +135,18 @@ export default function AuthForm() {
       setError("이메일을 입력해 주세요.");
       return;
     }
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      setError("Supabase 환경변수가 없습니다.");
-      return;
-    }
-
-    // 디버그: 값 확인
-    setError(`URL: ${supabaseUrl.slice(0, 45)} | KEY starts: ${supabaseKey.slice(0, 15)} | KEY len: ${supabaseKey.length}`);
-    return;
-
     setLoading(true);
     try {
-      const res = await fetch(`${supabaseUrl}/auth/v1/recover`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": supabaseKey as string,
-          "Authorization": `Bearer ${supabaseKey as string}`,
-        },
-        body: JSON.stringify({ email }),
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
       setLoading(false);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(`오류(${res.status}): ${data?.msg ?? data?.error ?? "알 수 없는 오류"}`);
+      if (error) {
+        setError("이메일 전송에 실패했습니다. 다시 시도해 주세요.");
         return;
       }
       setMessage("비밀번호 재설정 링크를 이메일로 보냈습니다. 이메일을 확인해 주세요.");
     } catch (e: any) {
       setLoading(false);
-      setError(`fetch 오류: ${e?.message ?? String(e)} | URL: ${supabaseUrl?.slice(0, 40)}`);
+      setError("이메일 전송에 실패했습니다. 다시 시도해 주세요.");
     }
   }
 
