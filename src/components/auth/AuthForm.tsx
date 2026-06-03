@@ -131,22 +131,23 @@ export default function AuthForm() {
   async function handleForgot() {
     setError("");
     setMessage("");
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      setError("Supabase 환경변수가 설정되지 않았습니다. (.env.local 확인)");
-      return;
-    }
     if (!email) {
       setError("이메일을 입력해 주세요.");
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    setLoading(false);
-    if (error) {
-      setError("이메일 전송에 실패했습니다. 다시 시도해 주세요.");
-      return;
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      setLoading(false);
+      if (error) {
+        setError(`오류: ${error.message}`);
+        return;
+      }
+      setMessage("비밀번호 재설정 링크를 이메일로 보냈습니다. 이메일을 확인해 주세요.");
+    } catch (e: any) {
+      setLoading(false);
+      setError(`오류: ${e?.message ?? String(e)}`);
     }
-    setMessage("비밀번호 재설정 링크를 이메일로 보냈습니다. 이메일을 확인해 주세요.");
   }
 
   function onKey(e: React.KeyboardEvent) {
