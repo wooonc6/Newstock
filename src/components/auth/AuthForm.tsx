@@ -153,8 +153,8 @@ export default function AuthForm() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": supabaseKey,
-          "Authorization": `Bearer ${supabaseKey}`,
+          "apikey": supabaseKey as string,
+          "Authorization": `Bearer ${supabaseKey as string}`,
         },
         body: JSON.stringify({ email }),
       });
