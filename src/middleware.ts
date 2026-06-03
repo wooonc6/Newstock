@@ -32,7 +32,9 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthPage = request.nextUrl.pathname.startsWith("/login");
+  const isAuthPage =
+    request.nextUrl.pathname.startsWith("/login") ||
+    request.nextUrl.pathname.startsWith("/reset-password");
   const isProtected = !isAuthPage && request.nextUrl.pathname !== "/";
 
   if (!user && isProtected) {
