@@ -1,6 +1,10 @@
-import { getStock } from "@/lib/stocks";
+import { getStock, STOCKS } from "@/lib/stocks";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+
+export function generateStaticParams() {
+  return STOCKS.map((s) => ({ stock: encodeURIComponent(s.ticker) }));
+}
 
 interface Props {
   params: { stock: string };
