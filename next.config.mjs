@@ -7,10 +7,14 @@ const nextConfig = {
     basePath: "/Newstock",
     images: { unoptimized: true },
   }),
-  experimental: {
-    serverComponentsExternalPackages: ["yahoo-finance2"],
-  },
-  webpack: (config, { webpack }) => {
+  serverExternalPackages: ["yahoo-finance2"],
+  webpack: (config, { webpack, isServer }) => {
+    if (isServer) {
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : []),
+        "yahoo-finance2",
+      ];
+    }
     config.plugins.push(
       new webpack.IgnorePlugin({
         resourceRegExp: /^@std\/testing/,

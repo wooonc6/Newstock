@@ -14,7 +14,7 @@ async function getStockChanges(ticker: string, baseDate: string) {
   endDate.setMonth(endDate.getMonth() + 6);
   endDate.setDate(endDate.getDate() + 5);
 
-  const result = await yahooFinance.historical(ticker, {
+  const result = await (yahooFinance as any).historical(ticker, {
     period1: base.toISOString().split('T')[0],
     period2: endDate.toISOString().split('T')[0],
     interval: '1mo',
