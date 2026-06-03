@@ -6,7 +6,7 @@ export async function GET(_req: NextRequest, { params }: { params: { ticker: str
   try {
     const { default: yahooFinance } = await import("yahoo-finance2");
 
-    const quote = await yahooFinance.quote(ticker, {
+    const quote = await (yahooFinance as any).quote(ticker, {
       fields: [
         "regularMarketPrice",
         "regularMarketChange",
