@@ -137,7 +137,9 @@ export default function AuthForm() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "https://newstock-xi.vercel.app/reset-password",
+      });
       setLoading(false);
       if (error) {
         setError("이메일 전송에 실패했습니다. 다시 시도해 주세요.");
