@@ -143,6 +143,10 @@ export default function AuthForm() {
       return;
     }
 
+    // 디버그: 값 확인
+    setError(`URL: ${supabaseUrl.slice(0, 45)} | KEY starts: ${supabaseKey.slice(0, 15)} | KEY len: ${supabaseKey.length}`);
+    return;
+
     setLoading(true);
     try {
       const res = await fetch(`${supabaseUrl}/auth/v1/recover`, {
