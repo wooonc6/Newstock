@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "login" | "signup";
+type Mode = "login" | "signup" | "forgot";
 
 const s = {
   card: {
@@ -70,9 +70,16 @@ export default function AuthForm() {
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ? createClient() : null as any;
+
+  function reset(nextMode: Mode) {
+    setMode(nextMode);
+    setError("");
+    setMessage("");
+  }
 
   async function handleLogin() {
     setError("");
@@ -118,11 +125,38 @@ export default function AuthForm() {
     }
     setError("");
     alert("가입 확인 이메일을 보냈습니다. 이메일을 확인해 주세요.");
-    setMode("login");
+    reset("login");
+  }
+
+  async function handleForgot() {
+    setError("");
+    setMessage("");
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      setError("Supabase 환경변수가 설정되지 않았습니다. (.env.local 확인)");
+      return;
+    }
+    if (!email) {
+      setError("이메일을 입력해 주세요.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      setError("이메일 전송에 실패했습니다. 다시 시도해 주세요.");
+      return;
+    }
+    setMessage("비밀번호 재설정 링크를 이메일로 보냈습니다. 이메일을 확인해 주세요.");
   }
 
   function onKey(e: React.KeyboardEvent) {
-    if (e.key === "Enter") mode === "login" ? handleLogin() : handleSignup();
+    if (e.key === "Enter") {
+      if (mode === "login") handleLogin();
+      else if (mode === "signup") handleSignup();
+      else handleForgot();
+    }
   }
 
   return (
@@ -130,7 +164,7 @@ export default function AuthForm() {
       <div style={s.logo}>Newstock</div>
       <div style={s.sub}>뉴스로 배우는 투자 교육 플랫폼</div>
 
-      {mode === "login" ? (
+      {mode === "login" && (
         <>
           <label style={s.label}>이메일</label>
           <input
@@ -152,18 +186,25 @@ export default function AuthForm() {
             onKeyDown={onKey}
             autoComplete="current-password"
           />
+          <div style={{ textAlign: "right", marginTop: "-8px", marginBottom: "10px" }}>
+            <span style={{ ...s.link, fontSize: "12px" }} onClick={() => reset("forgot")}>
+              비밀번호를 잊으셨나요?
+            </span>
+          </div>
           <div style={s.err}>{error}</div>
           <button style={s.btn} onClick={handleLogin} disabled={loading}>
             {loading ? "로그인 중..." : "시작하기 →"}
           </button>
           <div style={s.toggle}>
             처음이신가요?{" "}
-            <span style={s.link} onClick={() => { setMode("signup"); setError(""); }}>
+            <span style={s.link} onClick={() => reset("signup")}>
               회원가입
             </span>
           </div>
         </>
-      ) : (
+      )}
+
+      {mode === "signup" && (
         <>
           <label style={s.label}>닉네임</label>
           <input
@@ -200,7 +241,39 @@ export default function AuthForm() {
             {loading ? "가입 중..." : "가입하고 시작 →"}
           </button>
           <div style={s.toggle}>
-            <span style={s.link} onClick={() => { setMode("login"); setError(""); }}>
+            <span style={s.link} onClick={() => reset("login")}>
+              ← 로그인으로 돌아가기
+            </span>
+          </div>
+        </>
+      )}
+
+      {mode === "forgot" && (
+        <>
+          <div style={{ fontSize: "13px", color: "var(--text-dim)", marginBottom: "20px" }}>
+            가입한 이메일을 입력하면 비밀번호 재설정 링크를 보내드려요.
+          </div>
+          <label style={s.label}>이메일</label>
+          <input
+            style={s.input}
+            type="email"
+            placeholder="이메일"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={onKey}
+            autoComplete="email"
+          />
+          <div style={s.err}>{error}</div>
+          {message && (
+            <div style={{ fontSize: "12px", color: "var(--accent)", marginBottom: "10px" }}>
+              {message}
+            </div>
+          )}
+          <button style={s.btn} onClick={handleForgot} disabled={loading || !!message}>
+            {loading ? "전송 중..." : "재설정 링크 보내기"}
+          </button>
+          <div style={s.toggle}>
+            <span style={s.link} onClick={() => reset("login")}>
               ← 로그인으로 돌아가기
             </span>
           </div>

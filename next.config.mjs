@@ -14,6 +14,9 @@ const nextConfig = {
     config.plugins.push(
       new webpack.IgnorePlugin({
         resourceRegExp: /^@std\/testing/,
+      }),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^@gadicc\/fetch-mock-cache/,
       })
     );
     return config;
