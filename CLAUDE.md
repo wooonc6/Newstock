@@ -17,7 +17,7 @@
 | 인증 | Supabase Auth |
 | 주가 데이터 | Yahoo Finance API (yahoo-finance2) — 국내 종목 전용 |
 | AI | Claude API (라이브 트랙 추가 시 사용 예정) |
-| 호스팅 | TBD (Vercel 검토 중) |
+| 호스팅 | Vercel (https://newstock-xi.vercel.app) |
 
 ## 팀 구성 및 브랜치
 
@@ -32,12 +32,11 @@
 ## Git 워크플로우
 
 ```
-feat/기능명 → PR → dev → PR → main
+feat/기능명 브랜치에서 작업 → git push origin main → Vercel 자동 배포
 ```
 
-- `main`: 배포용, 직접 push 금지
-- `dev`: 통합 개발 브랜치
-- `feat/*`: 기능 단위 브랜치
+- `main`: push하면 Vercel 자동 배포됨
+- `feat/*`: 각자 작업 브랜치 (작업 후 main에 바로 push)
 
 커밋 컨벤션: `feat` / `fix` / `chore` / `style` / `refactor` / `docs`
 
@@ -55,10 +54,10 @@ copy .env.example .env.local
 
 | 키 | 설명 |
 |----|------|
-| `CLAUDE_API_KEY` | Claude AI API 키 |
-| `SUPABASE_URL` | Supabase 프로젝트 URL |
-| `SUPABASE_ANON_KEY` | Supabase 익명 공개 키 |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 익명 공개 키 |
 | `NAVER_CLIENT_ID` | 네이버 개발자 앱 Client ID |
 | `NAVER_CLIENT_SECRET` | 네이버 개발자 앱 Client Secret |
+| `CLAUDE_API_KEY` | Claude AI API 키 (라이브 트랙 추가 시) |
 
 > `.env.local`은 절대 커밋하지 말 것 (`.gitignore`에 포함됨)

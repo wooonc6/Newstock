@@ -230,11 +230,16 @@ HTML의 CSS 변수 (`--accent`, `--bg`, `--surface` 등) → `globals.css`에 �
 ## 개발 순서
 
 ```
-Week 1   이은우 DB 생성 + 김승민A 빌드 에러 수정
+Week 1   이은우 DB 테이블 생성 (가장 급함!)
 Week 2   김성준 뉴스/채점 API + 허조영 공통 컴포넌트
 Week 3   최원준 화면 연결 + 김승민A 퀴즈/랭킹 UI
-Week 4   dev 통합 테스트 → main PR
+Week 4   전체 통합 테스트
 ```
+
+## 서비스 주소
+
+- **배포**: https://newstock-xi.vercel.app
+- **레포**: https://github.com/wooonc6/Newstock
 
 ---
 
@@ -248,42 +253,33 @@ cd Newstock
 npm install
 ```
 
-### 2. 작업 시작 — 내 브랜치로 이동
+### 2. .env.local 설정 (처음 한 번만)
 
-```bash
-# dev 최신 내용 먼저 받기
-git checkout dev
-git pull origin dev
+프로젝트 폴더에 `.env.local` 파일 만들고 아래 내용 붙여넣기:
 
-# 내 브랜치로 이동 (없으면 새로 생성됨)
-git checkout -b feat/내브랜치명
-# 이미 있으면: git checkout feat/내브랜치명
+```
+NEXT_PUBLIC_SUPABASE_URL=https://zsdhvaylgwmmohecrsfs.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzZGh2YXlsZ3dtbW9oZWNyc2ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MjA4NDMsImV4cCI6MjA5NTk5Njg0M30.BToEhlrcf5v4V0B07zQTOGULs56BUDEWecEBtJSNcRY
 ```
 
-### 3. 작업 후 — 저장하고 올리기
+### 3. 작업 시작 — 내 브랜치로 이동
 
 ```bash
-# 변경된 파일 확인
-git status
+git checkout feat/내브랜치명
+git pull origin main
+```
 
-# 파일 추가
+### 4. 작업 후 — 저장하고 배포까지 한 번에
+
+```bash
 git add .
-
-# 커밋 (메시지 규칙: feat/fix/chore/style/refactor/docs)
 git commit -m "feat: 작업한 내용 한 줄 설명"
-
-# 깃허브에 올리기
-git push origin feat/내브랜치명
+git push origin main
 ```
 
-### 4. PR 올리기 — dev 브랜치로 합치기
+push하면 **자동으로 https://newstock-xi.vercel.app 에 배포**돼요!
 
-1. https://github.com/wooonc6/Newstock 접속
-2. 상단에 뜨는 **"Compare & pull request"** 버튼 클릭
-3. base 브랜치: `dev` 확인 후 PR 생성
-4. 팀원 리뷰 후 머지
-
-> ⚠️ `main`에 직접 push 금지 — 반드시 `dev` 거쳐서 PR로 합칠 것
+> 💡 커밋 메시지 규칙: `feat` / `fix` / `chore` / `style` / `refactor` / `docs`
 
 ---
 
