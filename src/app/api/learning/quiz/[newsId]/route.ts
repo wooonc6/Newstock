@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import yahooFinance from 'yahoo-finance2';
 
 async function getStockChanges(ticker: string, baseDate: string) {
+  const { default: yahooFinance } = await import('yahoo-finance2');
   const base = new Date(baseDate);
   const periods = [
     { label: '1개월 후', months: 1 },
