@@ -140,8 +140,9 @@ export default function AuthForm() {
       return;
     }
     setLoading(true);
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://newstock-xi.vercel.app';
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${origin}/reset-password`,
     });
     setLoading(false);
     if (error) {
