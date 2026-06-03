@@ -135,18 +135,35 @@ export default function AuthForm() {
       setError("이메일을 입력해 주세요.");
       return;
     }
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      setError("Supabase 환경변수가 없습니다.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const res = await fetch(`${supabaseUrl}/auth/v1/recover`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify({ email }),
+      });
       setLoading(false);
-      if (error) {
-        setError(`오류: ${error.message}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(`오류(${res.status}): ${data?.msg ?? data?.error ?? "알 수 없는 오류"}`);
         return;
       }
       setMessage("비밀번호 재설정 링크를 이메일로 보냈습니다. 이메일을 확인해 주세요.");
     } catch (e: any) {
       setLoading(false);
-      setError(`오류: ${e?.message ?? String(e)}`);
+      setError(`fetch 오류: ${e?.message ?? String(e)} | URL: ${supabaseUrl?.slice(0, 40)}`);
     }
   }
 
