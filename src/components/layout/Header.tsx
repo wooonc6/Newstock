@@ -1,5 +1,6 @@
 "use client";
 
+
 interface HeaderProps {
   nickname: string;
   coins: number;
@@ -21,9 +22,7 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
         borderRadius: "var(--radius, 16px)",
       }}
     >
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "16px", fontWeight: 700, color: "var(--accent)" }}>
-        Newstock<span style={{ color: "var(--text-muted)", fontWeight: 400 }}>.quiz</span>
-      </div>
+      <img src="/logo.svg" alt="Newstock" style={{ height: "32px", width: "auto" }} />
 
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {streak > 0 && (
