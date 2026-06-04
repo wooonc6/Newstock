@@ -8,16 +8,16 @@
   --surface: #ffffff;
   --surface2: #f0f2f5;
   --surface3: #e8ebf0;
-  --accent: #00b890;
-  --accent2: #3b82f6;
-  --warn: #f59e0b;
+  --accent: #00A878;
+  --accent2: #1A3A5C;
+  --warn: #B8A030;
   --danger: #ef4444;
-  --purple: #a855f7;
-  --text: #1a202c;
-  --text-muted: #718096;
-  --text-dim: #4a5568;
-  --border: rgba(0, 0, 0, 0.08);
-  --coin: #d97706;
+  --purple: #D43A8A;
+  --text: #404040;
+  --text-muted: #888888;
+  --text-dim: #555555;
+  --border: rgba(0, 0, 0, 0.09);
+  --coin: #B8A030;
 }
 
 * {
