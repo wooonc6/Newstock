@@ -1,3 +1,4 @@
+import React from "react";
 import type { Stock } from "@/types";
 
 export const STOCKS: Stock[] = [
@@ -87,10 +88,10 @@ export function getStock(ticker: string): Stock | undefined {
   return STOCKS.find((s) => s.ticker === ticker);
 }
 
-export const SECTOR_BADGE_CLASSES: Record<Stock["sectorColor"], string> = {
-  blue: "bg-blue-100 text-blue-700",
-  green: "bg-emerald-100 text-emerald-700",
-  amber: "bg-amber-100 text-amber-700",
-  purple: "bg-purple-100 text-purple-700",
-  red: "bg-red-100 text-red-700",
+export const SECTOR_BADGE_STYLES: Record<Stock["sectorColor"], React.CSSProperties> = {
+  blue:   { background: "#dbeafe", color: "#1d4ed8" },
+  green:  { background: "#d1fae5", color: "#065f46" },
+  amber:  { background: "#fef3c7", color: "#92400e" },
+  purple: { background: "#ede9fe", color: "#6d28d9" },
+  red:    { background: "#fee2e2", color: "#b91c1c" },
 };

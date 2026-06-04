@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Stock, UnlockStatus } from "@/types";
-import { SECTOR_BADGE_CLASSES } from "@/lib/stocks";
+import { SECTOR_BADGE_STYLES } from "@/lib/stocks";
 import { useStockPrice } from "@/hooks/useStockPrice";
 
 interface Props {
@@ -101,8 +101,13 @@ export default function StockQuizCard({ stock, status }: Props) {
               {stock.name}
             </span>
             <span
-              style={{ padding: "3px 9px", borderRadius: "100px", fontSize: "10px", fontWeight: 700 }}
-              className={SECTOR_BADGE_CLASSES[stock.sectorColor]}
+              style={{
+                padding: "3px 9px",
+                borderRadius: "100px",
+                fontSize: "10px",
+                fontWeight: 700,
+                ...SECTOR_BADGE_STYLES[stock.sectorColor],
+              }}
             >
               {stock.sector}
             </span>
