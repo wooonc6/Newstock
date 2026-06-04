@@ -67,14 +67,6 @@ export const STOCKS: Stock[] = [
     marketCap: "약 18조원",
   },
   {
-    ticker: "105560.KS",
-    name: "KB금융",
-    sector: "금융 / 은행",
-    sectorColor: "purple",
-    description: "KB국민은행 모회사. 국내 시가총액 1위 금융그룹. 자산관리·디지털 금융 선도",
-    marketCap: "약 28조원",
-  },
-  {
     ticker: "068270.KS",
     name: "셀트리온",
     sector: "바이오 / 헬스",
