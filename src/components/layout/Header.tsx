@@ -22,7 +22,7 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
         borderRadius: "var(--radius, 16px)",
       }}
     >
-      <img src="/logo.svg" alt="Newstock" style={{ height: "32px", width: "auto" }} />
+      <img src="/logo.svg" alt="Newstock" style={{ height: "64px", width: "auto" }} />
 
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {streak > 0 && (

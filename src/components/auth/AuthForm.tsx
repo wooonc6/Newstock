@@ -162,7 +162,7 @@ export default function AuthForm() {
 
   return (
     <div style={s.card}>
-      <div style={s.logo}>Newstock</div>
+      <img src="/logo.svg" alt="Newstock" style={{ height: "56px", width: "auto", marginBottom: "8px" }} />
       <div style={s.sub}>뉴스로 배우는 투자 교육 플랫폼</div>
 
       {mode === "login" && (
