@@ -42,6 +42,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [showReveal, setShowReveal] = useState(false);
+  const [revealDone, setRevealDone] = useState(false);
   const [answers, setAnswers] = useState<{ newsId: string; answer: "up" | "down"; coins: number }[]>([]);
   const [reveals, setReveals] = useState<Reveal[]>([]);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
@@ -75,16 +76,17 @@ export default function QuizClient({ ticker, stockName }: Props) {
     setAnswers(newAnswers);
     setReveals(newReveals);
     setShowReveal(true);
+    setRevealDone(false);
+  }
 
+  async function handleNext() {
+    setShowReveal(false);
     const isLast = currentIdx >= feed.length - 1;
-    setTimeout(async () => {
-      setShowReveal(false);
-      if (isLast) {
-        await submitAll(newAnswers);
-      } else {
-        setCurrentIdx((i) => i + 1);
-      }
-    }, 1600);
+    if (isLast) {
+      await submitAll(answers);
+    } else {
+      setCurrentIdx((i) => i + 1);
+    }
   }
 
   async function submitAll(finalAnswers: { newsId: string; answer: "up" | "down"; coins: number }[]) {
@@ -210,7 +212,11 @@ export default function QuizClient({ ticker, stockName }: Props) {
 
         {/* 정답 공개 or 버튼 */}
         {showReveal ? (
-          <RevealCard reveal={reveals[reveals.length - 1]} />
+          <RevealCard
+            reveal={reveals[reveals.length - 1]}
+            isLast={currentIdx >= feed.length}
+            onNext={handleNext}
+          />
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {(["up", "down"] as const).map((dir) => (
@@ -411,13 +417,13 @@ export default function QuizClient({ ticker, stockName }: Props) {
   );
 }
 
-function RevealCard({ reveal }: { reveal: Reveal }) {
+function RevealCard({ reveal, isLast, onNext }: { reveal: Reveal; isLast: boolean; onNext: () => void }) {
   const { correct, item } = reveal;
   return (
     <div
       style={{
         borderRadius: "14px",
-        padding: "28px",
+        padding: "24px",
         textAlign: "center",
         background: correct ? "rgba(0,168,120,0.08)" : "rgba(239,68,68,0.06)",
         border: `1.5px solid ${correct ? "rgba(0,168,120,0.25)" : "rgba(239,68,68,0.2)"}`,
@@ -425,7 +431,7 @@ function RevealCard({ reveal }: { reveal: Reveal }) {
     >
       <div style={{ fontSize: "36px", marginBottom: "10px" }}>{correct ? "✅" : "❌"}</div>
       <div style={{ fontSize: "17px", fontWeight: 700, marginBottom: "8px" }}>{correct ? "정답!" : "오답!"}</div>
-      <div style={{ fontSize: "13px", color: "var(--text-dim)", marginBottom: "12px" }}>
+      <div style={{ fontSize: "13px", color: "var(--text-dim)", marginBottom: "14px" }}>
         {item.newsDate} 이후 지금까지 실제로{" "}
         <span
           style={{
@@ -452,11 +458,30 @@ function RevealCard({ reveal }: { reveal: Reveal }) {
             color: "var(--accent2)",
             fontWeight: 600,
             textDecoration: "none",
+            marginBottom: "14px",
           }}
         >
           📰 기사 원문 읽기 →
         </a>
       )}
+      <button
+        onClick={onNext}
+        style={{
+          display: "block",
+          width: "100%",
+          marginTop: item.sourceUrl ? "14px" : "0",
+          padding: "14px",
+          borderRadius: "12px",
+          border: "none",
+          background: "var(--accent2)",
+          color: "#fff",
+          fontSize: "14px",
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        {isLast ? "결과 보기 →" : "다음 뉴스 →"}
+      </button>
     </div>
   );
 }
