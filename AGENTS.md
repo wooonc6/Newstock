@@ -1,4 +1,4 @@
-# Newstock — Claude Code 프로젝트 가이드
+# Newstock — Codex 프로젝트 가이드
 
 ## 서비스 개요
 
@@ -16,7 +16,7 @@
 | DB | Supabase (PostgreSQL) |
 | 인증 | Supabase Auth |
 | 주가 데이터 | Yahoo Finance API (yahoo-finance2) — 국내 종목 전용 |
-| AI | Claude API (라이브 트랙 추가 시 사용 예정) |
+| AI | Codex API (라이브 트랙 추가 시 사용 예정) |
 | 호스팅 | Vercel (https://newstock-xi.vercel.app) |
 
 ## 팀 구성 및 담당 작업
@@ -58,6 +58,6 @@ copy .env.example .env.local
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 익명 공개 키 |
 | `NAVER_CLIENT_ID` | 네이버 개발자 앱 Client ID |
 | `NAVER_CLIENT_SECRET` | 네이버 개발자 앱 Client Secret |
-| `CLAUDE_API_KEY` | Claude AI API 키 (라이브 트랙 추가 시) |
+| `CLAUDE_API_KEY` | Codex AI API 키 (라이브 트랙 추가 시) |
 
 > `.env.local`은 절대 커밋하지 말 것 (`.gitignore`에 포함됨)

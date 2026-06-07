@@ -8,6 +8,7 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  nickname: string;
   coins: number;
   streak: number;
   signOut: () => Promise<void>;
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
   loading: true,
+  nickname: "",
   coins: 0,
   streak: 0,
   signOut: async () => {},
@@ -31,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(hasSupabase);
+  const [nickname, setNickname] = useState("");
   const [coins, setCoins] = useState(0);
   const [streak, setStreak] = useState(0);
 
@@ -39,10 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     const { data } = await supabase
       .from("users")
-      .select("coins, streak")
+      .select("nickname, coins, streak")
       .eq("id", userId)
       .single();
     if (data) {
+      setNickname(data.nickname ?? "");
       setCoins(data.coins ?? 0);
       setStreak(data.streak ?? 0);
     }
@@ -80,10 +84,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!hasSupabase) return;
     const supabase = createClient();
     await supabase.auth.signOut();
+    setNickname("");
+    setCoins(0);
+    setStreak(0);
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, coins, streak, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, session, loading, nickname, coins, streak, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

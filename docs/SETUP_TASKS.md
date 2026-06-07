@@ -1,84 +1,84 @@
-# Newstock 배포 셋업 작업 분담
+# Newstock 셋업 체크리스트
 
-## 이은우 (DB 담당)
+로컬 개발, Supabase, Vercel 배포 확인에 필요한 내용을 모은 문서입니다.
 
-### 1. Supabase 프로젝트 생성
-- [supabase.com](https://supabase.com) 접속 → GitHub 로그인
-- **New Project** 클릭
-  - Project name: `newstock`
-  - Region: **Northeast Asia (Seoul)**
-  - DB Password: 안전한 비밀번호 설정 (기록 필요)
+## 현재 상태
 
-### 2. 테이블 생성 (SQL Editor에서 실행)
+| 항목 | 상태 |
+|------|------|
+| Supabase 프로젝트 생성 | 완료 |
+| Vercel 프로젝트 연결 | 완료 |
+| Production 배포 | 완료: [newstock-xi.vercel.app](https://newstock-xi.vercel.app) |
+| main 자동 배포 | 사용 중 |
 
-```sql
--- 퀴즈 세션 테이블
-create table quiz_sessions (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users(id) on delete cascade,
-  stock_ticker text not null,
-  score integer,
-  total integer,
-  coins_earned integer,
-  created_at timestamptz default now()
-);
+## 로컬 환경변수
 
--- Row Level Security 활성화
-alter table quiz_sessions enable row level security;
+프로젝트 루트에서 `.env.example`을 복사해 `.env.local`을 만듭니다.
 
--- 본인 데이터만 읽기 허용
-create policy "users can read own sessions"
-  on quiz_sessions for select
-  using (auth.uid() = user_id);
-
--- 본인 데이터만 쓰기 허용
-create policy "users can insert own sessions"
-  on quiz_sessions for insert
-  with check (auth.uid() = user_id);
+```bash
+copy .env.example .env.local
 ```
 
-### 3. Auth 설정
-- 대시보드 → **Authentication → Providers**
-- **Email** provider 활성화 확인 (기본값으로 켜져 있음)
-- 개발 중에는 "Confirm email" 비활성화 권장 (테스트 편의)
+`.env.local`에 실제 값을 입력합니다.
 
-### 4. 최원준에게 공유할 값
-- 대시보드 → **Project Settings → API** 에서 복사
-
-| 환경변수 키 | 복사 위치 |
-|------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / public |
-
-> **절대 service_role 키는 공유하지 말 것**
-
----
-
-## 최원준 (PM 담당)
-
-### 1. 이은우에게 위 두 환경변수 값 받기
-
-### 2. Vercel 환경변수 입력
-- Vercel 배포 화면 → **Environment Variables** 섹션
-- 아래 두 항목 추가:
-  - Key: `NEXT_PUBLIC_SUPABASE_URL` / Value: 이은우에게 받은 URL
-  - Key: `NEXT_PUBLIC_SUPABASE_ANON_KEY` / Value: 이은우에게 받은 키
-
-### 3. Deploy 클릭
-- 배포 완료 후 URL: `https://newstock.vercel.app` (또는 유사한 이름)
-- 이후 `main` 브랜치에 push하면 **자동 재배포**됨
-
-### 4. 배포 확인
-- 배포된 URL 접속 → 회원가입 → 로그인 정상 작동 확인
-- 대시보드에 삼성전자·LG화학·두산에너빌리티 카드 및 실시간 주가 표시 확인
-
----
-
-## 참고: Git 워크플로우
-
-```
-feat/기능명 → PR → dev → PR → main(자동배포)
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NAVER_CLIENT_ID=
+NAVER_CLIENT_SECRET=
+CLAUDE_API_KEY=
 ```
 
-- `main` 브랜치: Vercel 프로덕션 자동 배포
-- 다른 브랜치 push or PR: Vercel Preview URL 자동 생성
+실제 환경변수 값은 GitHub에 올리지 않습니다. 팀 내부 공유 채널이나 서비스 관리자에게 받아 입력합니다.
+
+## Supabase 접근
+
+| 항목 | 내용 |
+|------|------|
+| 프로젝트 | `zsdhvaylgwmmohecrsfs` |
+| 대시보드 | [Supabase Dashboard](https://supabase.com/dashboard/project/zsdhvaylgwmmohecrsfs) |
+| 접근 필요 인원 | DB 담당자와 관리자 |
+
+### 초대 방법
+
+1. Supabase Dashboard 접속
+2. **Settings → Team** 이동
+3. **Invite** 클릭
+4. 팀원 이메일 입력
+5. 역할은 작업 범위에 맞게 부여
+
+## Vercel 배포
+
+| 구분 | 설명 |
+|------|------|
+| Production | `main` push 시 자동 배포 |
+| Preview | 사용하지 않음 |
+| 환경변수 | Vercel **Settings → Environment Variables**에서 관리 |
+
+배포 실패 시 먼저 확인할 것:
+
+- Vercel Build Logs
+- `.env.local`에는 있지만 Vercel에는 빠진 환경변수
+- `npm run build` 로컬 실패 여부
+- Supabase 테이블 / RLS 변경 여부
+
+## 로컬 실행 확인
+
+```bash
+npm install
+npm run dev
+```
+
+브라우저에서 `http://localhost:3000`에 접속해 확인합니다.
+
+## 통합 테스트 체크리스트
+
+- [ ] 회원가입 가능
+- [ ] 로그인 가능
+- [ ] `/dashboard` 진입 가능
+- [ ] 뉴스 목록이 표시됨
+- [ ] 퀴즈 문제를 풀 수 있음
+- [ ] 퀴즈 제출 후 코인이 반영됨
+- [ ] 3회 이상 퀴즈 완료 시 종목이 언락됨
+- [ ] 언락된 종목에서 매수 / 매도 가능
+- [ ] `/ranking` 화면에서 랭킹 데이터 확인 가능

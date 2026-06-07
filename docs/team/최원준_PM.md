@@ -1,20 +1,18 @@
 # 최원준 — PM/FE 담당
 
-## 담당 브랜치
+## 담당 작업
 
 | 브랜치 | 작업 내용 | 순서 |
 |--------|----------|------|
-| `feat/auth-flow` | 로그인/회원가입 | ✅ 완료 |
-| `feat/quiz-unlock` | 헤더 DB 연결 + 퀴즈 화면 연결 | 진행 중 |
-| `feat/page-routing` | 포트폴리오 화면 완성 | 이후 |
+| `feat/auth-flow` | 로그인/회원가입/비밀번호찾기 | ✅ 완료 |
+| `feat/quiz-unlock` | 헤더 DB 연결 + 퀴즈 화면 연결 | 이은우 + 김성준 완료 후 |
+| `feat/page-routing` | 포트폴리오 화면 완성 | 김성준 완료 후 |
 
 ---
 
-## 완료된 작업 (`feat/auth-flow` 브랜치)
+## 완료된 작업
 
----
-
-### 1. 로그인 / 회원가입
+### 1. 로그인 / 회원가입 / 비밀번호 찾기
 
 **파일: `src/components/auth/AuthForm.tsx`**
 
@@ -42,20 +40,6 @@ const { error } = await supabase.auth.signUp({
 비로그인 사용자가 보호된 페이지 접근 시 `/login`으로 리다이렉트.  
 로그인된 사용자가 `/login` 접근 시 `/dashboard`로 리다이렉트.
 
-```ts
-// 비로그인 → /login 리다이렉트
-if (!user && isProtected) {
-  url.pathname = "/login";
-  return NextResponse.redirect(url);
-}
-
-// 로그인 상태에서 /login 접근 → /dashboard 리다이렉트
-if (user && isAuthPage) {
-  url.pathname = "/dashboard";
-  return NextResponse.redirect(url);
-}
-```
-
 ---
 
 ### 3. 전역 인증 상태
@@ -65,7 +49,6 @@ if (user && isAuthPage) {
 앱 전체에서 `useAuth()` 훅으로 로그인 상태 조회 가능.
 
 ```tsx
-// 어느 컴포넌트에서든 사용 가능
 const { user, session, loading, signOut } = useAuth();
 ```
 
@@ -88,47 +71,26 @@ const { user, session, loading, signOut } = useAuth();
 
 ### 5. 헤더 / 네비게이션
 
-**파일: `src/components/layout/Header.tsx`**
-
-닉네임, 코인, 스트릭, 로그아웃 버튼 표시. 현재 코인·스트릭은 props로 받는 구조 (DB 연동 필요).
-
-```tsx
-<Header nickname={nickname} coins={coins} streak={streak} onLogout={signOut} />
-```
-
-**파일: `src/components/layout/NavTabs.tsx`**
-
-퀴즈 / 모의투자 / 랭킹 / 기록 / 분석 5개 탭. 현재 경로 기반으로 활성 탭 자동 표시.
-
-```tsx
-const TABS = [
-  { href: "/dashboard", label: "📰 퀴즈" },
-  { href: "/portfolio",  label: "📈 모의투자" },
-  { href: "/ranking",    label: "🏆 랭킹" },
-  { href: "/history",    label: "📋 기록" },
-  { href: "/stats",      label: "📊 분석" },
-];
-```
+닉네임, 코인, 스트릭, 로그아웃 버튼 표시.  
+현재 코인·스트릭은 하드코딩 상태 → DB 연동 필요
 
 ---
 
 ### 6. 대시보드 + 퀴즈 언락 UI
 
-**파일: `src/app/(main)/dashboard/DashboardClient.tsx`**
+Supabase `quiz_sessions` 테이블에서 종목별 완료 퀴즈 수를 조회해 언락 상태 계산.  
+3번 퀴즈 완료 시 해당 종목 잠금 해제.
 
-Supabase의 `quiz_sessions` 테이블에서 종목별 완료 퀴즈 수를 조회해 언락 상태를 계산.  
-3문제 완료 시 해당 종목 잠금 해제.
+---
 
-```tsx
-// 언락 상태 조회 훅
-const { unlockMap, loading } = useQuizUnlock(user?.id);
+### 7. 뉴스 + 퀴즈 API (이미 완료)
 
-// 언락 판정 (hooks/useQuizUnlock.ts)
-// quiz_sessions에서 stock_ticker별 완료 수 집계
-// quizzes_completed >= 3 → unlocked: true
-```
-
-종목 카드(`StockQuizCard`)에 진행률 바, 잠금/해제 상태, 실시간 주가 표시.
+| API | 경로 | 상태 |
+|-----|------|------|
+| 주가 조회 | `GET /api/stocks/[ticker]` | ✅ |
+| 뉴스 목록 | `GET /api/learning/news?ticker=xxx` | ✅ |
+| 뉴스 상세 | `GET /api/learning/news/[id]` | ✅ |
+| 퀴즈 문제 | `GET /api/learning/quiz/[newsId]` | ✅ |
 
 ---
 
@@ -138,18 +100,33 @@ const { unlockMap, loading } = useQuizUnlock(user?.id);
 
 파일: `src/components/layout/Header.tsx`
 
-코인 수, 스트릭 → `users` 테이블에서 실제 값 불러오도록 수정  
-현재는 UI만 있고 DB 연동 안 된 상태
+코인 수, 스트릭 → `users` 테이블에서 실제 값 불러오도록 수정
+
+```tsx
+// src/components/layout/Header.tsx (예시)
+import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/context/AuthContext'
+
+const supabase = createClient()
+const { user } = useAuth()
+
+const { data: userData } = await supabase
+  .from('users')
+  .select('nickname, coins, streak')
+  .eq('id', user?.id)
+  .single()
+```
 
 ---
 
-### 2. 퀴즈 화면 연결 (김성준 완료 후)
+### 2. 퀴즈 화면 연결 (이은우 DB + 김성준 채점 API 완료 후)
 
 파일: `src/app/(main)/quiz/[stock]/page.tsx`
 
-- 김성준의 뉴스 수집 API 연결
-- 채점 API 연결
-- 김승민A의 퀴즈 UI 컴포넌트 연결
+현재 플레이스홀더 → 실제 동작으로 교체:
+- `/api/learning/news?ticker={ticker}` 호출해서 뉴스 목록 표시
+- `/api/learning/quiz/[newsId]` 호출해서 퀴즈 문제 표시
+- `/api/quiz/submit` 호출해서 채점 결과 표시
 
 ---
 
@@ -157,147 +134,49 @@ const { unlockMap, loading } = useQuizUnlock(user?.id);
 
 파일: `src/app/(main)/portfolio/page.tsx`
 
-- 매수/매도 거래 API 연결
-- 실시간 야후 주가 기반 수익률 표시
+- Supabase에서 `portfolio`, `trades` 테이블 데이터 조회
+- 종목별 수익률 표시 (현재 야후 주가 vs avg_cost)
+- 매수/매도 버튼 → `/api/trade` 연결
 
 ---
 
-## GitHub에 올리는 방법
-
-### 0. 터미널(명령창) 여는 방법
-
-**방법 A — VS Code 사용 (추천)**
-1. VS Code 실행
-2. 상단 메뉴 **Terminal → New Terminal** 클릭
-3. 또는 단축키 **Ctrl + `** (백틱, 숫자 1 왼쪽 키)
-4. 하단에 터미널 창이 열림
-
-**방법 B — Windows 터미널 직접 사용**
-1. 시작 메뉴에서 **"PowerShell"** 검색 후 실행
-
----
-
-### 1. 현재 작업 중인 브랜치 확인
-
-```bash
-# 터미널에서 Newstock 폴더 안에 있는지 확인
-# (터미널 경로에 ...\Newstock 이 보여야 함)
-
-# 현재 브랜치 확인
-git branch
-```
-
----
-
-### 2. `feat/quiz-unlock` 작업 (이은우 완료 후)
-
-```bash
-# 최신 코드 받기
-git checkout main
-git pull origin main
-
-# 브랜치 전환 (이미 있으므로 -b 없이)
-git checkout feat/quiz-unlock
-
-# 개발 서버 실행
-npm run dev
-```
-
-`src/components/layout/Header.tsx` 수정 후:
-
-```bash
-git add .
-git commit -m "feat: 헤더 코인/스트릭 DB 연결"
-git push origin feat/quiz-unlock
-```
-
----
-
-### 3. `feat/page-routing` 작업 (김성준 완료 후)
-
-```bash
-git checkout main
-git pull origin main
-git checkout feat/page-routing
-
-npm run dev
-```
-
-`src/app/(main)/portfolio/page.tsx` 수정 후:
-
-```bash
-git add .
-git commit -m "feat: 포트폴리오 화면 거래 API 연결"
-git push origin feat/page-routing
-```
-
----
-
-### 4. PR(Pull Request) 올리기
-
-> push 완료 후 GitHub 웹사이트에서 진행
-
-1. 브라우저에서 **https://github.com/wooonc6/Newstock** 접속
-2. 노란색 배너 **"Compare & pull request"** 버튼 클릭
-   - 안 보이면 상단 **"Pull requests"** 탭 → **"New pull request"**
-3. **base 브랜치**: `dev` 로 설정 (중요! `main` 아님)
-4. **compare 브랜치**: 내가 올린 브랜치 확인
-5. 제목 입력 후 **"Create pull request"** 클릭
-
-> ⚠️ `main`에 직접 push 금지
-
----
-
-## GitHub 브랜치 읽는 법
-
-**https://github.com/wooonc6/Newstock/tree/feat/quiz-unlock** 접속하면 아래처럼 보임.
-
-```
-feat/quiz-unlock ▼   17 Branches
-
-This branch is 28 commits behind main.          ← ① 정상. 의도적인 것
-                                      [Contribute ▼]
-
-wooonc6 and claude  feat: 종목별 퀴즈 언락 UI 구현   🕐 3 Commits   ← ②
-
-📁 src/                feat: 종목별 퀴즈 언락 UI 구현   last week   ← ③
-📄 .gitignore          Initial commit: Newstock...    2 weeks ago
-```
-
-**① "X commits behind main"**
-→ main에 더 많은 커밋이 있다는 뜻. **문제 아님.** 이 브랜치엔 퀴즈 언락 관련 커밋만 있으면 됨.
-→ 추가 작업(헤더 DB 연결 등) 커밋하면 숫자가 줄어들거나, PR 올리면 해소됨.
-
-**② 커밋 수 + 마지막 커밋 메시지**
-→ 이 브랜치에 총 몇 개 커밋이 있는지, 가장 최근 커밋이 뭔지.
-
-**③ 파일/폴더 목록 + 마지막으로 수정한 커밋**
-→ 각 파일이 어느 커밋에서 바뀌었는지.
-→ `src` → `components` → `layout` → `Header.tsx` 클릭하면 현재 코드 바로 확인 가능.
-
----
-
-### 이 프로젝트 폴더 구조 (PM/FE 담당 관련)
+## 이 프로젝트 폴더 구조 (PM/FE 담당 관련)
 
 ```
 Newstock/
 └── src/
     ├── app/
     │   ├── (auth)/
-    │   │   └── login/page.tsx          → /login 페이지 (완료)
+    │   │   └── login/page.tsx              → /login 페이지 (완료)
     │   └── (main)/
     │       ├── dashboard/
-    │       │   ├── page.tsx            → /dashboard (완료)
-    │       │   └── DashboardClient.tsx → 퀴즈 언락 UI (완료)
-    │       ├── quiz/[stock]/page.tsx   → /quiz/삼성전자 등 (연결 작업 필요)
-    │       └── portfolio/page.tsx      → /portfolio (거래 API 연결 필요)
+    │       │   ├── page.tsx                → /dashboard (완료)
+    │       │   └── DashboardClient.tsx     → 퀴즈 언락 UI (완료)
+    │       ├── quiz/[stock]/page.tsx       → /quiz/xxx (연결 작업 필요)
+    │       └── portfolio/page.tsx          → /portfolio (거래 API 연결 필요)
     ├── components/
     │   ├── layout/
-    │   │   ├── Header.tsx              → 헤더 (DB 연결 필요)
-    │   │   └── NavTabs.tsx             → 하단 탭바 (완료)
+    │   │   ├── Header.tsx                  → 헤더 (DB 연결 필요)
+    │   │   └── NavTabs.tsx                 → 하단 탭바 (완료)
     │   └── quiz/
-    │       └── StockQuizCard.tsx       → 종목 카드 (완료)
-    ├── context/AuthContext.tsx         → 로그인 상태 전역 관리 (완료)
-    ├── hooks/useQuizUnlock.ts          → 언락 상태 조회 훅 (완료)
-    └── middleware.ts                   → 비로그인 차단 (완료)
+    │       └── StockQuizCard.tsx           → 종목 카드 (완료)
+    ├── context/AuthContext.tsx             → 로그인 상태 전역 관리 (완료)
+    ├── hooks/useQuizUnlock.ts              → 언락 상태 조회 훅 (완료)
+    └── middleware.ts                       → 비로그인 차단 (완료)
+```
+
+---
+
+## GitHub에 올리는 방법
+
+```bash
+# 최신 코드 받기
+git checkout main
+git pull origin main
+
+# 작업 후 main push → Vercel 자동 배포
+npm run build
+git add .
+git commit -m "feat: 작업 내용 설명"
+git push origin main
 ```

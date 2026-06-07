@@ -6,7 +6,7 @@ import Header from "./Header";
 import NavTabs from "./NavTabs";
 
 export default function MainLayoutClient({ children }: { children: React.ReactNode }) {
-  const { user, loading, coins, streak, signOut } = useAuth();
+  const { user, loading, nickname, coins, streak, signOut } = useAuth();
   const router = useRouter();
 
   async function handleLogout() {
@@ -25,11 +25,11 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
     );
   }
 
-  const nickname = (user?.user_metadata?.nickname as string) ?? user?.email?.split("@")[0] ?? "유저";
+  const displayName = nickname || (user?.user_metadata?.nickname as string) || "유저";
 
   return (
     <div style={{ maxWidth: "740px", margin: "0 auto", padding: "24px 18px", position: "relative", zIndex: 1 }}>
-      <Header nickname={nickname} coins={coins} streak={streak} onLogout={handleLogout} />
+      <Header nickname={displayName} coins={coins} streak={streak} onLogout={handleLogout} />
       <NavTabs />
       {children}
     </div>

@@ -1,6 +1,6 @@
 # 김성준 — Backend 담당
 
-## 담당 브랜치
+## 담당 작업
 
 | 브랜치 | 작업 내용 | 순서 |
 |--------|----------|------|
@@ -307,12 +307,13 @@ npm install
 
 ### 환경변수 설정 (처음 한 번)
 
-`.env.local` 파일을 만들고 아래 내용 붙여넣기:
+`.env.example`을 복사해 `.env.local`을 만들고, 팀 내부 공유 채널에서 받은 실제 값을 입력합니다.
 
+```bash
+copy .env.example .env.local
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://zsdhvaylgwmmohecrsfs.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzZGh2YXlsZ3dtbW9oZWNyc2ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MjA4NDMsImV4cCI6MjA5NTk5Njg0M30.BToEhlrcf5v4V0B07zQTOGULs56BUDEWecEBtJSNcRY
-```
+
+> `.env.local`은 GitHub에 올리지 않습니다.
 
 ---
 
@@ -321,7 +322,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feat/unlock-backend
 ```
 
 코드 작성 후:
@@ -331,7 +331,8 @@ git checkout -b feat/unlock-backend
 npm run dev
 # 브라우저에서 http://localhost:3000 확인
 
-# GitHub에 올리기 (main에 바로 push → Vercel 자동 배포)
+# GitHub에 올리기 (main push → Vercel 자동 배포)
+npm run build
 git add .
 git commit -m "feat: 퀴즈 채점 및 코인 지급 API"
 git push origin main
@@ -344,9 +345,9 @@ git push origin main
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feat/trade-logic
 
 # 작업 후
+npm run build
 git add .
 git commit -m "feat: 매수/매도 처리 API"
 git push origin main
@@ -388,7 +389,7 @@ Newstock/
 - [ ] `npm run dev` 실행 후 http://localhost:3000 정상 확인
 - [ ] **`curated_news`에 종목별 뉴스 최소 9개 이상 INSERT** ← 최우선
 - [ ] INSERT 시 source_url 자동 생성 확인 (기사 원문 버튼 동작)
-- [ ] `feat/news-collector` 브랜치 push 완료
+- [ ] 뉴스 데이터 보강 작업 main push 완료
 - [ ] `/api/quiz/submit` → ✅ 이미 완료
 - [ ] `/api/trade` → ✅ 이미 완료
 - [ ] 최원준에게 완료 알림
