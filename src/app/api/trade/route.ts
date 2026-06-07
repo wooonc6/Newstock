@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { getStock } from '@/lib/stocks';
+import { getQuote } from '@/lib/yahoo';
 import { NextRequest, NextResponse } from 'next/server';
 
 const QUIZZES_TO_UNLOCK = 3;
@@ -49,9 +50,8 @@ export async function POST(req: NextRequest) {
   // 현재가 조회
   let price: number;
   try {
-    const { default: yahooFinance } = await import('yahoo-finance2');
-    const quote = await (yahooFinance as any).quote(stock.ticker, { fields: ['regularMarketPrice'] });
-    price = quote.regularMarketPrice;
+    const quote = await getQuote(stock.ticker);
+    price = quote.regularMarketPrice ?? 0;
     if (!price) throw new Error('가격 없음');
   } catch {
     return NextResponse.json({ error: '현재 주가를 가져올 수 없습니다.' }, { status: 502 });

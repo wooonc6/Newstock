@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStock } from "@/lib/stocks";
+import { getQuote } from "@/lib/yahoo";
 
 export async function GET(_req: NextRequest, { params }: { params: { ticker: string } }) {
   const ticker = decodeURIComponent(params.ticker);
@@ -10,19 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: { ticker: str
   }
 
   try {
-    const { default: yahooFinance } = await import("yahoo-finance2");
-
-    const quote = await (yahooFinance as any).quote(stock.ticker, {
-      fields: [
-        "regularMarketPrice",
-        "regularMarketChange",
-        "regularMarketChangePercent",
-        "regularMarketPreviousClose",
-        "regularMarketVolume",
-        "shortName",
-        "currency",
-      ],
-    });
+    const quote = await getQuote(stock.ticker);
 
     return NextResponse.json({
       ticker: stock.ticker,
