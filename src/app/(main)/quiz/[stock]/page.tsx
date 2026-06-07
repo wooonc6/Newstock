@@ -1,6 +1,7 @@
 import { getStock, STOCKS } from "@/lib/stocks";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import QuizClient from "./QuizClient";
 
 export function generateStaticParams() {
   return STOCKS.map((s) => ({ stock: encodeURIComponent(s.ticker) }));
@@ -40,7 +41,7 @@ export default function QuizPage({ params }: Props) {
           border: "1px solid var(--border)",
           borderRadius: "16px",
           padding: "24px",
-          marginBottom: "16px",
+          marginBottom: "20px",
         }}
       >
         <div style={{ fontSize: "11px", color: "var(--accent)", fontWeight: 700, letterSpacing: "1px", marginBottom: "8px" }}>
@@ -60,18 +61,7 @@ export default function QuizPage({ params }: Props) {
         <div style={{ fontSize: "13px", color: "var(--text-dim)" }}>{stock.description}</div>
       </div>
 
-      <div
-        style={{
-          background: "rgba(59,130,246,0.06)",
-          border: "1px solid rgba(59,130,246,0.15)",
-          borderRadius: "10px",
-          padding: "14px 16px",
-          fontSize: "13px",
-          color: "var(--text-dim)",
-        }}
-      >
-        퀴즈 기능은 뉴스 데이터 연동 후 활성화됩니다. (feat/news-collector 브랜치 대기 중)
-      </div>
+      <QuizClient ticker={ticker} stockName={stock.name} />
     </div>
   );
 }

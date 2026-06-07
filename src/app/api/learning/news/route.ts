@@ -16,6 +16,9 @@ export async function GET(req: NextRequest) {
     .order('news_date', { ascending: false })
     .range(offset, offset + limit - 1);
 
+  const ticker = searchParams.get('ticker');
+
+  if (ticker) query = query.eq('ticker', ticker);
   if (category) query = query.eq('category', category);
   if (difficulty) query = query.eq('difficulty', difficulty);
 

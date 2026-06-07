@@ -38,18 +38,6 @@ async function getStockChanges(ticker: string, baseDate: string) {
   return { base: { price: basePrice }, periods: mapped };
 }
 
-function buildQuizOptions(changeRate: number) {
-  const abs = Math.abs(changeRate);
-  const sign = changeRate >= 0 ? 1 : -1;
-  const opts = [
-    sign * (abs * 0.3),
-    sign * (abs * 0.6),
-    changeRate,
-    -sign * (abs * 0.4),
-  ].sort(() => Math.random() - 0.5).map(v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`);
-  const answerIndex = opts.indexOf(`${changeRate >= 0 ? '+' : ''}${changeRate.toFixed(1)}%`);
-  return { options: opts, answerIndex };
-}
 
 export async function GET(_req: Request, { params }: { params: { newsId: string } }) {
   const supabase = await createClient();
@@ -107,20 +95,15 @@ export async function GET(_req: Request, { params }: { params: { newsId: string 
   const coinsMap: Record<number, number> = { 1: 10, 3: 20, 6: 30 };
   const periods = stockData.periods
     .filter((p: any) => p.changeRate != null)
-    .map((p: any) => {
-      const { options, answerIndex } = buildQuizOptions(p.changeRate);
-      return {
-        label: p.label,
-        months: p.months,
-        priceBase: stockData.base.price,
-        priceEnd: p.price,
-        changeRate: p.changeRate,
-        direction: p.direction,
-        options,
-        answerIndex,
-        coins: coinsMap[p.months] ?? 10,
-      };
-    });
+    .map((p: any) => ({
+      label: p.label,
+      months: p.months,
+      priceBase: stockData.base.price,
+      priceEnd: p.price,
+      changeRate: p.changeRate,
+      direction: p.direction,
+      coins: coinsMap[p.months] ?? 10,
+    }));
 
   return NextResponse.json({
     newsId: news.id,

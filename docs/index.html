@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Newstock — 뉴스로 배우는 모의 주식투자</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0d0d0d;--surface:#161616;--surface2:#1e1e1e;
+    --border:rgba(255,255,255,0.08);--text:#f0f0f0;--text-dim:#a0a0a0;--text-muted:#606060;
+    --accent:#3b82f6;--green:#22c55e;--red:#ef4444;--coin:#f59e0b;
+  }
+  body{background:var(--bg);color:var(--text);font-family:'Pretendard',-apple-system,sans-serif;min-height:100vh}
+  .screen{display:none;max-width:480px;margin:0 auto;padding:24px 18px;min-height:100vh}
+  .screen.active{display:flex;flex-direction:column}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px}
+  .btn{border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;padding:14px 20px;transition:opacity .15s}
+  .btn:hover{opacity:.85}
+  .btn-primary{background:var(--accent);color:#fff;width:100%}
+  .btn-outline{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border);width:100%}
+  .tag{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.5px}
+  .mono{font-family:'Space Mono','Courier New',monospace}
+  .fade-in{animation:fadeIn .4s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* progress bar */
+  .progress-bar{display:flex;gap:6px;margin-bottom:16px}
+  .progress-seg{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background .3s}
+  .progress-seg.done{background:var(--accent)}
+  .progress-seg.current{background:rgba(59,130,246,.35)}
+
+  /* answer buttons */
+  .answer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+  .answer-btn{
+    padding:32px 16px;border-radius:14px;border:1px solid var(--border);
+    background:var(--surface);cursor:pointer;display:flex;flex-direction:column;
+    align-items:center;gap:8px;transition:transform .1s,border-color .15s;
+  }
+  .answer-btn:hover{transform:scale(1.02)}
+  .answer-btn.up:hover{border-color:var(--green)}
+  .answer-btn.down:hover{border-color:var(--red)}
+  .answer-btn .icon{font-size:32px}
+  .answer-btn .label{font-size:16px;font-weight:700}
+
+  /* reveal */
+  .reveal{border-radius:14px;padding:28px;text-align:center}
+  .reveal.correct{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3)}
+  .reveal.wrong{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+
+  /* portfolio table */
+  .table{width:100%;border-collapse:collapse;font-size:13px}
+  .table th{text-align:left;color:var(--text-muted);font-weight:600;padding:8px 0;border-bottom:1px solid var(--border)}
+  .table td{padding:10px 0;border-bottom:1px solid var(--border)}
+
+  /* coin badge */
+  .coin-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);
+    border-radius:100px;padding:6px 14px;font-weight:700;color:var(--coin);
+    font-family:'Space Mono',monospace;font-size:13px;
+  }
+
+  /* news item */
+  .news-item{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:16px;cursor:pointer;transition:border-color .15s;margin-bottom:10px;
+  }
+  .news-item:hover{border-color:var(--accent)}
+  .news-item .date{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:6px}
+  .news-item .title{font-size:13px;font-weight:600;line-height:1.6}
+</style>
+</head>
+<body>
+
+<!-- ① 랜딩 -->
+<div id="s-landing" class="screen active">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:24px">
+    <div>
+      <div style="font-size:11px;color:var(--accent);font-weight:700;letter-spacing:2px;margin-bottom:12px">NEWSTOCK DEMO</div>
+      <div style="font-size:28px;font-weight:800;line-height:1.3;margin-bottom:12px">
+        뉴스로 배우는<br/>모의 주식투자
+      </div>
+      <div style="font-size:14px;color:var(--text-dim);line-height:1.7">
+        실제 경제 뉴스를 읽고,<br/>
+        <strong style="color:var(--text)">그 종목의 주가가 오를지 내릴지</strong> 예측해보세요.<br/>
+        정답을 맞히면 코인을 받아 모의 투자까지 할 수 있어요.
+      </div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="font-size:24px">📰</div>
+        <div>
+          <div style="font-size:13px;font-weight:700">뉴스 읽기</div>
+          <div style="font-size:12px;color:var(--text-muted)">실제 국내 주요 경제 뉴스</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="font-size:24px">📈</div>
+        <div>
+          <div style="font-size:13px;font-weight:700">상승/하락 예측 퀴즈</div>
+          <div style="font-size:12px;color:var(--text-muted)">1개월·3개월·6개월 후 주가 방향 맞히기</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="font-size:24px">💰</div>
+        <div>
+          <div style="font-size:13px;font-weight:700">코인 적립 → 모의 투자</div>
+          <div style="font-size:12px;color:var(--text-muted)">종목 언락 후 실시간 주가로 매수/매도</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="font-size:15px;padding:18px" onclick="goTo('s-news')">
+      데모 시작하기 →
+    </button>
+    <div style="font-size:11px;color:var(--text-muted);text-align:center">하나금융그룹 × Newstock 프로젝트</div>
+  </div>
+</div>
+
+<!-- ② 뉴스 선택 -->
+<div id="s-news" class="screen">
+  <div style="margin-bottom:20px">
+    <button onclick="goTo('s-landing')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px">← 처음으로</button>
+  </div>
+  <div style="font-size:14px;font-weight:700;margin-bottom:4px">삼성전자 관련 뉴스</div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">뉴스를 선택하면 퀴즈가 시작됩니다</div>
+  <div id="news-list"></div>
+</div>
+
+<!-- ③ 퀴즈 -->
+<div id="s-quiz" class="screen">
+  <div style="margin-bottom:16px">
+    <button onclick="goTo('s-news')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px">← 뉴스 목록</button>
+  </div>
+  <div id="quiz-content"></div>
+</div>
+
+<!-- ④ 결과 -->
+<div id="s-result" class="screen">
+  <div id="result-content"></div>
+</div>
+
+<!-- ⑤ 포트폴리오 -->
+<div id="s-portfolio" class="screen">
+  <div style="margin-bottom:20px">
+    <div style="font-size:11px;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:4px">PORTFOLIO</div>
+    <div style="font-size:20px;font-weight:800">모의 투자 현황</div>
+  </div>
+  <div id="portfolio-content"></div>
+</div>
+
+<script>
+// ── 데이터 ───────────────────────────────────────────────
+const NEWS = [
+  {
+    id: 0,
+    ticker: '005930.KS',
+    company: '삼성전자',
+    date: '2024-01-15',
+    title: '삼성전자, HBM3 양산 성공… 엔비디아에 공급 임박',
+    body: '삼성전자가 HBM3(고대역폭메모리 3세대) 양산에 성공하고 엔비디아에 대한 공급이 임박했다고 밝혔다. AI 반도체 수요 급증으로 HBM 시장이 폭발적으로 성장하고 있는 가운데, 삼성의 공급 진입은 시장 판도 변화를 예고한다.',
+    periods: [
+      { label: '1개월 후', months: 1, changeRate: -4.8, direction: 'down' },
+      { label: '3개월 후', months: 3, changeRate: 8.3,  direction: 'up'   },
+      { label: '6개월 후', months: 6, changeRate: 11.7, direction: 'up'   },
+    ],
+  },
+  {
+    id: 1,
+    ticker: '000660.KS',
+    company: 'SK하이닉스',
+    date: '2024-03-05',
+    title: 'SK하이닉스, HBM3E 엔비디아 독점 공급 확정… 연매출 50조 전망',
+    body: 'SK하이닉스가 엔비디아의 차세대 AI 가속기 H200에 탑재되는 HBM3E(5세대 HBM)를 독점 공급하기로 확정했다. 업계에서는 이번 계약으로 SK하이닉스의 연간 매출이 50조원을 넘을 것으로 전망한다.',
+    periods: [
+      { label: '1개월 후', months: 1, changeRate: 14.2, direction: 'up' },
+      { label: '3개월 후', months: 3, changeRate: 31.5, direction: 'up' },
+      { label: '6개월 후', months: 6, changeRate: 44.8, direction: 'up' },
+    ],
+  },
+  {
+    id: 2,
+    ticker: '034020.KS',
+    company: '두산에너빌리티',
+    date: '2024-07-18',
+    title: '두산에너빌리티, 체코 원전 수주 우선협상대상자 선정',
+    body: '두산에너빌리티가 체코 두코바니 신규 원전 프로젝트의 주기기 공급 우선협상대상자로 선정됐다. 총 사업 규모는 약 24조원에 달하며, 한국형 원자로 APR1000 기술이 적용될 예정이다.',
+    periods: [
+      { label: '1개월 후', months: 1, changeRate: 21.3,  direction: 'up'   },
+      { label: '3개월 후', months: 3, changeRate: -9.7,  direction: 'down' },
+      { label: '6개월 후', months: 6, changeRate: 4.2,   direction: 'up'   },
+    ],
+  },
+  {
+    id: 3,
+    ticker: '035420.KS',
+    company: 'NAVER',
+    date: '2024-02-28',
+    title: 'NAVER, 하이퍼클로바X 기반 AI 검색 전면 도입 선언',
+    body: 'NAVER가 자체 개발 초거대 AI 하이퍼클로바X를 기반으로 한 AI 검색 서비스를 국내 전체 검색에 전면 도입한다고 발표했다. 광고 수익 모델 전환이 과제로 남아 있다는 평가도 나온다.',
+    periods: [
+      { label: '1개월 후', months: 1, changeRate: -2.9,  direction: 'down' },
+      { label: '3개월 후', months: 3, changeRate: 6.8,   direction: 'up'   },
+      { label: '6개월 후', months: 6, changeRate: -4.5,  direction: 'down' },
+    ],
+  },
+  {
+    id: 4,
+    ticker: '005380.KS',
+    company: '현대차',
+    date: '2024-04-10',
+    title: '현대차, 美 조지아 전기차 공장 본격 가동… 연 30만대 생산',
+    body: '현대차 미국 조지아주 전기차 전용 공장(HMGMA)이 본격 가동에 들어갔다. IRA(인플레이션 감축법) 세제 혜택 대상으로, 연간 30만대 생산을 목표로 한다. 다만 전기차 수요 둔화로 초기 가동률이 기대치를 밑돌 수 있다는 우려도 있다.',
+    periods: [
+      { label: '1개월 후', months: 1, changeRate: 5.1,   direction: 'up'   },
+      { label: '3개월 후', months: 3, changeRate: -7.8,  direction: 'down' },
+      { label: '6개월 후', months: 6, changeRate: -11.4, direction: 'down' },
+    ],
+  },
+];
+
+// ── 상태 ─────────────────────────────────────────────────
+let state = {
+  currentNews: null,
+  periodIdx: 0,
+  answers: [],
+  reveals: [],
+  showingReveal: false,
+  coins: 1000000,
+  portfolio: [
+    { ticker: '005930.KS', name: '삼성전자', quantity: 8,  avgCost: 74000,  currentPrice: 82300  },
+    { ticker: '000660.KS', name: 'SK하이닉스', quantity: 5, avgCost: 138000, currentPrice: 199500 },
+    { ticker: '034020.KS', name: '두산에너빌리티', quantity: 30, avgCost: 19800, currentPrice: 22100 },
+  ],
+};
+
+// ── 화면 전환 ─────────────────────────────────────────────
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.scrollTop = 0;
+
+  if (id === 's-news') renderNewsList();
+  if (id === 's-portfolio') renderPortfolio();
+}
+
+// ── 뉴스 목록 렌더 ────────────────────────────────────────
+function renderNewsList() {
+  const el = document.getElementById('news-list');
+  el.innerHTML = NEWS.map(n => `
+    <div class="news-item" onclick="startQuiz(${n.id})">
+      <div class="date">${n.date} · 삼성전자/SK하이닉스 외</div>
+      <div class="title">${n.title}</div>
+    </div>
+  `).join('');
+}
+
+// ── 퀴즈 시작 ─────────────────────────────────────────────
+function startQuiz(newsId) {
+  state.currentNews = NEWS[newsId];
+  state.periodIdx = 0;
+  state.answers = [];
+  state.reveals = [];
+  state.showingReveal = false;
+  goTo('s-quiz');
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const news = state.currentNews;
+  const period = news.periods[state.periodIdx];
+  const total = news.periods.length;
+
+  const progressBars = news.periods.map((_, i) => {
+    const cls = i < state.periodIdx ? 'done' : i === state.periodIdx ? 'current' : '';
+    return `<div class="progress-seg ${cls}"></div>`;
+  }).join('');
+
+  let body = '';
+  if (state.showingReveal) {
+    const rev = state.reveals[state.periodIdx - 1] || state.reveals[state.reveals.length - 1];
+    const period2 = news.periods[state.periodIdx - 1] || news.periods[news.periods.length - 1];
+    const cls = rev.correct ? 'correct' : 'wrong';
+    body = `
+      <div class="reveal ${cls} fade-in">
+        <div style="font-size:36px;margin-bottom:10px">${rev.correct ? '✅' : '❌'}</div>
+        <div style="font-size:17px;font-weight:700;margin-bottom:8px">${rev.correct ? '정답!' : '오답!'}</div>
+        <div style="font-size:13px;color:var(--text-dim)">
+          실제로
+          <span class="mono" style="font-weight:700;color:${period2.direction==='up'?'#22c55e':'#ef4444'}">
+            ${period2.changeRate>=0?'+':''}${period2.changeRate.toFixed(1)}% ${period2.direction==='up'?'상승':'하락'}
+          </span>했습니다
+        </div>
+      </div>`;
+  } else {
+    body = `
+      <div class="answer-grid fade-in">
+        <button class="answer-btn up" onclick="answer('up')">
+          <span class="icon">📈</span>
+          <span class="label" style="color:var(--green)">상승</span>
+        </button>
+        <button class="answer-btn down" onclick="answer('down')">
+          <span class="icon">📉</span>
+          <span class="label" style="color:var(--red)">하락</span>
+        </button>
+      </div>`;
+  }
+
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">${news.date} · ${news.company}</div>
+      <div style="font-size:14px;font-weight:600;line-height:1.65">${news.title}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.6">${news.body}</div>
+    </div>
+    <div class="progress-bar">${progressBars}</div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">
+        ${state.periodIdx+1}/${total} · ${period ? period.label : ''}
+      </div>
+      <div style="font-size:15px;font-weight:700">
+        이 뉴스 이후 ${period ? period.label : ''}, ${news.company}의 주가는?
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">
+        정답 시 +${period ? (state.periodIdx===0?10:state.periodIdx===1?20:30) : ''}코인
+      </div>
+    </div>
+    ${body}
+  `;
+}
+
+function answer(dir) {
+  if (state.showingReveal) return;
+  const news = state.currentNews;
+  const period = news.periods[state.periodIdx];
+  const isCorrect = dir === period.direction;
+  const coinsArr = [10, 20, 30];
+  const earned = isCorrect ? coinsArr[state.periodIdx] : 0;
+
+  state.answers.push(dir);
+  state.reveals.push({ userAnswer: dir, correct: isCorrect, changeRate: period.changeRate });
+  state.showingReveal = true;
+  state.periodIdx++;
+
+  if (isCorrect) state.coins += earned;
+
+  renderQuiz();
+
+  const isLast = state.periodIdx >= news.periods.length;
+  setTimeout(() => {
+    state.showingReveal = false;
+    if (isLast) {
+      showResult();
+    } else {
+      renderQuiz();
+    }
+  }, 1500);
+}
+
+// ── 결과 화면 ─────────────────────────────────────────────
+function showResult() {
+  const news = state.currentNews;
+  const score = state.reveals.filter(r => r.correct).length;
+  const total = news.periods.length;
+  const earned = state.reveals.reduce((s, r, i) => s + (r.correct ? [10,20,30][i] : 0), 0);
+
+  const emoji = score === total ? '🎉' : score > 0 ? '👍' : '😅';
+
+  const periodRows = news.periods.map((p, i) => {
+    const rev = state.reveals[i];
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:13px;color:var(--text-dim)">${p.label}</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span class="mono" style="font-size:13px;font-weight:700;color:${p.direction==='up'?'#22c55e':'#ef4444'}">
+            ${p.changeRate>=0?'+':''}${p.changeRate.toFixed(1)}%
+          </span>
+          <span style="font-size:15px">${rev.correct ? '✅' : '❌'}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('result-content').innerHTML = `
+    <div class="card" style="text-align:center;margin-bottom:16px">
+      <div style="font-size:40px;margin-bottom:12px">${emoji}</div>
+      <div style="font-size:24px;font-weight:800;margin-bottom:6px">${score}/${total} 정답</div>
+      <div style="font-size:15px;color:var(--accent);font-weight:700;margin-bottom:6px">+${earned}코인 획득</div>
+      <div class="coin-badge" style="margin:0 auto">🪙 ${state.coins.toLocaleString()}원</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;font-weight:700">기간별 실제 변동률</div>
+      ${periodRows}
+    </div>
+
+    <div class="card" style="margin-bottom:16px;text-align:center;background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.2)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px">📊 실제 주가 차트</div>
+      <div id="tv-widget" style="height:300px;border-radius:8px;overflow:hidden"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <button class="btn btn-outline" onclick="goTo('s-news')">다른 뉴스 풀기</button>
+      <button class="btn btn-primary" onclick="goTo('s-portfolio')">포트폴리오 보기 →</button>
+    </div>
+  `;
+
+  goTo('s-result');
+
+  // TradingView 위젯
+  setTimeout(() => {
+    const container = document.getElementById('tv-widget');
+    if (!container) return;
+    const ticker = news.ticker.replace('.KS', '');
+    container.innerHTML = `
+      <iframe
+        src="https://s.tradingview.com/widgetembed/?symbol=KRX%3A${ticker}&interval=W&theme=dark&style=1&locale=kr&toolbar_bg=%23161616&hide_top_toolbar=1&hide_legend=0&saveimage=0&calendar=0&studies=[]&show_popup_button=0&popup_width=1000&popup_height=650"
+        style="width:100%;height:100%;border:none"
+        allowtransparency="true"
+        scrolling="no"
+        frameborder="0"
+      ></iframe>`;
+  }, 300);
+}
+
+// ── 포트폴리오 ───────────────────────────────────────────
+function renderPortfolio() {
+  const portfolio = state.portfolio;
+  const totalInvested = portfolio.reduce((s, h) => s + h.avgCost * h.quantity, 0);
+  const totalCurrent  = portfolio.reduce((s, h) => s + h.currentPrice * h.quantity, 0);
+  const totalPnl = totalCurrent - totalInvested;
+  const totalPct = (totalPnl / totalInvested * 100);
+
+  const chartColors = ['#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ef4444'];
+
+  const rows = portfolio.map((h, i) => {
+    const pnl = (h.currentPrice - h.avgCost) * h.quantity;
+    const pct = ((h.currentPrice - h.avgCost) / h.avgCost * 100);
+    const isUp = pnl >= 0;
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:700;font-size:13px">${h.name}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${h.quantity}주</div>
+        </td>
+        <td style="text-align:right">
+          <div class="mono" style="font-size:13px">₩${h.currentPrice.toLocaleString()}</div>
+          <div style="font-size:11px;color:${isUp?'var(--green)':'var(--red)'}">${isUp?'+':''}${pct.toFixed(1)}%</div>
+        </td>
+        <td style="text-align:right">
+          <div style="font-size:13px;font-weight:700;color:${isUp?'var(--green)':'var(--red)'}">
+            ${isUp?'+':''}${pnl.toLocaleString()}원
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('portfolio-content').innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">총 평가금액</div>
+          <div class="mono" style="font-size:20px;font-weight:700">₩${totalCurrent.toLocaleString()}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">평가손익</div>
+          <div class="mono" style="font-size:18px;font-weight:700;color:${totalPnl>=0?'var(--green)':'var(--red)'}">
+            ${totalPnl>=0?'+':''}${totalPnl.toLocaleString()}원
+          </div>
+          <div style="font-size:11px;color:${totalPnl>=0?'var(--green)':'var(--red)'}">
+            ${totalPct>=0?'+':''}${totalPct.toFixed(1)}%
+          </div>
+        </div>
+      </div>
+      <canvas id="pf-chart" height="180"></canvas>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:12px">보유 종목</div>
+      <table class="table">
+        <thead><tr>
+          <th>종목</th><th style="text-align:right">현재가</th><th style="text-align:right">손익</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">보유 코인 (현금)</div>
+          <div class="coin-badge">🪙 ${state.coins.toLocaleString()}원</div>
+        </div>
+        <button class="btn btn-primary" style="width:auto;padding:12px 20px" onclick="goTo('s-news')">
+          퀴즈 더 풀기
+        </button>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:8px">
+      * 데모용 모의 데이터입니다. 실제 투자와 다를 수 있습니다.
+    </div>
+  `;
+
+  // Chart.js 도넛 차트
+  setTimeout(() => {
+    const ctx = document.getElementById('pf-chart');
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: portfolio.map(h => h.name),
+        datasets: [{
+          data: portfolio.map(h => h.currentPrice * h.quantity),
+          backgroundColor: chartColors,
+          borderWidth: 0,
+          hoverOffset: 6,
+        }],
+      },
+      options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: '#a0a0a0', font: { size: 12 }, padding: 12 },
+          },
+        },
+      },
+    });
+  }, 100);
+}
+</script>
+</body>
+</html>

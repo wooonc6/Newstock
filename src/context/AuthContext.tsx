@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
@@ -8,14 +8,20 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  coins: number;
+  streak: number;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
   loading: true,
+  coins: 0,
+  streak: 0,
   signOut: async () => {},
+  refreshUser: async () => {},
 });
 
 const hasSupabase =
@@ -25,6 +31,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(hasSupabase);
+  const [coins, setCoins] = useState(0);
+  const [streak, setStreak] = useState(0);
+
+  const fetchUserData = useCallback(async (userId: string) => {
+    if (!hasSupabase) return;
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("users")
+      .select("coins, streak")
+      .eq("id", userId)
+      .single();
+    if (data) {
+      setCoins(data.coins ?? 0);
+      setStreak(data.streak ?? 0);
+    }
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    if (user?.id) await fetchUserData(user.id);
+  }, [user?.id, fetchUserData]);
 
   useEffect(() => {
     if (!hasSupabase) return;
@@ -35,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session?.user) fetchUserData(session.user.id);
     });
 
     const {
@@ -43,10 +70,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session?.user) fetchUserData(session.user.id);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchUserData]);
 
   async function signOut() {
     if (!hasSupabase) return;
@@ -55,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, coins, streak, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

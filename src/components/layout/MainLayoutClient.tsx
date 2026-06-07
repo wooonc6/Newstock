@@ -6,7 +6,7 @@ import Header from "./Header";
 import NavTabs from "./NavTabs";
 
 export default function MainLayoutClient({ children }: { children: React.ReactNode }) {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, coins, streak, signOut } = useAuth();
   const router = useRouter();
 
   async function handleLogout() {
@@ -29,7 +29,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
 
   return (
     <div style={{ maxWidth: "740px", margin: "0 auto", padding: "24px 18px", position: "relative", zIndex: 1 }}>
-      <Header nickname={nickname} coins={0} streak={0} onLogout={handleLogout} />
+      <Header nickname={nickname} coins={coins} streak={streak} onLogout={handleLogout} />
       <NavTabs />
       {children}
     </div>
