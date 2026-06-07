@@ -23,11 +23,6 @@ function PriceTag({ ticker }: { ticker: string }) {
 
   if (!data || data.price === null) return null;
 
-  const up = (data.changePercent ?? 0) >= 0;
-  const pctStr = data.changePercent !== null
-    ? `${up ? "+" : ""}${data.changePercent.toFixed(2)}%`
-    : null;
-
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
       <span
@@ -40,20 +35,6 @@ function PriceTag({ ticker }: { ticker: string }) {
       >
         ₩{data.price.toLocaleString()}
       </span>
-      {pctStr && (
-        <span
-          style={{
-            fontFamily: "'Space Mono', monospace",
-            fontSize: "11px",
-            padding: "2px 7px",
-            borderRadius: "5px",
-            background: up ? "rgba(0,229,176,0.1)" : "rgba(239,68,68,0.1)",
-            color: up ? "var(--accent)" : "var(--danger)",
-          }}
-        >
-          {pctStr}
-        </span>
-      )}
     </div>
   );
 }

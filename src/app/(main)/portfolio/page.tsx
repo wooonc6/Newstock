@@ -48,7 +48,7 @@ function HoldingRow({ holding, onTrade }: HoldingRowProps) {
           {loading ? "..." : `₩${price.toLocaleString()}`}
         </div>
         {!loading && price > 0 && (
-          <div style={{ fontSize: "12px", color: isUp ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
+          <div style={{ fontSize: "12px", color: isUp ? "#ef4444" : "#2563eb", fontWeight: 700 }}>
             {isUp ? "+" : ""}{pnl.toLocaleString()}원 ({isUp ? "+" : ""}{pnlPct.toFixed(1)}%)
           </div>
         )}
@@ -126,7 +126,7 @@ function SupportedStockRow({
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", fontWeight: 700 }}>
           {loading ? "시세 조회 중..." : priceData?.price ? `₩${priceData.price.toLocaleString()}` : "시세 없음"}
           {priceData?.changePercent != null && (
-            <span style={{ color: isUp ? "#22c55e" : "#ef4444", marginLeft: "8px", fontSize: "12px" }}>
+            <span style={{ color: isUp ? "#ef4444" : "#2563eb", marginLeft: "8px", fontSize: "12px" }}>
               {isUp ? "+" : ""}{priceData.changePercent.toFixed(2)}%
             </span>
           )}
