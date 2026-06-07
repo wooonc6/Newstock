@@ -3,22 +3,31 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
-import type { NewsItem, QuizData, QuizSubmitResult } from "@/types";
+import type { QuizSubmitResult } from "@/types";
 import Link from "next/link";
 
-const DIFFICULTY_LABEL: Record<string, string> = {
-  easy: "쉬움",
-  medium: "보통",
-  hard: "어려움",
-};
-
-type Step = "news-list" | "quiz-active" | "result";
+interface FeedItem {
+  newsId: string;
+  title: string;
+  company: string;
+  ticker: string;
+  newsDate: string;
+  sourceUrl: string | null;
+  timeLabel: string;
+  direction: "up" | "down";
+  changeRate: number;
+  basePrice: number;
+  currentPrice: number;
+  coins: number;
+}
 
 interface Reveal {
   userAnswer: "up" | "down";
   correct: boolean;
-  changeRate: number;
+  item: FeedItem;
 }
+
+type Step = "loading" | "quiz" | "result";
 
 interface Props {
   ticker: string;
@@ -29,81 +38,63 @@ export default function QuizClient({ ticker, stockName }: Props) {
   const { user, refreshUser } = useAuth();
   const { unlockMap, refetch: refetchUnlock } = useQuizUnlock(user?.id);
 
-  const [step, setStep] = useState<Step>("news-list");
-  const [newsList, setNewsList] = useState<NewsItem[]>([]);
-  const [newsLoading, setNewsLoading] = useState(true);
-  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
-  const [quizData, setQuizData] = useState<QuizData | null>(null);
-  const [quizLoading, setQuizLoading] = useState(false);
-  const [answers, setAnswers] = useState<("up" | "down")[]>([]);
-  const [reveals, setReveals] = useState<Reveal[]>([]);
-  const [currentPeriodIdx, setCurrentPeriodIdx] = useState(0);
+  const [step, setStep] = useState<Step>("loading");
+  const [feed, setFeed] = useState<FeedItem[]>([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
   const [showReveal, setShowReveal] = useState(false);
+  const [answers, setAnswers] = useState<{ newsId: string; answer: "up" | "down"; coins: number }[]>([]);
+  const [reveals, setReveals] = useState<Reveal[]>([]);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [wasUnlocked, setWasUnlocked] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/learning/news?ticker=${encodeURIComponent(ticker)}&limit=10`)
+    fetch(`/api/learning/quiz-feed/${encodeURIComponent(ticker)}`)
       .then((r) => r.json())
-      .then((data) => {
-        setNewsList(Array.isArray(data) ? data : []);
-        setNewsLoading(false);
+      .then((data: FeedItem[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setFeed(data);
+          setStep("quiz");
+        } else {
+          setFeed([]);
+          setStep("quiz");
+        }
       })
-      .catch(() => setNewsLoading(false));
+      .catch(() => setStep("quiz"));
   }, [ticker]);
 
-  async function selectNews(news: NewsItem) {
-    setSelectedNews(news);
-    setQuizLoading(true);
-    setStep("quiz-active");
-    setAnswers([]);
-    setReveals([]);
-    setCurrentPeriodIdx(0);
-    setShowReveal(false);
-
-    const r = await fetch(`/api/learning/quiz/${news.id}`);
-    const data: QuizData = await r.json();
-    setQuizData(data);
-    setQuizLoading(false);
-  }
-
   async function handleAnswer(direction: "up" | "down") {
-    if (!quizData || showReveal) return;
+    if (showReveal || step !== "quiz") return;
 
-    const period = quizData.periods[currentPeriodIdx];
-    const isCorrect = direction === period.direction;
-    const reveal: Reveal = { userAnswer: direction, correct: isCorrect, changeRate: period.changeRate };
+    const item = feed[currentIdx];
+    const isCorrect = direction === item.direction;
+    const reveal: Reveal = { userAnswer: direction, correct: isCorrect, item };
 
-    const newAnswers = [...answers, direction];
+    const newAnswers = [...answers, { newsId: item.newsId, answer: direction, coins: item.coins }];
     const newReveals = [...reveals, reveal];
-
     setAnswers(newAnswers);
     setReveals(newReveals);
     setShowReveal(true);
 
-    const isLast = currentPeriodIdx >= quizData.periods.length - 1;
-
+    const isLast = currentIdx >= feed.length - 1;
     setTimeout(async () => {
       setShowReveal(false);
       if (isLast) {
-        await submitQuiz(newAnswers);
+        await submitAll(newAnswers);
       } else {
-        setCurrentPeriodIdx((i) => i + 1);
+        setCurrentIdx((i) => i + 1);
       }
-    }, 1400);
+    }, 1600);
   }
 
-  async function submitQuiz(finalAnswers: ("up" | "down")[]) {
-    if (!quizData || !selectedNews) return;
+  async function submitAll(finalAnswers: { newsId: string; answer: "up" | "down"; coins: number }[]) {
     setSubmitting(true);
-
     const prevCompleted = unlockMap[ticker]?.quizzes_completed ?? 0;
 
-    const r = await fetch("/api/quiz/submit", {
+    const r = await fetch("/api/quiz/submit-v2", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newsId: selectedNews.id, answers: finalAnswers }),
+      body: JSON.stringify({ results: finalAnswers }),
     });
     const data: QuizSubmitResult = await r.json();
     setResult(data);
@@ -113,191 +104,134 @@ export default function QuizClient({ ticker, stockName }: Props) {
     await refreshUser();
     await refetchUnlock();
 
-    const newCompleted = prevCompleted + 1;
-    if (newCompleted >= 3 && prevCompleted < 3) {
-      setWasUnlocked(true);
-    }
+    const newCompleted = prevCompleted + finalAnswers.length;
+    if (newCompleted >= 3 && prevCompleted < 3) setWasUnlocked(true);
   }
 
-  function resetQuiz() {
-    setStep("news-list");
-    setSelectedNews(null);
-    setQuizData(null);
-    setAnswers([]);
-    setReveals([]);
-    setCurrentPeriodIdx(0);
-    setShowReveal(false);
-    setResult(null);
-    setWasUnlocked(false);
-  }
-
-  // ── 뉴스 목록 ────────────────────────────────────────────
-  if (step === "news-list") {
+  // ── 로딩 ─────────────────────────────────────────────────
+  if (step === "loading" || submitting) {
     return (
-      <div>
-        <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "14px" }}>
-          {stockName} 관련 뉴스 선택
-        </div>
-        {newsLoading ? (
-          <div style={{ fontSize: "13px", color: "var(--text-muted)", padding: "20px 0" }}>뉴스 불러오는 중...</div>
-        ) : newsList.length === 0 ? (
-          <div
-            style={{
-              background: "rgba(59,130,246,0.06)",
-              border: "1px solid rgba(59,130,246,0.15)",
-              borderRadius: "10px",
-              padding: "20px",
-              fontSize: "13px",
-              color: "var(--text-dim)",
-            }}
-          >
-            아직 등록된 뉴스 데이터가 없습니다.
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {newsList.map((news) => (
-              <button
-                key={news.id}
-                onClick={() => selectNews(news)}
-                style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  width: "100%",
-                }}
-              >
-                <div style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 700, marginBottom: "6px" }}>
-                  {news.news_date} · {DIFFICULTY_LABEL[news.difficulty] ?? news.difficulty}
-                </div>
-                <div style={{ fontSize: "13px", fontWeight: 600, lineHeight: 1.5 }}>{news.title}</div>
-              </button>
-            ))}
-          </div>
-        )}
+      <div style={{ fontSize: "13px", color: "var(--text-muted)", padding: "40px 0", textAlign: "center" }}>
+        {submitting ? "결과 집계 중..." : "뉴스 불러오는 중..."}
       </div>
     );
   }
 
-  // ── 퀴즈 진행 ────────────────────────────────────────────
-  if (step === "quiz-active") {
-    if (quizLoading || !quizData) {
-      return <div style={{ fontSize: "13px", color: "var(--text-muted)", padding: "20px 0" }}>퀴즈 불러오는 중...</div>;
-    }
-    if (submitting) {
-      return <div style={{ fontSize: "13px", color: "var(--text-muted)", padding: "20px 0" }}>결과 집계 중...</div>;
-    }
+  // ── 뉴스 없음 ─────────────────────────────────────────────
+  if (step === "quiz" && feed.length === 0) {
+    return (
+      <div
+        style={{
+          background: "rgba(0,168,120,0.06)",
+          border: "1px solid rgba(0,168,120,0.15)",
+          borderRadius: "12px",
+          padding: "24px",
+          fontSize: "13px",
+          color: "var(--text-dim)",
+          textAlign: "center",
+        }}
+      >
+        아직 등록된 뉴스 데이터가 없습니다.<br/>
+        <span style={{ color: "var(--text-muted)", fontSize: "12px" }}>DB에 curated_news 데이터 입력 후 활성화됩니다</span>
+      </div>
+    );
+  }
 
-    const period = quizData.periods[currentPeriodIdx];
-    const currentReveal = reveals[currentPeriodIdx];
+  // ── 퀴즈 ──────────────────────────────────────────────────
+  if (step === "quiz") {
+    const item = feed[currentIdx];
 
     return (
       <div>
-        {/* 뉴스 헤드라인 */}
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "12px",
-            padding: "18px",
-            marginBottom: "16px",
-          }}
-        >
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "6px" }}>
-            {quizData.newsDate} 기사
-          </div>
-          <div style={{ fontSize: "14px", fontWeight: 600, lineHeight: 1.6 }}>{quizData.headline}</div>
-        </div>
-
         {/* 진행 바 */}
-        <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
-          {quizData.periods.map((_, i) => (
+        <div style={{ display: "flex", gap: "6px", marginBottom: "4px" }}>
+          {feed.map((_, i) => (
             <div
               key={i}
               style={{
-                flex: 1,
-                height: "4px",
-                borderRadius: "2px",
-                background:
-                  i < currentPeriodIdx
-                    ? "var(--accent)"
-                    : i === currentPeriodIdx
-                    ? "rgba(59,130,246,0.3)"
-                    : "var(--border)",
+                flex: 1, height: "4px", borderRadius: "2px",
+                background: i < currentIdx ? "var(--accent)" : i === currentIdx ? "rgba(0,168,120,0.3)" : "var(--surface3)",
+                transition: "background .3s",
               }}
             />
           ))}
         </div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "16px" }}>
+          {currentIdx + 1} / {feed.length}
+        </div>
 
-        {/* 질문 */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "4px" }}>
-            {currentPeriodIdx + 1}/{quizData.periods.length} · {period.label}
+        {/* 뉴스 카드 */}
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "14px",
+            padding: "18px",
+            marginBottom: "14px",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-block",
+              padding: "3px 10px",
+              borderRadius: "100px",
+              background: "rgba(26,58,92,0.08)",
+              border: "1px solid rgba(26,58,92,0.15)",
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "var(--accent2)",
+              marginBottom: "10px",
+            }}
+          >
+            {item.timeLabel} 뉴스 · {item.newsDate}
           </div>
-          <div style={{ fontSize: "15px", fontWeight: 700 }}>
-            이 뉴스 이후 {period.label}, {stockName}의 주가는?
-          </div>
-          <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-            정답 시 +{period.coins}코인
+          <div style={{ fontSize: "14px", fontWeight: 700, lineHeight: 1.6, marginBottom: "8px" }}>
+            {item.title}
           </div>
         </div>
 
-        {/* 정답 공개 오버레이 */}
-        {showReveal && currentReveal ? (
-          <div
-            style={{
-              background: currentReveal.correct ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
-              border: `1px solid ${currentReveal.correct ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
-              borderRadius: "14px",
-              padding: "24px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: "28px", marginBottom: "8px" }}>
-              {currentReveal.correct ? "✅" : "❌"}
-            </div>
-            <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "6px" }}>
-              {currentReveal.correct ? "정답!" : "오답!"}
-            </div>
-            <div style={{ fontSize: "13px", color: "var(--text-dim)" }}>
-              실제로{" "}
-              <span
-                style={{
-                  fontWeight: 700,
-                  fontFamily: "'Space Mono', monospace",
-                  color: period.direction === "up" ? "#22c55e" : "#ef4444",
-                }}
-              >
-                {period.changeRate >= 0 ? "+" : ""}{period.changeRate.toFixed(1)}%{" "}
-                {period.direction === "up" ? "상승" : "하락"}
-              </span>
-              했습니다
-            </div>
+        {/* 질문 */}
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "14px",
+            padding: "16px",
+            marginBottom: "14px",
+          }}
+        >
+          <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>
+            이 뉴스가 나온 이후 지금까지,<br/>{stockName}의 주가는?
           </div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+            정답 시 +{item.coins}코인
+          </div>
+        </div>
+
+        {/* 정답 공개 or 버튼 */}
+        {showReveal ? (
+          <RevealCard reveal={reveals[reveals.length - 1]} />
         ) : (
-          /* 상승/하락 버튼 */
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {(["up", "down"] as const).map((dir) => (
               <button
                 key={dir}
                 onClick={() => handleAnswer(dir)}
                 style={{
-                  padding: "28px 16px",
+                  padding: "32px 16px",
                   borderRadius: "14px",
-                  border: "1px solid var(--border)",
+                  border: `1.5px solid ${dir === "up" ? "rgba(0,168,120,0.2)" : "rgba(239,68,68,0.2)"}`,
                   background: "var(--surface)",
-                  fontSize: "24px",
                   cursor: "pointer",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   gap: "8px",
+                  transition: "transform .1s",
                 }}
               >
-                <span>{dir === "up" ? "📈" : "📉"}</span>
-                <span style={{ fontSize: "15px", fontWeight: 700, color: dir === "up" ? "#22c55e" : "#ef4444" }}>
+                <span style={{ fontSize: "32px" }}>{dir === "up" ? "📈" : "📉"}</span>
+                <span style={{ fontSize: "16px", fontWeight: 700, color: dir === "up" ? "var(--accent)" : "var(--danger)" }}>
                   {dir === "up" ? "상승" : "하락"}
                 </span>
               </button>
@@ -308,7 +242,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
     );
   }
 
-  // ── 결과 화면 ────────────────────────────────────────────
+  // ── 결과 ──────────────────────────────────────────────────
   if (!result) return null;
 
   return (
@@ -323,63 +257,89 @@ export default function QuizClient({ ticker, stockName }: Props) {
           marginBottom: "16px",
         }}
       >
-        <div style={{ fontSize: "32px", marginBottom: "12px" }}>
+        <div style={{ fontSize: "40px", marginBottom: "12px" }}>
           {result.score === result.total ? "🎉" : result.score > 0 ? "👍" : "😅"}
         </div>
-        <div style={{ fontSize: "22px", fontWeight: 700, marginBottom: "6px" }}>
+        <div style={{ fontSize: "24px", fontWeight: 900, color: "var(--accent2)", marginBottom: "6px" }}>
           {result.score}/{result.total} 정답
         </div>
-        <div style={{ fontSize: "15px", color: "var(--accent)", fontWeight: 700, marginBottom: "4px" }}>
-          +{result.coins_earned.toLocaleString()}원 획득
+        <div style={{ fontSize: "15px", color: "var(--accent)", fontWeight: 700, marginBottom: "8px" }}>
+          +{result.coins_earned.toLocaleString()}코인 획득
         </div>
-        <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-          현재 보유 코인: 🪙 {result.new_coins_total.toLocaleString()}원
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "rgba(184,160,48,0.08)",
+            border: "1px solid rgba(184,160,48,0.2)",
+            borderRadius: "100px",
+            padding: "6px 14px",
+            fontFamily: "'Space Mono', monospace",
+            fontSize: "13px",
+            fontWeight: 700,
+            color: "var(--coin)",
+          }}
+        >
+          🪙 {result.new_coins_total.toLocaleString()}원
         </div>
       </div>
 
-      {/* 기간별 결과 요약 */}
-      {quizData && (
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "12px",
-            padding: "16px",
-            marginBottom: "16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-          }}
-        >
-          {quizData.periods.map((p, i) => {
-            const rev = reveals[i];
-            return (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ fontSize: "13px", color: "var(--text-dim)" }}>{p.label}</div>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                  <span
-                    style={{
-                      fontFamily: "'Space Mono', monospace",
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: p.direction === "up" ? "#22c55e" : "#ef4444",
-                    }}
-                  >
-                    {p.changeRate >= 0 ? "+" : ""}{p.changeRate.toFixed(1)}%
-                  </span>
-                  <span style={{ fontSize: "14px" }}>{rev?.correct ? "✅" : "❌"}</span>
-                </div>
-              </div>
-            );
-          })}
+      {/* 기간별 결과 */}
+      <div
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "14px",
+          padding: "16px",
+          marginBottom: "16px",
+        }}
+      >
+        <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", marginBottom: "10px" }}>
+          기간별 실제 주가 변동
         </div>
-      )}
+        {reveals.map((rev, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "10px 0",
+              borderBottom: i < reveals.length - 1 ? "1px solid var(--border)" : "none",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{rev.item.timeLabel}</div>
+              <div style={{ fontSize: "12px", fontWeight: 600, marginTop: "2px" }}>
+                {rev.item.title.slice(0, 22)}…
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <span
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: "5px",
+                  background: rev.item.direction === "up" ? "rgba(0,229,176,0.1)" : "rgba(239,68,68,0.1)",
+                  color: rev.item.direction === "up" ? "var(--accent)" : "var(--danger)",
+                }}
+              >
+                {rev.item.changeRate >= 0 ? "+" : ""}{rev.item.changeRate.toFixed(1)}%
+              </span>
+              <span style={{ fontSize: "15px" }}>{rev.correct ? "✅" : "❌"}</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {wasUnlocked && (
         <div
           style={{
-            background: "rgba(59,130,246,0.08)",
-            border: "1px solid rgba(59,130,246,0.25)",
+            background: "rgba(0,168,120,0.08)",
+            border: "1px solid rgba(0,168,120,0.25)",
             borderRadius: "12px",
             padding: "16px",
             textAlign: "center",
@@ -407,60 +367,17 @@ export default function QuizClient({ ticker, stockName }: Props) {
         </div>
       )}
 
-      {selectedNews?.source_url && (
-        <a
-          href={selectedNews.source_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            width: "100%",
-            padding: "14px",
-            borderRadius: "12px",
-            border: "1px solid var(--border)",
-            background: "var(--surface)",
-            fontSize: "13px",
-            fontWeight: 600,
-            color: "var(--accent)",
-            textDecoration: "none",
-            marginBottom: "10px",
-          }}
-        >
-          📰 기사 원문 읽기 →
-        </a>
-      )}
-
       <div style={{ display: "flex", gap: "10px" }}>
-        <button
-          onClick={resetQuiz}
-          style={{
-            flex: 1,
-            padding: "14px",
-            borderRadius: "12px",
-            border: "1px solid var(--border)",
-            background: "var(--surface)",
-            fontSize: "13px",
-            fontWeight: 600,
-            cursor: "pointer",
-            color: "var(--text)",
-          }}
-        >
-          다른 뉴스 풀기
-        </button>
         <Link
           href="/dashboard"
           style={{
             flex: 1,
             padding: "14px",
             borderRadius: "12px",
-            border: "none",
-            background: "var(--surface2)",
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
             fontSize: "13px",
             fontWeight: 600,
-            cursor: "pointer",
             color: "var(--text-dim)",
             textDecoration: "none",
             display: "flex",
@@ -470,7 +387,76 @@ export default function QuizClient({ ticker, stockName }: Props) {
         >
           대시보드로
         </Link>
+        <Link
+          href="/portfolio"
+          style={{
+            flex: 1,
+            padding: "14px",
+            borderRadius: "12px",
+            border: "none",
+            background: "var(--accent)",
+            fontSize: "13px",
+            fontWeight: 700,
+            color: "#fff",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          포트폴리오 →
+        </Link>
       </div>
+    </div>
+  );
+}
+
+function RevealCard({ reveal }: { reveal: Reveal }) {
+  const { correct, item } = reveal;
+  return (
+    <div
+      style={{
+        borderRadius: "14px",
+        padding: "28px",
+        textAlign: "center",
+        background: correct ? "rgba(0,168,120,0.08)" : "rgba(239,68,68,0.06)",
+        border: `1.5px solid ${correct ? "rgba(0,168,120,0.25)" : "rgba(239,68,68,0.2)"}`,
+      }}
+    >
+      <div style={{ fontSize: "36px", marginBottom: "10px" }}>{correct ? "✅" : "❌"}</div>
+      <div style={{ fontSize: "17px", fontWeight: 700, marginBottom: "8px" }}>{correct ? "정답!" : "오답!"}</div>
+      <div style={{ fontSize: "13px", color: "var(--text-dim)", marginBottom: "12px" }}>
+        {item.newsDate} 이후 지금까지 실제로{" "}
+        <span
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontWeight: 700,
+            color: item.direction === "up" ? "var(--accent)" : "var(--danger)",
+          }}
+        >
+          {item.changeRate >= 0 ? "+" : ""}{item.changeRate.toFixed(1)}%{" "}
+          {item.direction === "up" ? "상승" : "하락"}
+        </span>
+        했습니다
+      </div>
+      {item.sourceUrl && (
+        <a
+          href={item.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
+            fontSize: "12px",
+            color: "var(--accent2)",
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
+        >
+          📰 기사 원문 읽기 →
+        </a>
+      )}
     </div>
   );
 }
