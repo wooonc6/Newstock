@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import type { Stock } from "@/types";
 
 export const STOCKS: Stock[] = [

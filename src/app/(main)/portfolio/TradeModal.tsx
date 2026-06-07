@@ -24,9 +24,18 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
   const price = priceData?.price ?? 0;
   const totalCost = Math.round(price * quantity);
   const maxBuy = price > 0 ? Math.floor(coins / price) : 0;
-  const maxSell = currentHolding?.quantity ?? 0;
+  const maxSell = Math.floor(currentHolding?.quantity ?? 0);
+  const maxQuantity = tradeType === "buy" ? maxBuy : maxSell;
+  const canTrade =
+    !loading &&
+    !priceLoading &&
+    price > 0 &&
+    quantity > 0 &&
+    quantity <= maxQuantity &&
+    (tradeType === "buy" ? totalCost <= coins : maxSell > 0);
 
   async function handleTrade() {
+    if (!canTrade) return;
     setLoading(true);
     setError(null);
 
@@ -72,7 +81,12 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <div style={{ fontSize: "16px", fontWeight: 700 }}>{stockName} 거래</div>
+          <div>
+            <div style={{ fontSize: "16px", fontWeight: 700 }}>{stockName} 거래</div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+              실제 현재가를 기준으로 모의 매수/매도합니다.
+            </div>
+          </div>
           <button
             onClick={onClose}
             style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "var(--text-muted)" }}
@@ -95,6 +109,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
             <button
               key={type}
               onClick={() => { setTradeType(type); setQuantity(1); setError(null); }}
+              disabled={type === "sell" && maxSell <= 0}
               style={{
                 flex: 1,
                 padding: "10px",
@@ -104,7 +119,8 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
                 color: tradeType === type ? "#fff" : "var(--text-dim)",
                 fontSize: "13px",
                 fontWeight: 700,
-                cursor: "pointer",
+                cursor: type === "sell" && maxSell <= 0 ? "not-allowed" : "pointer",
+                opacity: type === "sell" && maxSell <= 0 ? 0.45 : 1,
               }}
             >
               {type === "buy" ? "매수" : "매도"}
@@ -142,7 +158,10 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
               min={1}
               max={tradeType === "buy" ? maxBuy : maxSell}
               value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+              onChange={(e) => {
+                const next = Math.max(1, Number(e.target.value));
+                setQuantity(maxQuantity > 0 ? Math.min(next, maxQuantity) : 1);
+              }}
               style={{
                 flex: 1, textAlign: "center", padding: "8px",
                 borderRadius: "8px", border: "1px solid var(--border)",
@@ -152,7 +171,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
               }}
             />
             <button
-              onClick={() => setQuantity((q) => q + 1)}
+              onClick={() => setQuantity((q) => (maxQuantity > 0 ? Math.min(maxQuantity, q + 1) : q))}
               style={{
                 width: "36px", height: "36px", borderRadius: "8px",
                 border: "1px solid var(--border)", background: "var(--surface)",
@@ -193,7 +212,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
 
         <button
           onClick={handleTrade}
-          disabled={loading || priceLoading || price === 0 || (tradeType === "buy" && totalCost > coins) || (tradeType === "sell" && quantity > maxSell)}
+          disabled={!canTrade}
           style={{
             width: "100%",
             padding: "16px",
@@ -204,10 +223,10 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
             fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
-            opacity: loading ? 0.7 : 1,
+            opacity: canTrade ? 1 : 0.55,
           }}
         >
-          {loading ? "처리 중..." : `${quantity}주 ${tradeType === "buy" ? "매수" : "매도"}`}
+          {loading ? "처리 중..." : maxQuantity <= 0 ? "거래 가능 수량 없음" : `${quantity}주 ${tradeType === "buy" ? "매수" : "매도"}`}
         </button>
       </div>
     </div>

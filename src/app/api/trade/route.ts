@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
+import { getStock } from '@/lib/stocks';
 import { NextRequest, NextResponse } from 'next/server';
+
+const QUIZZES_TO_UNLOCK = 3;
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -15,15 +18,39 @@ export async function POST(req: NextRequest) {
   }
 
   const { ticker, trade_type, quantity } = body;
-  if (!ticker || !trade_type || !quantity || quantity <= 0) {
-    return NextResponse.json({ error: 'ticker, trade_type, quantity가 필요합니다.' }, { status: 400 });
+  if (
+    !ticker ||
+    !trade_type ||
+    !Number.isInteger(quantity) ||
+    quantity <= 0 ||
+    !['buy', 'sell'].includes(trade_type)
+  ) {
+    return NextResponse.json({ error: '지원 종목, 거래 종류, 1주 이상의 정수 수량이 필요합니다.' }, { status: 400 });
+  }
+
+  const stock = getStock(ticker);
+  if (!stock) {
+    return NextResponse.json({ error: 'Newstock에서 지원하지 않는 종목입니다.' }, { status: 400 });
+  }
+
+  const { count: completedQuizzes } = await supabase
+    .from('quiz_sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('stock_ticker', ticker);
+
+  if ((completedQuizzes ?? 0) < QUIZZES_TO_UNLOCK) {
+    return NextResponse.json(
+      { error: `${stock.name} 퀴즈를 ${QUIZZES_TO_UNLOCK}개 완료해야 거래할 수 있습니다.` },
+      { status: 403 }
+    );
   }
 
   // 현재가 조회
   let price: number;
   try {
     const { default: yahooFinance } = await import('yahoo-finance2');
-    const quote = await (yahooFinance as any).quote(ticker, { fields: ['regularMarketPrice'] });
+    const quote = await (yahooFinance as any).quote(stock.ticker, { fields: ['regularMarketPrice'] });
     price = quote.regularMarketPrice;
     if (!price) throw new Error('가격 없음');
   } catch {
