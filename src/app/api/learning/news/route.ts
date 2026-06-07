@@ -1,6 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
+function buildNaverSearchUrl(title: string, date: string): string {
+  const [year, month, day] = date.split('-');
+  const ds = `${year}.${month}.01`;
+  const de = `${year}.${month}.${day}`;
+  const query = encodeURIComponent(title.slice(0, 20));
+  return `https://search.naver.com/search.naver?where=news&query=${query}&ds=${ds}&de=${de}`;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const category = searchParams.get('category');
@@ -25,5 +33,11 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json(data);
+  // source_url 없는 뉴스는 네이버 검색 URL 자동 생성
+  const enriched = (data ?? []).map((news: any) => ({
+    ...news,
+    source_url: news.source_url || buildNaverSearchUrl(news.title, news.news_date),
+  }));
+
+  return NextResponse.json(enriched);
 }
