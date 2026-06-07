@@ -162,6 +162,7 @@ const NEWS = [
     date: '2024-01-15',
     title: '삼성전자, HBM3 양산 성공… 엔비디아에 공급 임박',
     body: '삼성전자가 HBM3(고대역폭메모리 3세대) 양산에 성공하고 엔비디아에 대한 공급이 임박했다고 밝혔다. AI 반도체 수요 급증으로 HBM 시장이 폭발적으로 성장하고 있는 가운데, 삼성의 공급 진입은 시장 판도 변화를 예고한다.',
+    sourceUrl: 'https://n.news.naver.com/article/018/0005649767',
     periods: [
       { label: '1개월 후', months: 1, changeRate: -4.8, direction: 'down' },
       { label: '3개월 후', months: 3, changeRate: 8.3,  direction: 'up'   },
@@ -175,6 +176,7 @@ const NEWS = [
     date: '2024-03-05',
     title: 'SK하이닉스, HBM3E 엔비디아 독점 공급 확정… 연매출 50조 전망',
     body: 'SK하이닉스가 엔비디아의 차세대 AI 가속기 H200에 탑재되는 HBM3E(5세대 HBM)를 독점 공급하기로 확정했다. 업계에서는 이번 계약으로 SK하이닉스의 연간 매출이 50조원을 넘을 것으로 전망한다.',
+    sourceUrl: 'https://n.news.naver.com/article/015/0004957291',
     periods: [
       { label: '1개월 후', months: 1, changeRate: 14.2, direction: 'up' },
       { label: '3개월 후', months: 3, changeRate: 31.5, direction: 'up' },
@@ -188,6 +190,7 @@ const NEWS = [
     date: '2024-07-18',
     title: '두산에너빌리티, 체코 원전 수주 우선협상대상자 선정',
     body: '두산에너빌리티가 체코 두코바니 신규 원전 프로젝트의 주기기 공급 우선협상대상자로 선정됐다. 총 사업 규모는 약 24조원에 달하며, 한국형 원자로 APR1000 기술이 적용될 예정이다.',
+    sourceUrl: 'https://n.news.naver.com/article/011/0004370042',
     periods: [
       { label: '1개월 후', months: 1, changeRate: 21.3,  direction: 'up'   },
       { label: '3개월 후', months: 3, changeRate: -9.7,  direction: 'down' },
@@ -201,6 +204,7 @@ const NEWS = [
     date: '2024-02-28',
     title: 'NAVER, 하이퍼클로바X 기반 AI 검색 전면 도입 선언',
     body: 'NAVER가 자체 개발 초거대 AI 하이퍼클로바X를 기반으로 한 AI 검색 서비스를 국내 전체 검색에 전면 도입한다고 발표했다. 광고 수익 모델 전환이 과제로 남아 있다는 평가도 나온다.',
+    sourceUrl: 'https://n.news.naver.com/article/092/0002334073',
     periods: [
       { label: '1개월 후', months: 1, changeRate: -2.9,  direction: 'down' },
       { label: '3개월 후', months: 3, changeRate: 6.8,   direction: 'up'   },
@@ -214,6 +218,7 @@ const NEWS = [
     date: '2024-04-10',
     title: '현대차, 美 조지아 전기차 공장 본격 가동… 연 30만대 생산',
     body: '현대차 미국 조지아주 전기차 전용 공장(HMGMA)이 본격 가동에 들어갔다. IRA(인플레이션 감축법) 세제 혜택 대상으로, 연간 30만대 생산을 목표로 한다. 다만 전기차 수요 둔화로 초기 가동률이 기대치를 밑돌 수 있다는 우려도 있다.',
+    sourceUrl: 'https://n.news.naver.com/article/003/0012489156',
     periods: [
       { label: '1개월 후', months: 1, changeRate: 5.1,   direction: 'up'   },
       { label: '3개월 후', months: 3, changeRate: -7.8,  direction: 'down' },
@@ -400,6 +405,12 @@ function showResult() {
       <div style="font-size:13px;font-weight:700;margin-bottom:6px">📊 실제 주가 차트</div>
       <div id="tv-widget" style="height:300px;border-radius:8px;overflow:hidden"></div>
     </div>
+
+    ${news.sourceUrl ? `
+    <a href="${news.sourceUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline"
+      style="display:flex;align-items:center;justify-content:center;gap:6px;color:var(--accent);text-decoration:none;margin-bottom:10px">
+      📰 기사 원문 읽기 →
+    </a>` : ''}
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <button class="btn btn-outline" onclick="goTo('s-news')">다른 뉴스 풀기</button>

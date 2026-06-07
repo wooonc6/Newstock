@@ -61,6 +61,7 @@ export interface NewsItem {
   news_date: string;
   category: string;
   difficulty: string;
+  source_url?: string;
 }
 
 export interface Trade {

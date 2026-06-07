@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('curated_news')
-    .select('id, title, company, ticker, news_date, category, difficulty')
+    .select('id, title, company, ticker, news_date, category, difficulty, source_url')
     .order('news_date', { ascending: false })
     .range(offset, offset + limit - 1);
 

@@ -407,6 +407,32 @@ export default function QuizClient({ ticker, stockName }: Props) {
         </div>
       )}
 
+      {selectedNews?.source_url && (
+        <a
+          href={selectedNews.source_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+            width: "100%",
+            padding: "14px",
+            borderRadius: "12px",
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
+            fontSize: "13px",
+            fontWeight: 600,
+            color: "var(--accent)",
+            textDecoration: "none",
+            marginBottom: "10px",
+          }}
+        >
+          📰 기사 원문 읽기 →
+        </a>
+      )}
+
       <div style={{ display: "flex", gap: "10px" }}>
         <button
           onClick={resetQuiz}
