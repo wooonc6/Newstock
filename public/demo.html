@@ -330,7 +330,7 @@ function renderQuiz() {
       <div style="font-size:13px;font-weight:700;margin-bottom:4px">
         이 뉴스가 나온 이후 지금까지,<br/>${news.company}의 주가는 어떻게 됐을까요?
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">정답 시 +₩${[10,20,30,40][state.idx] ?? 10}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">정답 시 +₩${[50000,100000,150000,200000][state.idx].toLocaleString()}</div>
     </div>
 
     ${body}

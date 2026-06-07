@@ -92,7 +92,7 @@ export async function GET(_req: Request, { params }: { params: { newsId: string 
     );
   }
 
-  const coinsMap: Record<number, number> = { 1: 10, 3: 20, 6: 30 };
+  const coinsMap: Record<number, number> = { 1: 50000, 3: 100000, 6: 150000 };
   const periods = stockData.periods
     .filter((p: any) => p.changeRate != null)
     .map((p: any) => ({

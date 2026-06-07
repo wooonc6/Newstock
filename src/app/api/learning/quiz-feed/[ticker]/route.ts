@@ -2,10 +2,10 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 const BRACKETS = [
-  { label: '1개월 전', months: 1, coins: 10 },
-  { label: '3개월 전', months: 3, coins: 20 },
-  { label: '6개월 전', months: 6, coins: 30 },
-  { label: '12개월 전', months: 12, coins: 40 },
+  { label: '1개월 전', months: 1, coins: 50000 },
+  { label: '3개월 전', months: 3, coins: 100000 },
+  { label: '6개월 전', months: 6, coins: 150000 },
+  { label: '12개월 전', months: 12, coins: 200000 },
 ];
 
 export async function GET(_req: Request, { params }: { params: { ticker: string } }) {

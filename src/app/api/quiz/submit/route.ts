@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-const COINS_MAP: Record<number, number> = { 1: 10, 3: 20, 6: 30 };
+const COINS_MAP: Record<number, number> = { 1: 50000, 3: 100000, 6: 150000 };
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
