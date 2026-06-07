@@ -204,7 +204,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
             이 뉴스가 나온 이후 지금까지,<br/>{stockName}의 주가는?
           </div>
           <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-            정답 시 +{item.coins}코인
+            정답 시 +₩{item.coins.toLocaleString()}
           </div>
         </div>
 
@@ -264,7 +264,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
           {result.score}/{result.total} 정답
         </div>
         <div style={{ fontSize: "15px", color: "var(--accent)", fontWeight: 700, marginBottom: "8px" }}>
-          +{result.coins_earned.toLocaleString()}코인 획득
+          +₩{result.coins_earned.toLocaleString()} 획득
         </div>
         <div
           style={{
@@ -281,7 +281,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
             color: "var(--coin)",
           }}
         >
-          🪙 {result.new_coins_total.toLocaleString()}원
+          ₩{result.new_coins_total.toLocaleString()}
         </div>
       </div>
 

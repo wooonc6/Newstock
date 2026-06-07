@@ -175,13 +175,13 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
         >
           <div style={{ fontSize: "13px", color: "var(--text-dim)" }}>총 {tradeType === "buy" ? "매수" : "매도"}금액</div>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "14px", fontWeight: 700 }}>
-            🪙 {totalCost.toLocaleString()}원
+            ₩{totalCost.toLocaleString()}
           </div>
         </div>
 
         {/* 잔고 */}
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px", textAlign: "right" }}>
-          보유 코인: 🪙 {coins.toLocaleString()}원
+          보유 현금: ₩{coins.toLocaleString()}
           {tradeType === "buy" && totalCost > 0 && (
             <span> → 매수 후 {(coins - totalCost).toLocaleString()}원</span>
           )}

@@ -60,7 +60,7 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
             color: "var(--coin)",
           }}
         >
-          🪙 {coins.toLocaleString()}원
+          ₩{coins.toLocaleString()}
         </div>
 
         <button

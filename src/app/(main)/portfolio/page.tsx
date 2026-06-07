@@ -166,9 +166,9 @@ export default function PortfolioPage() {
           marginBottom: "20px",
         }}
       >
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>보유 코인</div>
+        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>보유 현금</div>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "22px", fontWeight: 700 }}>
-          🪙 {coins.toLocaleString()}원
+          ₩{coins.toLocaleString()}
         </div>
       </div>
 

@@ -108,7 +108,7 @@ body::before{
       <div style="font-size:14px;color:var(--text-dim);line-height:1.8">
         과거 경제 뉴스를 읽고,<br/>
         <strong style="color:var(--text)">그 이후 주가가 올랐는지 내렸는지</strong> 맞혀보세요.<br/>
-        정답을 맞히면 코인을 받아 모의 투자까지 할 수 있어요.
+        정답을 맞히면 현금을 받아 모의 투자까지 할 수 있어요.
       </div>
     </div>
 
@@ -130,7 +130,7 @@ body::before{
       <div style="display:flex;gap:14px;align-items:center">
         <div style="font-size:22px">💰</div>
         <div>
-          <div style="font-size:13px;font-weight:700;margin-bottom:2px">코인 적립 → 모의 투자</div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">현금 적립 → 모의 투자</div>
           <div style="font-size:12px;color:var(--text-muted)">종목 언락 후 실시간 주가로 매수/매도</div>
         </div>
       </div>
@@ -147,7 +147,7 @@ body::before{
 <div id="s-quiz" class="screen">
   <div class="app-header">
     <div style="font-size:18px;font-weight:900;color:var(--accent2)">Newstock</div>
-    <div class="coin-badge" id="header-coin">🪙 1,000,000원</div>
+    <div class="coin-badge" id="header-coin">₩1,000,000</div>
   </div>
   <div id="quiz-content"></div>
 </div>
@@ -156,7 +156,7 @@ body::before{
 <div id="s-result" class="screen">
   <div class="app-header">
     <div style="font-size:18px;font-weight:900;color:var(--accent2)">Newstock</div>
-    <div class="coin-badge" id="result-coin">🪙 1,000,000원</div>
+    <div class="coin-badge" id="result-coin">₩1,000,000</div>
   </div>
   <div id="result-content"></div>
 </div>
@@ -165,7 +165,7 @@ body::before{
 <div id="s-portfolio" class="screen">
   <div class="app-header">
     <div style="font-size:18px;font-weight:900;color:var(--accent2)">Newstock</div>
-    <div class="coin-badge" id="pf-coin">🪙 1,000,000원</div>
+    <div class="coin-badge" id="pf-coin">₩1,000,000</div>
   </div>
   <div id="portfolio-content"></div>
 </div>
@@ -244,7 +244,7 @@ let state = {
 };
 
 function updateCoinBadges() {
-  const txt = `🪙 ${state.coins.toLocaleString()}원`;
+  const txt = `₩${state.coins.toLocaleString()}`;
   ['header-coin','result-coin','pf-coin'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = txt;
@@ -330,7 +330,7 @@ function renderQuiz() {
       <div style="font-size:13px;font-weight:700;margin-bottom:4px">
         이 뉴스가 나온 이후 지금까지,<br/>${news.company}의 주가는 어떻게 됐을까요?
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">정답 시 +${[10,20,30,40][state.idx] ?? 10}코인</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">정답 시 +₩${[10,20,30,40][state.idx] ?? 10}</div>
     </div>
 
     ${body}
@@ -389,8 +389,8 @@ function showResult() {
     <div class="card" style="text-align:center;margin-bottom:16px;animation:coinPop .45s cubic-bezier(.34,1.56,.64,1)">
       <div style="font-size:44px;margin-bottom:12px">${emoji}</div>
       <div style="font-size:26px;font-weight:900;margin-bottom:6px;color:var(--accent2)">${score}/${total} 정답</div>
-      <div style="font-size:15px;color:var(--accent);font-weight:700;margin-bottom:8px">+${earned}코인 획득</div>
-      <div class="coin-badge" style="margin:0 auto">🪙 ${state.coins.toLocaleString()}원</div>
+      <div style="font-size:15px;color:var(--accent);font-weight:700;margin-bottom:8px">+₩${earned.toLocaleString()} 획득</div>
+      <div class="coin-badge" style="margin:0 auto">₩${state.coins.toLocaleString()}</div>
     </div>
 
     <div class="card" style="margin-bottom:16px">
@@ -495,8 +495,8 @@ function renderPortfolio() {
 
     <div class="card" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
       <div>
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">보유 코인 (투자 가능)</div>
-        <div class="coin-badge">🪙 ${state.coins.toLocaleString()}원</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">보유 현금</div>
+        <div class="coin-badge">₩${state.coins.toLocaleString()}</div>
       </div>
       <button class="btn btn-primary" style="width:auto;padding:12px 20px" onclick="startDemo()">
         퀴즈 더 풀기
