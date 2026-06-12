@@ -39,15 +39,32 @@
 | 4 | 포트폴리오 / 랭킹 / 히스토리 화면 완성도 점검 | 김승민A, 허조영 |
 | 5 | 배포 앱에서 회원가입, 로그인, 퀴즈, 거래까지 통합 테스트 | 전원 |
 
-## 팀원별 담당 문서
+## 팀원별 담당 위치
 
-| 팀원 | 담당 | 브랜치 | 문서 |
-|------|------|--------|------|
-| 최원준 | PM / FE | `feat/auth-flow`, `feat/quiz-unlock`, `feat/page-routing` | [team/최원준_PM.md](team/%EC%B5%9C%EC%9B%90%EC%A4%80_PM.md) |
-| 김성준 | Backend | `feat/news-collector`, `feat/unlock-backend`, `feat/trade-logic` | [team/김성준_Backend.md](team/%EA%B9%80%EC%84%B1%EC%A4%80_Backend.md) |
-| 이은우 | DB | `feat/db-schema`, `feat/db-sync` | [team/이은우_DB.md](team/%EC%9D%B4%EC%9D%80%EC%9A%B0_DB.md) |
-| 김승민A | API / FE | `feat/news-feed-ui`, `feat/stock-price-ui`, `feat/ranking-ui` | [team/김승민A_FE.md](team/%EA%B9%80%EC%8A%B9%EB%AF%BCA_FE.md) |
-| 허조영 | UI/UX | `feat/design-system`, `feat/stock-card-ui`, `feat/onboarding-ui` | [team/허조영_UIUX.md](team/%ED%97%88%EC%A1%B0%EC%98%81_UIUX.md) |
+| 팀원 | 담당 | 주로 올릴 위치 | 문서 |
+|------|------|----------------|------|
+| 최원준 | PM / FE | `src/app`, `src/components`, `docs` | [team/최원준_PM.md](team/%EC%B5%9C%EC%9B%90%EC%A4%80_PM.md) |
+| 김성준 | Backend | `src/app/api`, `src/lib` | [team/김성준_Backend.md](team/%EA%B9%80%EC%84%B1%EC%A4%80_Backend.md) |
+| 이은우 | DB | `supabase/migrations`, `supabase/seed.sql`, `docs/db` | [team/이은우_DB.md](team/%EC%9D%B4%EC%9D%80%EC%9A%B0_DB.md) |
+| 김승민A | API / FE | `src/app`, `src/components`, `src/lib` | [team/김승민A_FE.md](team/%EA%B9%80%EC%8A%B9%EB%AF%BCA_FE.md) |
+| 허조영 | UI/UX | `src/components`, `src/app`, `public`, `reference` | [team/허조영_UIUX.md](team/%ED%97%88%EC%A1%B0%EC%98%81_UIUX.md) |
+
+## 파일 위치 규칙
+
+| 파일 종류 | 올릴 위치 |
+|----------|----------|
+| 화면 / 페이지 코드 | `src/app` |
+| UI 컴포넌트 | `src/components` |
+| API Route | `src/app/api` |
+| 공통 함수, Supabase 연결 코드 | `src/lib` |
+| TypeScript 타입 | `src/types` |
+| 실제 실행할 DB SQL | `supabase/migrations` |
+| 샘플 데이터 SQL | `supabase/seed.sql` |
+| DB 설명 문서 | `docs/db` |
+| 팀 문서 / 회의록 / 설명서 | `docs` |
+| 이미지 / 정적 파일 | `public` |
+| 디자인 참고자료 | `reference` |
+| 실제 환경변수 파일 `.env.local` | GitHub에 올리지 않음 |
 
 ## 로컬 개발 순서
 
@@ -63,12 +80,14 @@ npm run dev
 
 ## GitHub 작업 규칙
 
+이 프로젝트는 담당 브랜치를 나누지 않고 `main` 브랜치에 직접 올립니다. 작업 전에는 항상 `main`을 최신화합니다.
+
 ```bash
 git checkout main
 git pull origin main
 ```
 
-작업 후:
+작업 후에는 빌드를 확인하고 `main`에 push합니다.
 
 ```bash
 npm run build
