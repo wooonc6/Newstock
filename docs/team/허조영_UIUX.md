@@ -2,20 +2,20 @@
 
 ## 담당 작업
 
-| 브랜치 | 작업 내용 | 순서 |
-|--------|----------|------|
-| `feat/design-system` | 공통 UI 컴포넌트 제작 | 1번 |
-| `feat/stock-card-ui` | 종목 카드 UI 개선 | 2번 |
-| `feat/onboarding-ui` | 온보딩 화면 | 3번 |
+| 담당 영역 | 작업 내용 | 주로 수정할 위치 | 순서 |
+|----------|----------|----------------|------|
+| 디자인 시스템 | 공통 UI 컴포넌트 제작 | `src/components/ui`, `src/app/globals.css` | 1번 |
+| 종목 카드 UI | 종목 카드 UI 개선 | `src/components/quiz/StockQuizCard.tsx` | 2번 |
+| 온보딩 UI | 온보딩 화면 구현 | `src/app/(main)/onboarding` | 3번 |
 
-> 이은우와 동시에 시작 가능 — 지금 바로 작업 시작하세요!
+> 브랜치는 나누지 않고 `main` 브랜치에서 직접 작업합니다.
 
 > 디자인 레퍼런스: `reference/design_reference.html` 브라우저로 열면 전체 디자인 확인 가능  
-> 담당 화면 CSS/구조 보고 `.tsx` 컴포넌트로 변환하면 됩니다
+> 담당 화면 CSS/구조 보고 `.tsx` 컴포넌트로 변환하면 됩니다.
 
 ---
 
-## 1. 공통 컴포넌트 (`feat/design-system`)
+## 1. 공통 컴포넌트
 
 `src/components/ui/` 폴더를 새로 만들고 아래 파일들 생성:
 
@@ -28,7 +28,7 @@
 
 ### CSS 변수 추가
 
-`src/app/globals.css`에 아래 변수 추가 (이미 `--accent` 등이 있다면 업데이트):
+`src/app/globals.css`에 아래 변수 추가 또는 기존 변수 업데이트:
 
 ```css
 :root {
@@ -58,67 +58,28 @@ interface ButtonProps {
 }
 
 export default function Button({ variant = 'primary', children, onClick, disabled }: ButtonProps) {
-  const styles = {
-    primary: { background: 'var(--accent)', color: '#000', border: 'none' },
-    outline: { background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)' },
-    danger: { background: 'transparent', color: 'var(--danger)', border: '1px solid var(--danger)' },
-  }
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        padding: '10px 20px',
-        borderRadius: '8px',
-        fontWeight: 700,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-        ...styles[variant],
-      }}
-    >
+    <button onClick={onClick} disabled={disabled}>
       {children}
     </button>
   )
 }
 ```
 
-```tsx
-// src/components/ui/Card.tsx
-interface CardProps {
-  children: React.ReactNode
-  style?: React.CSSProperties
-}
-
-export default function Card({ children, style }: CardProps) {
-  return (
-    <div style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: '14px',
-      padding: '20px',
-      ...style,
-    }}>
-      {children}
-    </div>
-  )
-}
-```
-
 ---
 
-## 2. 카드 UI 개선 (`feat/stock-card-ui`)
+## 2. 카드 UI 개선
 
 파일: `src/components/quiz/StockQuizCard.tsx`
 
-현재 파일을 열어보면 이미 기본 카드가 구현되어 있어요. 여기에 개선을 추가:
+개선할 것:
 
-**추가할 것:**
-- 퀴즈 통과 시 잠금 해제 애니메이션 (자물쇠 → 체크 전환)
+- 퀴즈 통과 시 잠금 해제 애니메이션
 - 모바일 화면에서 레이아웃 깨지지 않는지 확인
 
-**애니메이션 힌트:**
+애니메이션 예시:
+
 ```css
-/* globals.css에 추가 */
 @keyframes unlock {
   0% { transform: scale(1); }
   50% { transform: scale(1.2) rotate(-10deg); }
@@ -130,36 +91,22 @@ export default function Card({ children, style }: CardProps) {
 }
 ```
 
-```tsx
-// StockQuizCard.tsx에서 unlocked 상태 변경 시 애니메이션 트리거
-const [justUnlocked, setJustUnlocked] = useState(false)
-// ...
-<span className={justUnlocked ? 'unlock-anim' : ''}>
-  {unlocked ? '→' : '🔒'}
-</span>
-```
-
 ---
 
-## 3. 온보딩 화면 (`feat/onboarding-ui`)
+## 3. 온보딩 화면
 
 만들어야 할 파일: `src/app/(main)/onboarding/page.tsx`
 
-첫 로그인 시 (또는 `/onboarding` URL로 접근 시) 표시:
+첫 로그인 시 또는 `/onboarding` URL로 접근 시 표시:
 
-```
+```text
 ┌─────────────────────────────────────┐
 │           Newstock                  │
 │   뉴스로 배우는 모의 주식 투자       │
 │                                     │
 │  1단계  📰 뉴스 읽기                │
-│         과거 종목 뉴스를 읽어요      │
-│                                     │
 │  2단계  🎯 퀴즈 풀기                │
-│         뉴스 후 주가 등락 예측       │
-│                                     │
 │  3단계  📈 투자하기                 │
-│         코인으로 모의 주식 거래      │
 │                                     │
 │         [시작하기 →]                 │
 └─────────────────────────────────────┘
@@ -171,17 +118,6 @@ const [justUnlocked, setJustUnlocked] = useState(false)
 
 ## GitHub에 올리는 방법
 
-### 0. 터미널(명령창) 여는 방법
-
-**방법 A — VS Code 사용 (추천)**
-1. VS Code 실행
-2. **Terminal → New Terminal** (또는 `Ctrl + \``)
-
-**방법 B — Windows PowerShell**
-1. 시작 메뉴 → "PowerShell" 검색
-
----
-
 ### 1. 처음 한 번만 — 레포 클론
 
 ```bash
@@ -191,7 +127,7 @@ cd Newstock
 npm install
 ```
 
-### 환경변수 설정 (처음 한 번)
+### 2. 환경변수 설정
 
 `.env.example`을 복사해 `.env.local`을 만들고, 팀 내부 공유 채널에서 받은 실제 값을 입력합니다.
 
@@ -201,36 +137,29 @@ copy .env.example .env.local
 
 > `.env.local`은 GitHub에 올리지 않습니다.
 
----
-
-### 2. 개발 서버 실행 + 실시간 확인
+### 3. 개발 서버 실행 + 실시간 확인
 
 ```bash
 npm run dev
 ```
 
-브라우저에서 **http://localhost:3000** — 내가 만든 컴포넌트 실시간 확인 가능.  
-파일 저장할 때마다 자동 새로고침.
+브라우저에서 `http://localhost:3000` 접속해서 내가 만든 컴포넌트를 확인합니다.
 
----
+### 4. main에서 작업하고 push
 
-### 3. 첫 번째 브랜치 작업
+브랜치를 따로 만들지 않고 `main`에서 작업합니다.
 
 ```bash
 git checkout main
 git pull origin main
 
+# 작업 중 확인
 npm run dev
-# 작업 중에 http://localhost:3000 보면서 확인
-```
 
-`src/components/ui/` 폴더에 컴포넌트 파일 만들고, `src/app/globals.css`에 CSS 변수 추가.
-
-완료 후:
-
-```bash
+# 작업 후
+npm run build
 git add .
-git commit -m "feat: 공통 UI 컴포넌트 추가"
+git commit -m "feat: 작업 내용 설명"
 git push origin main
 ```
 
@@ -238,54 +167,43 @@ push한 뒤 Vercel 배포와 실제 화면을 확인합니다.
 
 ---
 
-### 4. 두 번째 / 세 번째 브랜치
+## 파일 위치 규칙
 
-```bash
-# 두 번째
-git checkout main
-git pull origin main
-# 작업 후
-npm run build
-git add .
-git commit -m "feat: 카드 언락 애니메이션 추가"
-git push origin main
-
-# 세 번째
-git checkout main
-git pull origin main
-# 작업 후
-npm run build
-git add .
-git commit -m "feat: 온보딩 화면 구현"
-git push origin main
-```
+| 파일 종류 | 올릴 위치 |
+|----------|----------|
+| 공통 UI 컴포넌트 | `src/components/ui` |
+| 기존 종목 카드 수정 | `src/components/quiz/StockQuizCard.tsx` |
+| 온보딩 페이지 | `src/app/(main)/onboarding/page.tsx` |
+| 전역 CSS | `src/app/globals.css` |
+| 이미지 / 정적 파일 | `public` |
+| 디자인 참고자료 | `reference` |
+| 실제 환경변수 파일 `.env.local` | GitHub에 올리지 않음 |
 
 ---
 
 ## 이 프로젝트 폴더 구조 (UI/UX 담당 관련)
 
-```
+```text
 Newstock/
 ├── src/
 │   ├── app/
 │   │   ├── globals.css             ← CSS 변수 추가 위치
 │   │   └── (main)/
 │   │       └── onboarding/
-│   │           └── page.tsx        ← 내가 만들 파일 (온보딩 화면)
+│   │           └── page.tsx        ← 온보딩 화면
 │   └── components/
-│       ├── ui/                     ← 내가 만들 폴더 + 파일들
+│       ├── ui/                     ← 공통 UI 컴포넌트
 │       │   ├── Button.tsx
 │       │   ├── Badge.tsx
 │       │   ├── Card.tsx
 │       │   └── Toast.tsx
 │       └── quiz/
-│           └── StockQuizCard.tsx   ← 언락 애니메이션 수정 대상 (이미 있음)
+│           └── StockQuizCard.tsx   ← 언락 애니메이션 수정 대상
 └── reference/
-    └── design_reference.html       ← 디자인 참고용 (브라우저로 열기)
+    └── design_reference.html       ← 디자인 참고용
 ```
 
-> `src/components/ui/`는 없는 폴더라 VS Code에서 직접 만들어야 함.  
-> 좌측 파일 탐색기에서 `components` 폴더 우클릭 → New Folder → `ui`
+> `src/components/ui/`는 없는 폴더라면 VS Code에서 직접 만들면 됩니다.
 
 ---
 
@@ -298,6 +216,6 @@ Newstock/
 - [ ] 종목 카드 언락 애니메이션 추가
 - [ ] 모바일 레이아웃 점검
 - [ ] 종목 카드 UI 작업 main push 완료
-- [ ] 온보딩 화면 구현 (`/onboarding` 접근 시 표시)
+- [ ] 온보딩 화면 구현
 - [ ] 온보딩 UI 작업 main push 완료
 - [ ] 최원준에게 완료 알림
