@@ -185,11 +185,11 @@ export const STOCKS: Stock[] = [
     description: "은행과 카드, 증권 등 다양한 금융 계열사를 보유한 금융지주 기업입니다.",
   },
   {
-    ticker: "006800.KS",
-    name: "미래에셋증권",
+    ticker: "086790.KS",
+    name: "하나금융지주",
     sector: "금융",
     sectorColor: "blue",
-    description: "증권, 자산관리, 투자은행 업무를 통해 증시 흐름과 연결되는 기업입니다.",
+    description: "하나은행을 중심으로 은행, 증권, 카드 등 금융 서비스를 제공하는 금융지주입니다.",
   },
   {
     ticker: "035420.KS",
