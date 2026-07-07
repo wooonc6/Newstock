@@ -1,143 +1,123 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "@/context/AuthContext";
+/**
+ * src/app/(main)/ranking/page.tsx
+ *
+ * 문서(김승민A_FE.md) 기준 구현:
+ *  - Supabase `users` 테이블에서 코인 기준 상위 50명 조회
+ *  - 1~3위 메달 표시
+ *  - 로그인한 내 순위 강조 표시
+ *
+ * 주의: `@/lib/supabase/client` 경로와 `users` 테이블 컬럼명(id, nickname, coins)은
+ * 문서에 나온 예시를 그대로 사용했습니다. 실제 스키마와 다르면 맞춰 수정해주세요.
+ */
 
-interface RankingUser {
-  id: string;
-  nickname: string | null;
-  coins: number | null;
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+
+interface RankedUser {
+  id: string
+  nickname: string
+  coins: number
+}
+
+const MEDALS: Record<number, string> = {
+  1: '🥇',
+  2: '🥈',
+  3: '🥉',
 }
 
 export default function RankingPage() {
-  const { user } = useAuth();
-  const [rankings, setRankings] = useState<RankingUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [users, setUsers] = useState<RankedUser[]>([])
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchRankings() {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("users")
-        .select("id, nickname, coins")
-        .order("coins", { ascending: false })
-        .limit(50);
+    async function fetchRanking() {
+      setLoading(true)
+      setError(null)
 
-      if (error) {
-        setError("랭킹을 불러오지 못했습니다. users 테이블 조회 정책을 확인해주세요.");
-      } else {
-        setRankings(data ?? []);
+      const supabase = createClient()
+
+      try {
+        const { data: authData } = await supabase.auth.getUser()
+        setCurrentUserId(authData.user?.id ?? null)
+
+        const { data, error: queryError } = await supabase
+          .from('users')
+          .select('id, nickname, coins')
+          .order('coins', { ascending: false })
+          .limit(50)
+
+        if (queryError) throw queryError
+        setUsers(data ?? [])
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '랭킹을 불러오지 못했습니다.')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false);
     }
 
-    fetchRankings();
-  }, []);
+    fetchRanking()
+  }, [])
 
   return (
-    <div>
-      <div style={{ marginBottom: "18px" }}>
-        <div style={{ fontSize: "22px", fontWeight: 900, color: "var(--accent2)", marginBottom: "6px" }}>
-          랭킹
-        </div>
-        <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-          보유 코인 기준 상위 사용자
-        </div>
-      </div>
+    <div className="mx-auto max-w-xl px-4 py-6">
+      <h1 className="mb-5 text-xl font-bold text-slate-900">🏆 코인 랭킹</h1>
 
-      {loading ? (
-        <div style={{ fontSize: "13px", color: "var(--text-muted)", padding: "32px 0", textAlign: "center" }}>
-          랭킹을 불러오는 중...
-        </div>
-      ) : error ? (
-        <div
-          style={{
-            background: "rgba(239,68,68,0.06)",
-            border: "1px solid rgba(239,68,68,0.18)",
-            borderRadius: "12px",
-            padding: "18px",
-            fontSize: "13px",
-            color: "var(--danger)",
-          }}
-        >
-          {error}
-        </div>
-      ) : rankings.length === 0 ? (
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "12px",
-            padding: "28px",
-            fontSize: "13px",
-            color: "var(--text-dim)",
-            textAlign: "center",
-          }}
-        >
-          아직 랭킹 데이터가 없습니다.
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {rankings.map((item, index) => {
-            const isMe = item.id === user?.id;
-            const rank = index + 1;
+      {loading && (
+        <p className="py-10 text-center text-sm text-slate-500">랭킹을 불러오는 중...</p>
+      )}
+
+      {error && <p className="py-10 text-center text-sm text-rose-600">{error}</p>}
+
+      {!loading && !error && users.length === 0 && (
+        <p className="py-10 text-center text-sm text-slate-500">랭킹 데이터가 없어요.</p>
+      )}
+
+      {!loading && !error && users.length > 0 && (
+        <ol className="flex flex-col gap-2">
+          {users.map((user, idx) => {
+            const rank = idx + 1
+            const isMe = user.id === currentUserId
 
             return (
-              <div
-                key={item.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "44px 1fr auto",
-                  alignItems: "center",
-                  gap: "12px",
-                  background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)",
-                  border: `1px solid ${isMe ? "rgba(0,168,120,0.25)" : "var(--border)"}`,
-                  borderRadius: "12px",
-                  padding: "14px 16px",
-                }}
+              <li
+                key={user.id}
+                className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${
+                  isMe
+                    ? 'border-amber-400 bg-amber-50 shadow-sm'
+                    : 'border-slate-200 bg-white'
+                }`}
               >
-                <div
-                  style={{
-                    width: "34px",
-                    height: "34px",
-                    borderRadius: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)",
-                    color: rank <= 3 ? "var(--coin)" : "var(--text-muted)",
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: "13px",
-                    fontWeight: 900,
-                  }}
-                >
-                  {rank}
-                </div>
+                <span className="w-8 shrink-0 text-center text-lg">
+                  {MEDALS[rank] ?? (
+                    <span className="text-sm font-semibold text-slate-500">{rank}</span>
+                  )}
+                </span>
 
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: "14px", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {item.nickname || "이름 없는 사용자"}
-                    {isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px" }}>나</span>}
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: "14px",
-                    fontWeight: 900,
-                    color: "var(--coin)",
-                  }}
+                <span
+                  className={`flex-1 truncate font-medium ${
+                    isMe ? 'text-amber-800' : 'text-slate-800'
+                  }`}
                 >
-                  {(item.coins ?? 0).toLocaleString()}
-                </div>
-              </div>
-            );
+                  {user.nickname}
+                  {isMe && <span className="ml-2 text-xs font-semibold">← 내 순위</span>}
+                </span>
+
+                <span
+                  className={`shrink-0 text-sm font-semibold ${
+                    isMe ? 'text-amber-700' : 'text-slate-600'
+                  }`}
+                >
+                  {user.coins.toLocaleString()} 코인
+                </span>
+              </li>
+            )
           })}
-        </div>
+        </ol>
       )}
     </div>
-  );
+  )
 }
