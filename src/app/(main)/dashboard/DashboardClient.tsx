@@ -6,6 +6,7 @@ import { useQuizUnlock } from "@/hooks/useQuizUnlock";
 import { STOCKS } from "@/lib/stocks";
 import type { NewsItem } from "@/types";
 import StockQuizCard from "@/components/quiz/StockQuizCard";
+import MarketMap from "@/components/dashboard/MarketMap";
 
 export default function DashboardClient() {
   const { user } = useAuth();
@@ -41,6 +42,8 @@ export default function DashboardClient() {
 
   return (
     <div style={{ display: "grid", gap: "18px" }}>
+      <MarketMap />
+
       <section
         style={{
           background: "var(--surface)",
