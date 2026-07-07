@@ -8,9 +8,7 @@
  *  - 1~3위 메달 표시
  *  - 로그인한 내 순위 강조 표시
  *
- * 주의: `@/lib/supabase/client` 경로와 `users` 테이블 컬럼명(id, nickname, coins)은
- * 문서에 나온 예시를 그대로 사용했습니다. 실제 스키마와 다르면 맞춰 수정해주세요.
- */
+
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
