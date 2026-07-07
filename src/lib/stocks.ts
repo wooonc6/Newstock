@@ -7,7 +7,7 @@ export const STOCKS: Stock[] = [
     name: "삼성전자",
     sector: "IT / 반도체",
     sectorColor: "blue",
-    description: "세계 최대 메모리 반도체·스마트폰 제조사. KOSPI 시가총액 1위",
+    description: "메모리 반도체와 스마트폰을 중심으로 한국 증시를 대표하는 기업입니다.",
     marketCap: "약 380조원",
   },
   {
@@ -15,7 +15,7 @@ export const STOCKS: Stock[] = [
     name: "LG화학",
     sector: "화학 / 배터리",
     sectorColor: "green",
-    description: "국내 최대 종합화학 기업. 전기차 배터리 글로벌 선도 (LG에너지솔루션 분리상장)",
+    description: "화학 소재와 전지 소재 사업을 기반으로 성장하는 국내 대표 소재 기업입니다.",
     marketCap: "약 18조원",
   },
   {
@@ -23,7 +23,7 @@ export const STOCKS: Stock[] = [
     name: "두산에너빌리티",
     sector: "에너지 / 발전",
     sectorColor: "amber",
-    description: "원자력·가스터빈 등 발전설비 전문. 소형모듈원자로(SMR) 핵심 수혜주",
+    description: "발전 설비와 원전, SMR 관련 사업을 다루는 에너지 인프라 기업입니다.",
     marketCap: "약 5조원",
   },
   {
@@ -31,7 +31,7 @@ export const STOCKS: Stock[] = [
     name: "SK하이닉스",
     sector: "IT / 반도체",
     sectorColor: "blue",
-    description: "AI 붐으로 급성장한 HBM 메모리 반도체 세계 1위. KOSPI 시가총액 2위",
+    description: "AI 수요와 함께 주목받는 HBM 등 메모리 반도체를 생산하는 기업입니다.",
     marketCap: "약 120조원",
   },
   {
@@ -39,7 +39,7 @@ export const STOCKS: Stock[] = [
     name: "현대차",
     sector: "자동차 / EV",
     sectorColor: "red",
-    description: "국내 1위 완성차 제조사. 전기차·수소차 전환 가속화로 글로벌 시장 공략 중",
+    description: "완성차와 전기차, 수소차 전환을 추진하는 국내 대표 자동차 기업입니다.",
     marketCap: "약 50조원",
   },
   {
@@ -47,7 +47,7 @@ export const STOCKS: Stock[] = [
     name: "NAVER",
     sector: "IT / 플랫폼",
     sectorColor: "green",
-    description: "국내 최대 검색·커머스 플랫폼. AI 검색·클라우드·웹툰 글로벌 사업 확장",
+    description: "검색, 커머스, 콘텐츠, 클라우드와 AI 서비스를 운영하는 플랫폼 기업입니다.",
     marketCap: "약 25조원",
   },
   {
@@ -55,7 +55,7 @@ export const STOCKS: Stock[] = [
     name: "하나금융지주",
     sector: "금융 / 은행",
     sectorColor: "purple",
-    description: "하나은행 모회사. 국내 4대 금융그룹 중 하나로 글로벌 네트워크 강화",
+    description: "하나은행을 중심으로 은행, 증권, 카드 등 금융 서비스를 제공하는 금융지주입니다.",
     marketCap: "약 17조원",
   },
   {
@@ -63,7 +63,7 @@ export const STOCKS: Stock[] = [
     name: "카카오",
     sector: "IT / 플랫폼",
     sectorColor: "amber",
-    description: "카카오톡·카카오페이 운영. 국내 최대 모바일 메신저 기반 플랫폼 생태계",
+    description: "메신저, 콘텐츠, 페이, 모빌리티 등 생활 밀착형 플랫폼 서비스를 운영합니다.",
     marketCap: "약 18조원",
   },
   {
@@ -71,19 +71,19 @@ export const STOCKS: Stock[] = [
     name: "셀트리온",
     sector: "바이오 / 헬스",
     sectorColor: "red",
-    description: "국내 최대 바이오시밀러 기업. 항체 의약품 글로벌 수출 선도",
+    description: "바이오시밀러와 의약품 개발, 글로벌 판매를 중심으로 성장하는 바이오 기업입니다.",
     marketCap: "약 22조원",
   },
 ];
 
 export function getStock(ticker: string): Stock | undefined {
-  return STOCKS.find((s) => s.ticker === ticker);
+  return STOCKS.find((stock) => stock.ticker === ticker);
 }
 
 export const SECTOR_BADGE_STYLES: Record<Stock["sectorColor"], React.CSSProperties> = {
-  blue:   { background: "#dbeafe", color: "#1d4ed8" },
-  green:  { background: "#d1fae5", color: "#065f46" },
-  amber:  { background: "#fef3c7", color: "#92400e" },
+  blue: { background: "#dbeafe", color: "#1d4ed8" },
+  green: { background: "#d1fae5", color: "#065f46" },
+  amber: { background: "#fef3c7", color: "#92400e" },
   purple: { background: "#ede9fe", color: "#6d28d9" },
-  red:    { background: "#fee2e2", color: "#b91c1c" },
+  red: { background: "#fee2e2", color: "#b91c1c" },
 };

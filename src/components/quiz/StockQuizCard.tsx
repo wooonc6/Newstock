@@ -16,7 +16,7 @@ function PriceTag({ ticker }: { ticker: string }) {
   if (loading) {
     return (
       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", color: "var(--text-muted)" }}>
-        ···
+        ...
       </span>
     );
   }
@@ -42,6 +42,7 @@ function PriceTag({ ticker }: { ticker: string }) {
 export default function StockQuizCard({ stock, status }: Props) {
   const { unlocked, quizzes_completed, quizzes_required } = status;
   const progress = Math.min(quizzes_completed / quizzes_required, 1);
+  const remaining = Math.max(quizzes_required - quizzes_completed, 0);
 
   const card = (
     <div
@@ -71,7 +72,7 @@ export default function StockQuizCard({ stock, status }: Props) {
             color: "var(--accent)",
           }}
         >
-          ✓ 투자 허용
+          투자 가능
         </div>
       )}
 
@@ -148,14 +149,14 @@ export default function StockQuizCard({ stock, status }: Props) {
                 />
               </div>
               <div style={{ marginTop: "6px", fontSize: "11px", color: "var(--text-muted)" }}>
-                🔒 퀴즈 {quizzes_required - quizzes_completed}개 더 풀면 모의 투자 가능
+                퀴즈 {remaining}개를 더 풀면 모의 투자가 열립니다.
               </div>
             </div>
           )}
 
           {unlocked && (
             <div style={{ fontSize: "12px", color: "var(--accent)" }}>
-              ✅ 모의 투자가 가능한 종목입니다
+              모의 투자가 가능한 종목입니다.
             </div>
           )}
         </div>
