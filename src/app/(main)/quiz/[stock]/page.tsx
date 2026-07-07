@@ -9,59 +9,46 @@ export function generateStaticParams() {
 
 interface Props {
   params: { stock: string };
+  searchParams?: { newsId?: string };
 }
 
-export default function QuizPage({ params }: Props) {
+export default function QuizPage({ params, searchParams }: Props) {
   const ticker = decodeURIComponent(params.stock);
   const stock = getStock(ticker);
 
   if (!stock) notFound();
 
   return (
-    <div>
-      <div style={{ marginBottom: "18px" }}>
-        <Link
-          href="/dashboard"
-          style={{
-            fontSize: "12px",
-            color: "var(--text-muted)",
-            textDecoration: "none",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "4px",
-          }}
-        >
-          ← 종목 목록
-        </Link>
-      </div>
+    <div style={{ display: "grid", gap: "16px" }}>
+      <Link
+        href={`/stocks/${encodeURIComponent(stock.ticker)}`}
+        style={{
+          fontSize: "12px",
+          color: "var(--text-muted)",
+          textDecoration: "none",
+        }}
+      >
+        ← 종목 상세
+      </Link>
 
-      <div
+      <section
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
-          borderRadius: "16px",
-          padding: "24px",
-          marginBottom: "20px",
+          borderRadius: "8px",
+          padding: "18px",
         }}
       >
-        <div style={{ fontSize: "11px", color: "var(--accent)", fontWeight: 700, letterSpacing: "1px", marginBottom: "8px" }}>
-          {stock.sector.toUpperCase()}
+        <div style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 800, marginBottom: "7px" }}>
+          {stock.sector}
         </div>
-        <div style={{ fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>{stock.name}</div>
-        <div
-          style={{
-            fontFamily: "'Space Mono', monospace",
-            fontSize: "12px",
-            color: "var(--text-muted)",
-            marginBottom: "12px",
-          }}
-        >
-          {stock.ticker}
+        <h1 style={{ fontSize: "22px", marginBottom: "6px" }}>{stock.name} 뉴스 퀴즈</h1>
+        <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>
+          뉴스를 읽고 발표 당시 주가를 확인한 뒤 1개월, 3개월, 6개월 후 흐름을 차례로 맞혀보세요.
         </div>
-        <div style={{ fontSize: "13px", color: "var(--text-dim)" }}>{stock.description}</div>
-      </div>
+      </section>
 
-      <QuizClient ticker={ticker} stockName={stock.name} />
+      <QuizClient ticker={ticker} stockName={stock.name} initialNewsId={searchParams?.newsId} />
     </div>
   );
 }

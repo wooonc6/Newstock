@@ -6,7 +6,9 @@ const COINS_MAP: Record<number, number> = { 1: 50000, 3: 100000, 6: 150000 };
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
 
   let body: { newsId: string; answers: ('up' | 'down')[] };
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (!cache) {
-    return NextResponse.json({ error: '주가 데이터가 없습니다. 먼저 퀴즈를 불러오세요.' }, { status: 404 });
+    return NextResponse.json({ error: '주가 데이터가 없습니다. 먼저 퀴즈를 불러와 주세요.' }, { status: 404 });
   }
 
   const periods = [
@@ -50,15 +52,14 @@ export async function POST(req: NextRequest) {
 
   let score = 0;
   let coins_earned = 0;
-  periods.forEach((p, i) => {
-    const correct = p.changeRate >= 0 ? 'up' : 'down';
-    if (answers[i] === correct) {
+  periods.forEach((period, index) => {
+    const correct = period.changeRate >= 0 ? 'up' : 'down';
+    if (answers[index] === correct) {
       score++;
-      coins_earned += COINS_MAP[p.months] ?? 10;
+      coins_earned += COINS_MAP[period.months] ?? 10;
     }
   });
 
-  // users 행이 없는 첫 유저 방어
   await supabase.from('users').upsert(
     { id: user.id, coins: 1000000, streak: 0, sessions: 0 },
     { onConflict: 'id', ignoreDuplicates: true }
@@ -82,10 +83,7 @@ export async function POST(req: NextRequest) {
   const current_coins = userData?.coins ?? 1000000;
   const new_coins_total = current_coins + coins_earned;
 
-  await supabase
-    .from('users')
-    .update({ coins: new_coins_total })
-    .eq('id', user.id);
+  await supabase.from('users').update({ coins: new_coins_total }).eq('id', user.id);
 
   return NextResponse.json({ score, total: periods.length, coins_earned, new_coins_total });
 }

@@ -8,176 +8,139 @@ import { useStockPrice } from "@/hooks/useStockPrice";
 interface Props {
   stock: Stock;
   status: UnlockStatus;
+  newsCount?: number;
 }
 
-function PriceTag({ ticker }: { ticker: string }) {
-  const { data, loading } = useStockPrice(ticker);
+function formatPrice(price: number | null | undefined) {
+  if (price == null) return "-";
+  return `${Math.round(price).toLocaleString()}원`;
+}
+
+function PriceSummary({ ticker }: { ticker: string }) {
+  const { data, loading, error } = useStockPrice(ticker);
 
   if (loading) {
-    return (
-      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", color: "var(--text-muted)" }}>
-        ...
-      </span>
-    );
+    return <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>불러오는 중</span>;
   }
 
-  if (!data || data.price === null) return null;
+  if (error || !data) {
+    return <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>주가 준비 중</span>;
+  }
+
+  const changePercent = data.changePercent ?? 0;
+  const isUp = changePercent >= 0;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "14px", fontWeight: 700 }}>
+        {formatPrice(data.price)}
+      </span>
       <span
         style={{
           fontFamily: "'Space Mono', monospace",
-          fontSize: "13px",
+          fontSize: "12px",
           fontWeight: 700,
-          color: "var(--text)",
+          color: isUp ? "var(--danger)" : "#2563eb",
         }}
       >
-        ₩{data.price.toLocaleString()}
+        {changePercent > 0 ? "+" : ""}
+        {changePercent.toFixed(2)}%
       </span>
     </div>
   );
 }
 
-export default function StockQuizCard({ stock, status }: Props) {
+export default function StockQuizCard({ stock, status, newsCount = 0 }: Props) {
   const { unlocked, quizzes_completed, quizzes_required } = status;
   const progress = Math.min(quizzes_completed / quizzes_required, 1);
   const remaining = Math.max(quizzes_required - quizzes_completed, 0);
-
-  const card = (
-    <div
-      style={{
-        background: "var(--surface)",
-        border: `1px solid ${unlocked ? "rgba(0,229,176,0.22)" : "var(--border)"}`,
-        borderRadius: "14px",
-        padding: "18px 20px",
-        opacity: unlocked ? 1 : 0.75,
-        transition: "all 0.2s",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {unlocked && (
-        <div
-          style={{
-            position: "absolute",
-            top: "14px",
-            right: "14px",
-            background: "rgba(0,229,176,0.12)",
-            border: "1px solid rgba(0,229,176,0.3)",
-            borderRadius: "100px",
-            padding: "3px 10px",
-            fontSize: "10px",
-            fontWeight: 700,
-            color: "var(--accent)",
-          }}
-        >
-          투자 가능
-        </div>
-      )}
-
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-            <span style={{ fontSize: "16px", fontWeight: 700, color: "var(--text)" }}>
-              {stock.name}
-            </span>
-            <span
-              style={{
-                padding: "3px 9px",
-                borderRadius: "100px",
-                fontSize: "10px",
-                fontWeight: 700,
-                ...SECTOR_BADGE_STYLES[stock.sectorColor],
-              }}
-            >
-              {stock.sector}
-            </span>
-          </div>
-
-          <div style={{ marginBottom: "8px" }}>
-            <PriceTag ticker={stock.ticker} />
-          </div>
-
-          <div style={{ fontSize: "12px", color: "var(--text-dim)", marginBottom: "10px" }}>
-            {stock.description}
-          </div>
-
-          <div
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              color: "var(--text-muted)",
-              marginBottom: "12px",
-            }}
-          >
-            {stock.ticker}
-          </div>
-
-          {!unlocked && (
-            <div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "6px",
-                  fontSize: "11px",
-                  color: "var(--text-muted)",
-                }}
-              >
-                <span>퀴즈 완료</span>
-                <span style={{ fontFamily: "'Space Mono', monospace" }}>
-                  {quizzes_completed} / {quizzes_required}
-                </span>
-              </div>
-              <div
-                style={{
-                  height: "4px",
-                  background: "var(--surface2)",
-                  borderRadius: "2px",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${progress * 100}%`,
-                    background: progress > 0 ? "var(--accent2)" : "transparent",
-                    borderRadius: "2px",
-                    transition: "width 0.5s ease",
-                  }}
-                />
-              </div>
-              <div style={{ marginTop: "6px", fontSize: "11px", color: "var(--text-muted)" }}>
-                퀴즈 {remaining}개를 더 풀면 모의 투자가 열립니다.
-              </div>
-            </div>
-          )}
-
-          {unlocked && (
-            <div style={{ fontSize: "12px", color: "var(--accent)" }}>
-              모의 투자가 가능한 종목입니다.
-            </div>
-          )}
-        </div>
-
-        <div
-          style={{
-            fontSize: "20px",
-            color: unlocked ? "var(--accent)" : "var(--text-muted)",
-            flexShrink: 0,
-            paddingTop: "2px",
-          }}
-        >
-          {unlocked ? "→" : "🔒"}
-        </div>
-      </div>
-    </div>
-  );
+  const detailHref = `/stocks/${encodeURIComponent(stock.ticker)}`;
+  const quizHref = `/quiz/${encodeURIComponent(stock.ticker)}`;
 
   return (
-    <Link href={`/quiz/${encodeURIComponent(stock.ticker)}`} style={{ textDecoration: "none" }}>
-      {card}
-    </Link>
+    <article
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "8px",
+        padding: "16px",
+        display: "grid",
+        gap: "14px",
+      }}
+    >
+      <Link href={detailHref} style={{ textDecoration: "none", color: "inherit" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", alignItems: "flex-start" }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "7px" }}>
+              <strong style={{ fontSize: "17px" }}>{stock.name}</strong>
+              <span
+                style={{
+                  padding: "3px 8px",
+                  borderRadius: "999px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  ...SECTOR_BADGE_STYLES[stock.sectorColor],
+                }}
+              >
+                {stock.sector}
+              </span>
+            </div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+              {stock.ticker}
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <PriceSummary ticker={stock.ticker} />
+            <div style={{ marginTop: "6px", fontSize: "11px", color: "var(--text-muted)" }}>
+              관련 뉴스 {newsCount}개
+            </div>
+          </div>
+        </div>
+
+        <p style={{ marginTop: "12px", fontSize: "12px", lineHeight: 1.6, color: "var(--text-dim)" }}>
+          {stock.description}
+        </p>
+      </Link>
+
+      <div style={{ display: "grid", gap: "8px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-muted)" }}>
+          <span>학습 진행</span>
+          <span style={{ fontFamily: "'Space Mono', monospace" }}>
+            {quizzes_completed} / {quizzes_required}
+          </span>
+        </div>
+        <div style={{ height: "5px", background: "var(--surface2)", borderRadius: "999px", overflow: "hidden" }}>
+          <div
+            style={{
+              width: `${progress * 100}%`,
+              height: "100%",
+              borderRadius: "999px",
+              background: unlocked ? "var(--accent)" : "var(--accent2)",
+            }}
+          />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "11px", color: unlocked ? "var(--accent)" : "var(--text-muted)" }}>
+            {unlocked ? "모의 투자 가능" : `${remaining}개 더 풀면 투자 해제`}
+          </span>
+          <Link
+            href={quizHref}
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              padding: "9px 12px",
+              borderRadius: "8px",
+              background: "var(--accent2)",
+              color: "#fff",
+              fontSize: "12px",
+              fontWeight: 700,
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            퀴즈 시작
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 }

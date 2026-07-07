@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { href: "/dashboard", label: "📰 퀴즈" },
-  { href: "/portfolio",  label: "📈 모의투자" },
-  { href: "/ranking",    label: "🏆 랭킹" },
-  { href: "/history",    label: "📋 기록" },
-  { href: "/stats",      label: "📊 분석" },
+  { href: "/dashboard", label: "퀴즈" },
+  { href: "/portfolio", label: "모의투자" },
+  { href: "/ranking", label: "랭킹" },
+  { href: "/history", label: "기록" },
+  { href: "/analysis", label: "분석" },
 ] as const;
 
 export default function NavTabs() {
@@ -22,12 +22,15 @@ export default function NavTabs() {
         marginBottom: "20px",
         background: "var(--surface)",
         border: "1px solid var(--border)",
-        borderRadius: "16px",
+        borderRadius: "8px",
         padding: "5px",
       }}
     >
       {TABS.map(({ href, label }) => {
-        const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+        const active =
+          pathname === href ||
+          (href !== "/dashboard" && pathname.startsWith(href)) ||
+          (href === "/analysis" && pathname.startsWith("/stats"));
         return (
           <Link
             key={href}
@@ -35,16 +38,15 @@ export default function NavTabs() {
             style={{
               flex: 1,
               padding: "9px 6px",
-              borderRadius: "10px",
+              borderRadius: "6px",
               fontSize: "12px",
-              fontWeight: 500,
+              fontWeight: 700,
               color: active ? "var(--text)" : "var(--text-muted)",
               background: active ? "var(--surface2)" : "transparent",
               textAlign: "center",
               textDecoration: "none",
               whiteSpace: "nowrap",
               transition: "all 0.2s",
-              fontFamily: "'Noto Sans KR', sans-serif",
             }}
           >
             {label}

@@ -1,15 +1,15 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
+const PERIODS = [
+  { label: '1개월 후', months: 1 },
+  { label: '3개월 후', months: 3 },
+  { label: '6개월 후', months: 6 },
+];
+
 async function getStockChanges(ticker: string, baseDate: string) {
   const { default: yahooFinance } = await import('yahoo-finance2');
   const base = new Date(baseDate);
-  const periods = [
-    { label: '1개월 후', months: 1 },
-    { label: '3개월 후', months: 3 },
-    { label: '6개월 후', months: 6 },
-  ];
-
   const endDate = new Date(base);
   endDate.setMonth(endDate.getMonth() + 6);
   endDate.setDate(endDate.getDate() + 5);
@@ -20,24 +20,29 @@ async function getStockChanges(ticker: string, baseDate: string) {
     interval: '1mo',
   });
 
-  if (!result.length) throw new Error('주가 데이터 없음');
+  if (!result.length) throw new Error('주가 데이터가 없습니다.');
 
   const basePrice = result[0].close;
-  const mapped = periods.map(({ label, months }) => {
+  const mapped = PERIODS.map(({ label, months }) => {
     const target = new Date(base);
     target.setMonth(target.getMonth() + months);
     const row = result.find((r: any) => {
-      const d = new Date(r.date);
-      return d.getFullYear() === target.getFullYear() && d.getMonth() === target.getMonth();
+      const date = new Date(r.date);
+      return date.getFullYear() === target.getFullYear() && date.getMonth() === target.getMonth();
     });
     const price = row?.close ?? null;
     const changeRate = price != null ? ((price - basePrice) / basePrice) * 100 : null;
-    return { label, months, price, changeRate, direction: changeRate != null ? (changeRate >= 0 ? 'up' : 'down') : null };
+    return {
+      label,
+      months,
+      price,
+      changeRate,
+      direction: changeRate != null ? (changeRate >= 0 ? 'up' : 'down') : null,
+    };
   });
 
   return { base: { price: basePrice }, periods: mapped };
 }
-
 
 export async function GET(_req: Request, { params }: { params: { newsId: string } }) {
   const supabase = await createClient();

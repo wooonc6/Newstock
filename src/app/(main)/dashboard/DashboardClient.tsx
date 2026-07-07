@@ -1,87 +1,173 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
 import { STOCKS } from "@/lib/stocks";
+import type { NewsItem } from "@/types";
 import StockQuizCard from "@/components/quiz/StockQuizCard";
 
 export default function DashboardClient() {
   const { user } = useAuth();
   const { unlockMap, loading } = useQuizUnlock(user?.id);
+  const [newsCounts, setNewsCounts] = useState<Record<string, number>>({});
+  const [recentNews, setRecentNews] = useState<NewsItem[]>([]);
+
+  useEffect(() => {
+    fetch("/api/learning/news?limit=100")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((items: NewsItem[]) => {
+        const counts: Record<string, number> = {};
+        for (const item of Array.isArray(items) ? items : []) {
+          counts[item.ticker] = (counts[item.ticker] ?? 0) + 1;
+        }
+        setNewsCounts(counts);
+        setRecentNews((Array.isArray(items) ? items : []).slice(0, 3));
+      })
+      .catch(() => {
+        setNewsCounts({});
+        setRecentNews([]);
+      });
+  }, []);
 
   const unlockedCount = Object.values(unlockMap).filter((s) => s.unlocked).length;
+  const completedTotal = Object.values(unlockMap).reduce((sum, item) => sum + item.quizzes_completed, 0);
+
+  const recommendedStocks = useMemo(() => {
+    return [...STOCKS]
+      .sort((a, b) => (newsCounts[b.ticker] ?? 0) - (newsCounts[a.ticker] ?? 0))
+      .slice(0, 3);
+  }, [newsCounts]);
 
   return (
-    <div>
-      {/* 안내 배너 */}
-      <div
+    <div style={{ display: "grid", gap: "18px" }}>
+      <section
         style={{
-          background: "rgba(59,130,246,0.06)",
-          border: "1px solid rgba(59,130,246,0.15)",
-          borderRadius: "12px",
-          padding: "14px 18px",
-          marginBottom: "20px",
-          display: "flex",
-          alignItems: "flex-start",
-          gap: "10px",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "8px",
+          padding: "18px",
+          display: "grid",
+          gap: "14px",
         }}
       >
-        <div style={{ fontSize: "20px", flexShrink: 0 }}>📰</div>
         <div>
-          <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "3px" }}>
-            종목별 뉴스 퀴즈를 풀어 투자 감각을 키우세요
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 700, marginBottom: "5px" }}>
+            시장 요약
           </div>
-          <div style={{ fontSize: "12px", color: "var(--text-dim)" }}>
-            각 종목 퀴즈를 {3}번 완료하면 모의 투자 기능이 활성화됩니다.
-          </div>
+          <h1 style={{ fontSize: "20px", lineHeight: 1.35 }}>오늘 볼 종목을 고르고 뉴스 퀴즈로 연결하세요</h1>
         </div>
-      </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+          <Metric label="학습 종목" value={`${STOCKS.length}개`} />
+          <Metric label="투자 해제" value={loading ? "..." : `${unlockedCount}개`} />
+          <Metric label="완료 퀴즈" value={`${completedTotal}개`} />
+        </div>
+      </section>
 
-      {/* 진행 요약 */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "14px",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "10px",
-            fontWeight: 700,
-            letterSpacing: "2px",
-            textTransform: "uppercase",
-            color: "var(--text-muted)",
-          }}
-        >
-          종목별 퀴즈
+      <section>
+        <SectionTitle title="오늘 많이 언급된 종목" sub="뉴스 수가 많은 종목부터 보여줍니다" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+          {recommendedStocks.map((stock) => (
+            <div
+              key={stock.ticker}
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                padding: "12px",
+              }}
+            >
+              <div style={{ fontSize: "13px", fontWeight: 700 }}>{stock.name}</div>
+              <div style={{ marginTop: "4px", fontSize: "11px", color: "var(--text-muted)" }}>
+                관련 뉴스 {newsCounts[stock.ticker] ?? 0}개
+              </div>
+            </div>
+          ))}
         </div>
-        <div
-          style={{
-            fontFamily: "'Space Mono', monospace",
-            fontSize: "12px",
-            color: unlockedCount > 0 ? "var(--accent)" : "var(--text-muted)",
-          }}
-        >
-          {loading ? "..." : `${unlockedCount} / ${STOCKS.length} 언락`}
-        </div>
-      </div>
+      </section>
 
-      {/* 종목 카드 목록 */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        {STOCKS.map((stock) => {
-          const status = unlockMap[stock.ticker] ?? {
-            ticker: stock.ticker,
-            unlocked: false,
-            quizzes_completed: 0,
-            quizzes_required: 3,
-          };
-          return (
-            <StockQuizCard key={stock.ticker} stock={stock} status={status} />
-          );
-        })}
-      </div>
+      <section>
+        <SectionTitle title="오늘 학습 추천 종목" sub="카드를 누르면 종목 상세로 이동합니다" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {STOCKS.map((stock) => {
+            const status = unlockMap[stock.ticker] ?? {
+              ticker: stock.ticker,
+              unlocked: false,
+              quizzes_completed: 0,
+              quizzes_required: 3,
+            };
+            return (
+              <StockQuizCard
+                key={stock.ticker}
+                stock={stock}
+                status={status}
+                newsCount={newsCounts[stock.ticker] ?? 0}
+              />
+            );
+          })}
+        </div>
+      </section>
+
+      <section>
+        <SectionTitle title="최근 읽을 뉴스" sub="종목 상세와 퀴즈의 출발점입니다" />
+        <div style={{ display: "grid", gap: "8px" }}>
+          {recentNews.length === 0 ? (
+            <EmptyText>curated_news에 등록된 뉴스가 있으면 여기에 표시됩니다.</EmptyText>
+          ) : (
+            recentNews.map((news) => (
+              <div
+                key={news.id}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "8px",
+                  padding: "12px",
+                }}
+              >
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
+                  {news.company} · {news.news_date}
+                </div>
+                <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SectionTitle({ title, sub }: { title: string; sub: string }) {
+  return (
+    <div style={{ marginBottom: "10px" }}>
+      <div style={{ fontSize: "15px", fontWeight: 800 }}>{title}</div>
+      <div style={{ marginTop: "3px", fontSize: "12px", color: "var(--text-muted)" }}>{sub}</div>
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ background: "var(--surface2)", borderRadius: "8px", padding: "12px" }}>
+      <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>{label}</div>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "16px", fontWeight: 700 }}>{value}</div>
+    </div>
+  );
+}
+
+function EmptyText({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "8px",
+        padding: "14px",
+        fontSize: "12px",
+        color: "var(--text-muted)",
+      }}
+    >
+      {children}
     </div>
   );
 }

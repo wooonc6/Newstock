@@ -39,7 +39,7 @@ export const STOCKS: Stock[] = [
     name: "현대차",
     sector: "자동차 / EV",
     sectorColor: "red",
-    description: "완성차와 전기차, 수소차 전환을 추진하는 국내 대표 자동차 기업입니다.",
+    description: "내연기관차와 전기차, 수소차 전환을 추진하는 국내 대표 자동차 기업입니다.",
     marketCap: "약 50조원",
   },
   {
