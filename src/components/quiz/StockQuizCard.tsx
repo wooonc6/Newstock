@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import type { Stock, UnlockStatus } from "@/types";
 import { SECTOR_BADGE_STYLES } from "@/lib/stocks";
 import { useStockPrice } from "@/hooks/useStockPrice";
@@ -57,15 +58,30 @@ export default function StockQuizCard({ stock, status, newsCount = 0 }: Props) {
   const detailHref = `/stocks/${encodeURIComponent(stock.ticker)}`;
   const quizHref = `/quiz/${encodeURIComponent(stock.ticker)}`;
 
+  // 잠금 -> 해제로 바뀌는 순간에만 애니메이션을 재생 (처음부터 해제 상태면 재생 안 함)
+  const [justUnlocked, setJustUnlocked] = useState(false);
+  const prevUnlockedRef = useRef(unlocked);
+
+  useEffect(() => {
+    if (unlocked && !prevUnlockedRef.current) {
+      setJustUnlocked(true);
+      const timer = setTimeout(() => setJustUnlocked(false), 600);
+      prevUnlockedRef.current = unlocked;
+      return () => clearTimeout(timer);
+    }
+    prevUnlockedRef.current = unlocked;
+  }, [unlocked]);
+
   return (
     <article
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
-        borderRadius: "8px",
+        borderRadius: "18px",
         padding: "16px",
         display: "grid",
         gap: "14px",
+        boxShadow: "0 2px 10px rgba(20, 30, 50, 0.05)",
       }}
     >
       <Link href={detailHref} style={{ textDecoration: "none", color: "inherit" }}>
@@ -103,44 +119,5 @@ export default function StockQuizCard({ stock, status, newsCount = 0 }: Props) {
       </Link>
 
       <div style={{ display: "grid", gap: "8px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-muted)" }}>
-          <span>학습 진행</span>
-          <span style={{ fontFamily: "'Space Mono', monospace" }}>
-            {quizzes_completed} / {quizzes_required}
-          </span>
-        </div>
-        <div style={{ height: "5px", background: "var(--surface2)", borderRadius: "999px", overflow: "hidden" }}>
-          <div
-            style={{
-              width: `${progress * 100}%`,
-              height: "100%",
-              borderRadius: "999px",
-              background: unlocked ? "var(--accent)" : "var(--accent2)",
-            }}
-          />
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
-          <span style={{ fontSize: "11px", color: unlocked ? "var(--accent)" : "var(--text-muted)" }}>
-            {unlocked ? "모의 투자 가능" : `${remaining}개 더 풀면 투자 해제`}
-          </span>
-          <Link
-            href={quizHref}
-            onClick={(event) => event.stopPropagation()}
-            style={{
-              padding: "9px 12px",
-              borderRadius: "8px",
-              background: "var(--accent2)",
-              color: "#fff",
-              fontSize: "12px",
-              fontWeight: 700,
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-            }}
-          >
-            퀴즈 시작
-          </Link>
-        </div>
-      </div>
-    </article>
-  );
+        <div style={{ display: "flex", justifyContent: "space-between",
 }
