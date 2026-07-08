@@ -36,7 +36,6 @@ const SIZE_STYLES: Record<ButtonSize, CSSProperties> = {
   sm: { padding: "9px 14px", fontSize: "13px", borderRadius: "10px" },
 };
 
-// 토스 특유의 "꾹 눌리는" 버튼 - 클릭 시 살짝 눌리는 스케일 애니메이션이 핵심
 export default function Button({
   variant = "primary",
   size = "md",
@@ -59,4 +58,28 @@ export default function Button({
         fontWeight: 700,
         fontFamily: "'Noto Sans KR', sans-serif",
         cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.4 : 1,
+        transition: "transform 0.12s ease, opacity 0.12s ease",
+        WebkitTapHighlightColor: "transparent",
+        transform: "scale(1)",
+        ...style,
+      }}
+      onMouseDown={(e) => {
+        if (!disabled) e.currentTarget.style.transform = "scale(0.96)";
+        onMouseDown?.(e);
+      }}
+      onMouseUp={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+        onMouseUp?.(e);
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+        onMouseLeave?.(e);
+      }}
+      {...rest}
+    >
+      {children}
+    </button>
+  );
+}
         opacity: disabled ?
