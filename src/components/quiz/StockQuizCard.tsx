@@ -119,5 +119,59 @@ export default function StockQuizCard({ stock, status, newsCount = 0 }: Props) {
       </Link>
 
       <div style={{ display: "grid", gap: "8px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between",
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-muted)" }}>
+          <span>학습 진행</span>
+          <span style={{ fontFamily: "'Space Mono', monospace" }}>
+            {quizzes_completed} / {quizzes_required}
+          </span>
+        </div>
+        <div style={{ height: "5px", background: "var(--surface2)", borderRadius: "999px", overflow: "hidden" }}>
+          <div
+            style={{
+              width: `${progress * 100}%`,
+              height: "100%",
+              borderRadius: "999px",
+              background: unlocked ? "var(--accent)" : "var(--accent2)",
+            }}
+          />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+              fontSize: "11px",
+              color: unlocked ? "var(--accent)" : "var(--text-muted)",
+            }}
+          >
+            <span
+              className={justUnlocked ? "unlock-anim" : undefined}
+              style={{ display: "inline-block", fontSize: "13px" }}
+              aria-hidden="true"
+            >
+              {unlocked ? "🔓" : "🔒"}
+            </span>
+            {unlocked ? "모의 투자 가능" : `${remaining}개 더 풀면 투자 해제`}
+          </span>
+          <Link
+            href={quizHref}
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              padding: "9px 12px",
+              borderRadius: "8px",
+              background: "var(--accent2)",
+              color: "#fff",
+              fontSize: "12px",
+              fontWeight: 700,
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            퀴즈 시작
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
 }
