@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Header from "./Header";
 import NavTabs from "./NavTabs";
+import { ToastProvider } from "@/components/ui/Toast";
 
 export default function MainLayoutClient({ children }: { children: React.ReactNode }) {
   const { user, loading, nickname, coins, streak, signOut } = useAuth();
@@ -28,10 +29,12 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
   const displayName = nickname || (user?.user_metadata?.nickname as string) || "유저";
 
   return (
-    <div style={{ maxWidth: "740px", margin: "0 auto", padding: "24px 18px", position: "relative", zIndex: 1 }}>
-      <Header nickname={displayName} coins={coins} streak={streak} onLogout={handleLogout} />
-      <NavTabs />
-      {children}
-    </div>
+    <ToastProvider>
+      <div style={{ maxWidth: "740px", margin: "0 auto", padding: "24px 18px", position: "relative", zIndex: 1 }}>
+        <Header nickname={displayName} coins={coins} streak={streak} onLogout={handleLogout} />
+        <NavTabs />
+        {children}
+      </div>
+    </ToastProvider>
   );
 }
