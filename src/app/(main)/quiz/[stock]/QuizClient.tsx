@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
 import type { NewsItem, QuizData, QuizPeriod, QuizSubmitResult } from "@/types";
@@ -11,7 +12,6 @@ type Step = "loading" | "quiz" | "result";
 interface Props {
   ticker: string;
   stockName: string;
-  initialNewsId?: string;
 }
 
 type Reveal = {
@@ -25,7 +25,9 @@ function formatPrice(price: number | null | undefined) {
   return `${Math.round(price).toLocaleString()}원`;
 }
 
-export default function QuizClient({ ticker, stockName, initialNewsId }: Props) {
+export default function QuizClient({ ticker, stockName }: Props) {
+  const searchParams = useSearchParams();
+  const initialNewsId = searchParams.get("newsId") ?? undefined;
   const { user, refreshUser } = useAuth();
   const { refetch: refetchUnlock } = useQuizUnlock(user?.id);
   const [step, setStep] = useState<Step>("loading");
