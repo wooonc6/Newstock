@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getStock, STOCKS } from "@/lib/stocks";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -9,10 +10,9 @@ export function generateStaticParams() {
 
 interface Props {
   params: { stock: string };
-  searchParams?: { newsId?: string };
 }
 
-export default function QuizPage({ params, searchParams }: Props) {
+export default function QuizPage({ params }: Props) {
   const ticker = decodeURIComponent(params.stock);
   const stock = getStock(ticker);
 
@@ -48,7 +48,9 @@ export default function QuizPage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      <QuizClient ticker={ticker} stockName={stock.name} initialNewsId={searchParams?.newsId} />
+      <Suspense fallback={null}>
+        <QuizClient ticker={ticker} stockName={stock.name} />
+      </Suspense>
     </div>
   );
 }
