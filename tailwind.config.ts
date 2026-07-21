@@ -20,8 +20,8 @@ const config: Config = {
         coin: "#fbbf24",
       },
       fontFamily: {
-        sans: ["var(--font-noto)", "sans-serif"],
-        mono: ["var(--font-space-mono)", "monospace"],
+        sans: ["var(--font-ui)", "sans-serif"],
+        mono: ["var(--font-financial)", "sans-serif"],
       },
       borderRadius: {
         card: "16px",
