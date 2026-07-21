@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:ital,wght@0,400;0,700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -27,11 +26,18 @@
 }
 
 body {
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: var(--font-noto), sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 body::before {
@@ -47,7 +53,7 @@ body::before {
 
 @layer utilities {
   .font-mono-num {
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-space-mono), monospace;
   }
 }
 
