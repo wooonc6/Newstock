@@ -1,3 +1,67 @@
+@font-face {
+  font-family: "Hana2";
+  src: url("/fonts/hana/Hana2-Light.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hana2";
+  src: url("/fonts/hana/Hana2-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hana2";
+  src: url("/fonts/hana/Hana2-Medium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hana2";
+  src: url("/fonts/hana/Hana2-Medium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hana2";
+  src: url("/fonts/hana/Hana2-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hana2";
+  src: url("/fonts/hana/Hana2-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hana2";
+  src: url("/fonts/hana/Hana2-Heavy.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hana2 CM";
+  src: url("/fonts/hana/Hana2-CM.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,6 +81,8 @@
   --text-dim: #555555;
   --border: rgba(0, 0, 0, 0.09);
   --coin: #B8A030;
+  --font-ui: "Hana2", sans-serif;
+  --font-financial: "Hana2 CM", "Hana2", sans-serif;
 }
 
 * {
@@ -25,12 +91,35 @@
   box-sizing: border-box;
 }
 
+html {
+  font-family: var(--font-ui);
+  text-rendering: optimizeLegibility;
+}
+
 body {
-  font-family: var(--font-noto), sans-serif;
+  font-family: var(--font-ui);
+  font-weight: 400;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
+  word-break: keep-all;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+strong,
+b {
+  font-weight: 700;
 }
 
 button,
@@ -38,6 +127,11 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button,
+[role="button"] {
+  font-weight: 500;
 }
 
 body::before {
@@ -52,8 +146,18 @@ body::before {
 }
 
 @layer utilities {
-  .font-mono-num {
-    font-family: var(--font-space-mono), monospace;
+  .font-mono-num,
+  .font-financial,
+  .font-ticker {
+    font-family: var(--font-financial);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
+  }
+
+  .font-display {
+    font-family: var(--font-ui);
+    font-weight: 900;
+    letter-spacing: -0.035em;
   }
 }
 
