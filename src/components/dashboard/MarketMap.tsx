@@ -24,7 +24,7 @@ type MarketMapResponse = {
 
 function formatPrice(price: number | null) {
   if (price == null) return "-";
-  return `${Math.round(price).toLocaleString()}원`;
+  return `₩${Math.round(price).toLocaleString()}`;
 }
 
 function formatTime(value: string | null) {
@@ -193,12 +193,12 @@ export default function MarketMap() {
                     </div>
                   )}
                 </div>
-                <div>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: isBig ? "18px" : "12px", fontWeight: 900 }}>
+                <div style={{ fontFamily: "var(--font-ui)" }}>
+                  <div style={{ fontSize: isBig ? "18px" : "12px", fontWeight: 800, lineHeight: 1.1 }}>
                     {changePercent == null ? "-" : `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(2)}%`}
                   </div>
                   {isBig && (
-                    <div style={{ marginTop: "3px", fontFamily: "'Space Mono', monospace", fontSize: "10px", color: "rgba(255, 255, 255, 0.72)" }}>
+                    <div style={{ marginTop: "4px", fontSize: "10px", fontWeight: 700, color: "rgba(255, 255, 255, 0.76)", whiteSpace: "nowrap" }}>
                       {formatPrice(item.price)}
                     </div>
                   )}
