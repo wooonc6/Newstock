@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import yahooFinance from 'yahoo-finance2';
 
 const PERIODS = [
   { label: '1개월 후', months: 1 },
@@ -21,30 +22,26 @@ type StockData = {
 };
 
 async function getStockChanges(ticker: string, baseDate: string): Promise<StockData> {
-  const yahooModule = await import('yahoo-finance2');
-  const YahooFinance = yahooModule.default;
-  const yahooFinance = new YahooFinance();
-
   const base = new Date(`${baseDate}T00:00:00Z`);
   const endDate = new Date(base);
   endDate.setUTCMonth(endDate.getUTCMonth() + 6);
   endDate.setUTCDate(endDate.getUTCDate() + 7);
 
-  const chart = await yahooFinance.chart(ticker, {
+  const quotes = await yahooFinance.historical(ticker, {
     period1: base,
     period2: endDate,
     interval: '1mo',
   });
 
-  const quotes = (chart.quotes ?? []).filter(
+  const validQuotes = quotes.filter(
     (quote) => quote.date && typeof quote.close === 'number'
   );
 
-  if (quotes.length === 0) {
+  if (validQuotes.length === 0) {
     throw new Error('주가 데이터가 없습니다.');
   }
 
-  const basePrice = quotes[0].close;
+  const basePrice = validQuotes[0].close;
 
   if (typeof basePrice !== 'number') {
     throw new Error('기준일 주가를 찾을 수 없습니다.');
@@ -54,7 +51,7 @@ async function getStockChanges(ticker: string, baseDate: string): Promise<StockD
     const target = new Date(base);
     target.setUTCMonth(target.getUTCMonth() + months);
 
-    const row = quotes.find((quote) => {
+    const row = validQuotes.find((quote) => {
       const date = new Date(quote.date);
       return (
         date.getUTCFullYear() === target.getUTCFullYear() &&
@@ -81,9 +78,9 @@ async function getStockChanges(ticker: string, baseDate: string): Promise<StockD
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ newsId: string }> }
+  { params }: { params: { newsId: string } }
 ) {
-  const { newsId } = await params;
+  const { newsId } = params;
   const supabase = await createClient();
 
   const { data: news, error: newsErr } = await supabase
