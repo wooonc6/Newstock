@@ -128,7 +128,7 @@ function StockListRow({ ticker, selected, unlocked, holding, onSelect }: StockLi
           {changePercent == null ? "-" : `${isUp ? "+" : ""}${changePercent.toFixed(2)}%`}
         </div>
         <div style={{ fontSize: "9px", color: unlocked ? "#057c68" : "var(--text-muted)", marginTop: "3px", fontWeight: 700 }}>
-          {unlocked ? "거래 가능" : "잠김"}
+          {unlocked ? "✅ 거래 가능" : "🔒 잠김"}
         </div>
       </div>
     </button>
@@ -152,6 +152,10 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
 
   return (
     <div style={{ padding: "18px", minHeight: "320px", display: "flex", flexDirection: "column" }}>
+      <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 700, marginBottom: "10px" }}>
+        📈 선택 종목
+      </div>
+
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
         <div>
           <div style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "-0.02em" }}>{stock?.name ?? ticker}</div>
@@ -168,7 +172,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
             whiteSpace: "nowrap",
           }}
         >
-          {unlocked ? "거래 가능" : "투자 잠금"}
+          {unlocked ? "✅ 투자 가능" : "🔒 투자 잠금"}
         </span>
       </div>
 
@@ -198,7 +202,9 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
       </div>
 
       <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "12px" }}>
-        {unlocked ? "현재 이 종목을 모의 투자할 수 있습니다." : `퀴즈 진행 ${completed}/${required} · 조건을 완료하면 거래할 수 있습니다.`}
+        {unlocked
+          ? "✅ 현재 이 종목을 모의 투자할 수 있습니다."
+          : `🧩 퀴즈 진행 ${completed}/${required} · 조건을 완료하면 거래할 수 있습니다.`}
       </div>
 
       <div style={{ marginTop: "auto", display: "grid", gridTemplateColumns: "1fr auto", gap: "8px" }}>
@@ -216,7 +222,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
             cursor: unlocked ? "pointer" : "not-allowed",
           }}
         >
-          {unlocked ? (holding ? "거래하기" : "매수하기") : "잠금 상태"}
+          {unlocked ? `🛒 ${holding ? "거래하기" : "매수하기"}` : "🔒 잠금 상태"}
         </button>
         <Link
           href={`/stocks/${encodeURIComponent(ticker)}`}
@@ -232,7 +238,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
             whiteSpace: "nowrap",
           }}
         >
-          종목 보기
+          🔍 종목 보기
         </Link>
       </div>
     </div>
@@ -290,18 +296,18 @@ export default function PortfolioPage() {
         }}
       >
         <div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>보유 현금</div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>💰 보유 현금</div>
           <div style={{ fontSize: "20px", fontWeight: 700 }}>₩{coins.toLocaleString()}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>보유 종목</div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>💼 보유 종목</div>
           <div style={{ fontSize: "18px", fontWeight: 700 }}>{holdings.length}개</div>
         </div>
       </div>
 
       <section style={{ marginBottom: "16px" }}>
         <div style={{ marginBottom: "8px" }}>
-          <div style={{ fontSize: "13px", fontWeight: 800, color: "var(--text-dim)" }}>지원 종목</div>
+          <div style={{ fontSize: "13px", fontWeight: 800, color: "var(--text-dim)" }}>📋 지원 종목</div>
           <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
             종목을 선택해 현재가와 투자 가능 여부를 확인하세요.
           </div>
@@ -369,7 +375,7 @@ export default function PortfolioPage() {
       </section>
 
       <section style={{ marginBottom: "16px" }}>
-        <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "8px", color: "var(--text-dim)" }}>보유 종목</div>
+        <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "8px", color: "var(--text-dim)" }}>💼 보유 종목</div>
         {loading ? (
           <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>불러오는 중...</div>
         ) : holdings.length === 0 ? (
@@ -384,7 +390,7 @@ export default function PortfolioPage() {
               color: "var(--text-dim)",
             }}
           >
-            아직 보유 종목이 없습니다. 언락된 종목을 매수해보세요.
+            📭 아직 보유 종목이 없습니다. 언락된 종목을 매수해보세요.
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -405,7 +411,7 @@ export default function PortfolioPage() {
             textAlign: "center",
           }}
         >
-          종목별 퀴즈를 3개 풀면 모의 투자가 가능해집니다.
+          🧩 종목별 퀴즈를 3개 풀면 모의 투자가 가능해집니다.
         </div>
       )}
 
