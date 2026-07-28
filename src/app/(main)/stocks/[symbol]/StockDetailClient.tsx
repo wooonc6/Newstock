@@ -11,7 +11,7 @@ interface Props {
 
 function formatPrice(price: number | null | undefined) {
   if (price == null) return "-";
-  return `${Math.round(price).toLocaleString()}원`;
+  return Math.round(price).toLocaleString();
 }
 
 export default function StockDetailClient({ stock }: Props) {
@@ -66,13 +66,45 @@ export default function StockDetailClient({ stock }: Props) {
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "20px", fontWeight: 800 }}>
-              {quoteLoading ? "..." : formatPrice(quote?.price)}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "baseline",
+                gap: "4px",
+                minHeight: "30px",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "24px",
+                  fontWeight: 700,
+                  letterSpacing: "-0.03em",
+                  fontVariantNumeric: "tabular-nums",
+                  lineHeight: 1.2,
+                }}
+              >
+                {quoteLoading ? "..." : formatPrice(quote?.price)}
+              </span>
+              {!quoteLoading && (
+                <span
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  원
+                </span>
+              )}
             </div>
             <div
               style={{
                 marginTop: "4px",
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: "var(--font-ui)",
+                fontVariantNumeric: "tabular-nums",
                 fontSize: "13px",
                 fontWeight: 700,
                 color: isUp ? "var(--danger)" : "#2563eb",
