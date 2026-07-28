@@ -41,7 +41,7 @@ export default function DashboardClient() {
           boxShadow: "0 10px 28px rgba(15, 23, 42, 0.08)",
         }}
       >
-        <SectionTitle title="오늘 많이 언급된 종목" sub="뉴스 수가 많은 종목부터 보여줍니다" />
+        <SectionTitle title="🔥 오늘 많이 언급된 종목" sub="뉴스 수가 많은 종목부터 보여줍니다" />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
           {recommendedStocks.map((stock, index) => (
             <Link
