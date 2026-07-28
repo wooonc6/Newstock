@@ -125,11 +125,12 @@ export default function StockDetailClient({ stock }: Props) {
             justifyContent: "center",
             padding: "13px 16px",
             borderRadius: "8px",
-            background: "var(--accent2)",
+            background: "var(--accent)",
             color: "#fff",
             fontSize: "14px",
             fontWeight: 800,
             textDecoration: "none",
+            boxShadow: "0 6px 16px rgba(0, 168, 120, 0.18)",
           }}
         >
           이 종목으로 퀴즈 풀기
