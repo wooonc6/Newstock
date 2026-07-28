@@ -65,7 +65,7 @@ export default function StockDetailClient({ stock }: Props) {
               {stock.ticker}
             </div>
           </div>
-          <div style={{ textAlign: "right", minWidth: "150px" }}>
+          <div style={{ textAlign: "right", minWidth: "164px" }}>
             <div
               style={{
                 display: "flex",
@@ -77,13 +77,16 @@ export default function StockDetailClient({ stock }: Props) {
             >
               <span
                 style={{
-                  fontFamily: "var(--font-ui)",
-                  fontSize: "27px",
-                  fontWeight: 750,
-                  letterSpacing: "-0.045em",
+                  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                  fontSize: "26px",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
                   fontVariantNumeric: "tabular-nums lining-nums",
-                  lineHeight: 1.05,
+                  fontFeatureSettings: '"tnum" 1, "lnum" 1',
+                  lineHeight: 1.08,
                   color: "var(--text)",
+                  textRendering: "geometricPrecision",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {quoteLoading ? "..." : formatPrice(quote?.price)}
@@ -92,10 +95,11 @@ export default function StockDetailClient({ stock }: Props) {
                 <span
                   style={{
                     fontFamily: "var(--font-ui)",
-                    fontSize: "13px",
-                    fontWeight: 650,
+                    fontSize: "14px",
+                    fontWeight: 600,
                     color: "var(--text-muted)",
-                    letterSpacing: "-0.02em",
+                    letterSpacing: "-0.01em",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   원
@@ -113,15 +117,17 @@ export default function StockDetailClient({ stock }: Props) {
                   borderRadius: "999px",
                   background: isUp ? "rgba(239, 68, 68, 0.08)" : "rgba(37, 99, 235, 0.08)",
                   color: isUp ? "var(--danger)" : "#2563eb",
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
                   fontVariantNumeric: "tabular-nums lining-nums",
+                  fontFeatureSettings: '"tnum" 1, "lnum" 1',
                   fontSize: "12px",
-                  fontWeight: 750,
-                  letterSpacing: "-0.02em",
+                  fontWeight: 700,
+                  letterSpacing: "-0.01em",
                   lineHeight: 1,
+                  whiteSpace: "nowrap",
                 }}
               >
-                <span style={{ fontSize: "10px", lineHeight: 1 }}>{isUp ? "▲" : "▼"}</span>
+                <span style={{ fontSize: "9px", lineHeight: 1 }}>{isUp ? "▲" : "▼"}</span>
                 <span>{`${Math.abs(changePercent).toFixed(2)}%`}</span>
               </div>
             )}
