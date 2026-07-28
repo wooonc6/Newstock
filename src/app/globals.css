@@ -91,7 +91,7 @@
   --coin: #B8A030;
   --font-brand: "Hana2", "SUIT Variable", sans-serif;
   --font-ui: "SUIT Variable", "Hana2", sans-serif;
-  --font-financial: "SUIT Variable", "Hana2 CM", "Hana2", sans-serif;
+  --font-financial: var(--font-ui);
 }
 
 * {
@@ -144,6 +144,24 @@ button,
   font-weight: 600;
 }
 
+/*
+ * 숫자 표기를 전 페이지에서 SUIT 기반 UI 폰트로 통일합니다.
+ * 기존 컴포넌트에 남아 있는 Space Mono/Hana2 CM 인라인 지정도 덮어써서
+ * 대시보드, 퀴즈, 모의투자, 종목 상세의 가격·날짜·수량·등락률이 같은 모양으로 보입니다.
+ */
+.font-mono,
+.font-mono-num,
+.font-financial,
+.font-ticker,
+[style*="Space Mono"],
+[style*="Hana2 CM"],
+[style*="var(--font-financial)"] {
+  font-family: var(--font-ui) !important;
+  font-variant-numeric: normal !important;
+  font-feature-settings: normal !important;
+  letter-spacing: normal !important;
+}
+
 body::before {
   content: '';
   position: fixed;
@@ -163,9 +181,9 @@ body::before {
   .font-mono-num,
   .font-financial,
   .font-ticker {
-    font-family: var(--font-financial);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    font-family: var(--font-ui);
+    font-variant-numeric: normal;
+    letter-spacing: normal;
   }
 
   .font-display {
