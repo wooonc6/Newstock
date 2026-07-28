@@ -26,6 +26,8 @@ type MarketMapResponse = {
   items: MarketMapItem[];
 };
 
+const LEGEND_POINTS = [-12, -6, 0, 6, 12] as const;
+
 function formatPrice(price: number | null) {
   if (price == null) return "-";
   return `₩${Math.round(price).toLocaleString()}`;
@@ -78,6 +80,13 @@ function getTileColor(changePercent: number | null) {
     background: "linear-gradient(135deg, #475569, #334155)",
     borderColor: "rgba(148, 163, 184, 0.45)",
   };
+}
+
+function formatLegendLabel(value: number) {
+  if (value === -12) return "-12% 이하";
+  if (value === 12) return "+12% 이상";
+  if (value > 0) return `+${value}%`;
+  return `${value}%`;
 }
 
 function getSpan(weight: number) {
@@ -163,76 +172,107 @@ export default function MarketMap() {
       ) : error ? (
         <div style={{ padding: "34px 12px", textAlign: "center", color: "#cbd5e1", fontSize: "13px", lineHeight: 1.6 }}>마켓맵 데이터를 불러오지 못했습니다.</div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
-            gridAutoRows: "74px",
-            gap: "6px",
-          }}
-        >
-          {items.map((item) => {
-            const changePercent = item.changePercent;
-            const color = getTileColor(changePercent);
-            const span = getSpan(item.weight);
-            const isBig = item.weight >= 7;
+        <>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+              gridAutoRows: "74px",
+              gap: "6px",
+            }}
+          >
+            {items.map((item) => {
+              const changePercent = item.changePercent;
+              const color = getTileColor(changePercent);
+              const span = getSpan(item.weight);
+              const isBig = item.weight >= 7;
 
-            return (
-              <Link
-                key={item.ticker}
-                href={`/stocks/${encodeURIComponent(item.ticker)}`}
-                title={`${item.name} ${changePercent == null ? "" : `${changePercent.toFixed(2)}%`}`}
-                style={{
-                  ...color,
-                  gridColumn: `span ${span.column}`,
-                  gridRow: `span ${span.row}`,
-                  border: `1px solid ${color.borderColor}`,
-                  borderRadius: "10px",
-                  padding: isBig ? "12px" : "9px",
-                  color: "#fff",
-                  textDecoration: "none",
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  minWidth: 0,
-                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.12)",
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: isBig ? "16px" : "13px",
-                      fontWeight: 700,
-                      lineHeight: 1.4,
-                      letterSpacing: "-0.01em",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {item.name}
-                  </div>
-                  {isBig && (
-                    <div style={{ marginTop: "5px", fontSize: "11px", fontWeight: 400, lineHeight: 1.45, letterSpacing: 0, color: "rgba(255, 255, 255, 0.78)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {item.sector}
+              return (
+                <Link
+                  key={item.ticker}
+                  href={`/stocks/${encodeURIComponent(item.ticker)}`}
+                  title={`${item.name} ${changePercent == null ? "" : `${changePercent.toFixed(2)}%`}`}
+                  style={{
+                    ...color,
+                    gridColumn: `span ${span.column}`,
+                    gridRow: `span ${span.row}`,
+                    border: `1px solid ${color.borderColor}`,
+                    borderRadius: "10px",
+                    padding: isBig ? "12px" : "9px",
+                    color: "#fff",
+                    textDecoration: "none",
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    minWidth: 0,
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.12)",
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: isBig ? "16px" : "13px",
+                        fontWeight: 700,
+                        lineHeight: 1.4,
+                        letterSpacing: "-0.01em",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {item.name}
                     </div>
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontSize: isBig ? "18px" : "12px", fontWeight: 700, lineHeight: 1.25, letterSpacing: 0 }}>
-                    {changePercent == null ? "-" : `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(2)}%`}
+                    {isBig && (
+                      <div style={{ marginTop: "5px", fontSize: "11px", fontWeight: 400, lineHeight: 1.45, letterSpacing: 0, color: "rgba(255, 255, 255, 0.78)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {item.sector}
+                      </div>
+                    )}
                   </div>
-                  {isBig && (
-                    <div style={{ marginTop: "4px", fontSize: "11px", fontWeight: 500, lineHeight: 1.35, letterSpacing: 0, color: "rgba(255, 255, 255, 0.8)", whiteSpace: "nowrap" }}>
-                      {formatPrice(item.price)}
+                  <div>
+                    <div style={{ fontSize: isBig ? "18px" : "12px", fontWeight: 700, lineHeight: 1.25, letterSpacing: 0 }}>
+                      {changePercent == null ? "-" : `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(2)}%`}
                     </div>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+                    {isBig && (
+                      <div style={{ marginTop: "4px", fontSize: "11px", fontWeight: 500, lineHeight: 1.35, letterSpacing: 0, color: "rgba(255, 255, 255, 0.8)", whiteSpace: "nowrap" }}>
+                        {formatPrice(item.price)}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(148, 163, 184, 0.18)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px", fontSize: "10px", color: "#94a3b8" }}>
+              <span>하락</span>
+              <span>등락률 색상 기준</span>
+              <span>상승</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${LEGEND_POINTS.length}, minmax(0, 1fr))`, gap: "5px" }}>
+              {LEGEND_POINTS.map((value) => {
+                const color = getTileColor(value);
+                return (
+                  <div key={value} style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        ...color,
+                        height: "10px",
+                        border: `1px solid ${color.borderColor}`,
+                        borderRadius: "999px",
+                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.08)",
+                      }}
+                    />
+                    <div style={{ marginTop: "5px", textAlign: "center", fontSize: "10px", lineHeight: 1.3, color: "#94a3b8", whiteSpace: "nowrap" }}>
+                      {formatLegendLabel(value)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
     </section>
   );
