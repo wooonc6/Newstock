@@ -33,11 +33,33 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
           flexWrap: "wrap",
         }}
       >
-        <img
-          src="/logo.svg"
-          alt="Newstock"
-          style={{ height: "64px", width: "auto", flexShrink: 0 }}
-        />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            flexShrink: 0,
+          }}
+        >
+          <img
+            src="/logo.svg"
+            alt="Newstock"
+            style={{ height: "64px", width: "auto" }}
+          />
+          <div
+            style={{
+              marginTop: "2px",
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              color: "var(--text-muted)",
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
+            }}
+          >
+            하나 드리머스
+          </div>
+        </div>
 
         <div
           aria-label="Newstock 멘토와 팀원"
