@@ -14,6 +14,10 @@ type MarketMapItem = {
 
 type MarketMapResponse = {
   updatedAt: string;
+  kospi: {
+    value: number | null;
+    changePercent: number | null;
+  };
   basis: {
     size: string;
     color: string;
@@ -25,6 +29,14 @@ type MarketMapResponse = {
 function formatPrice(price: number | null) {
   if (price == null) return "-";
   return `₩${Math.round(price).toLocaleString()}`;
+}
+
+function formatIndex(value: number | null | undefined) {
+  if (value == null) return "-";
+  return value.toLocaleString("ko-KR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function formatTime(value: string | null) {
@@ -126,7 +138,10 @@ export default function MarketMap() {
       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", marginBottom: "14px" }}>
         <div>
           <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 700, marginBottom: "5px", letterSpacing: "0.02em" }}>KOSPI MARKET MAP</div>
-          <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, lineHeight: 1.45, letterSpacing: "-0.01em", color: "#f8fafc" }}>코스피 30종목 흐름 한눈에 보기</h2>
+          <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, lineHeight: 1.45, letterSpacing: "-0.01em", color: "#f8fafc" }}>
+            코스피 30종목 흐름 한눈에 보기
+            <span style={{ color: "#94a3b8", fontWeight: 500 }}> | {formatIndex(data?.kospi?.value)}</span>
+          </h2>
           <p style={{ margin: "6px 0 0", fontSize: "12px", fontWeight: 400, lineHeight: 1.65, letterSpacing: 0, color: "#cbd5e1" }}>
             크기는 대표성 가중치, 색은 당일 등락률 기준입니다.
           </p>
