@@ -38,33 +38,42 @@ const MARKET_MAP_WEIGHTS: Record<string, number> = {
 };
 
 export async function GET() {
-  const items = await Promise.all(
-    STOCKS.map(async (stock) => {
-      try {
-        const quote = await getQuote(stock.ticker);
-        return {
-          ticker: stock.ticker,
-          name: stock.name,
-          sector: stock.sector,
-          weight: MARKET_MAP_WEIGHTS[stock.ticker] ?? 3,
-          price: quote.regularMarketPrice ?? null,
-          changePercent: quote.regularMarketChangePercent ?? null,
-        };
-      } catch {
-        return {
-          ticker: stock.ticker,
-          name: stock.name,
-          sector: stock.sector,
-          weight: MARKET_MAP_WEIGHTS[stock.ticker] ?? 3,
-          price: null,
-          changePercent: null,
-        };
-      }
-    })
-  );
+  const [items, kospi] = await Promise.all([
+    Promise.all(
+      STOCKS.map(async (stock) => {
+        try {
+          const quote = await getQuote(stock.ticker);
+          return {
+            ticker: stock.ticker,
+            name: stock.name,
+            sector: stock.sector,
+            weight: MARKET_MAP_WEIGHTS[stock.ticker] ?? 3,
+            price: quote.regularMarketPrice ?? null,
+            changePercent: quote.regularMarketChangePercent ?? null,
+          };
+        } catch {
+          return {
+            ticker: stock.ticker,
+            name: stock.name,
+            sector: stock.sector,
+            weight: MARKET_MAP_WEIGHTS[stock.ticker] ?? 3,
+            price: null,
+            changePercent: null,
+          };
+        }
+      })
+    ),
+    getQuote("^KS11")
+      .then((quote) => ({
+        value: quote.regularMarketPrice ?? null,
+        changePercent: quote.regularMarketChangePercent ?? null,
+      }))
+      .catch(() => ({ value: null, changePercent: null })),
+  ]);
 
   return NextResponse.json({
     updatedAt: new Date().toISOString(),
+    kospi,
     basis: {
       size: "코스피 대표성 가중치",
       color: "Yahoo Finance 당일 등락률",
