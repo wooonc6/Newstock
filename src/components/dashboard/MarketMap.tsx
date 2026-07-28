@@ -42,21 +42,23 @@ function getTileColor(changePercent: number | null) {
     };
   }
 
-  const intensity = Math.min(Math.abs(changePercent), 5) / 5;
+  const intensity = Math.min(Math.abs(changePercent), 15) / 15;
 
   if (changePercent > 0) {
-    const alpha = 0.35 + intensity * 0.55;
+    const lightnessStart = 43 - intensity * 24;
+    const lightnessEnd = 34 - intensity * 20;
     return {
-      background: `linear-gradient(135deg, rgba(185, 28, 28, ${alpha}), rgba(127, 29, 29, ${alpha}))`,
-      borderColor: "rgba(248, 113, 113, 0.55)",
+      background: `linear-gradient(135deg, hsl(352 68% ${lightnessStart}%), hsl(350 63% ${lightnessEnd}%))`,
+      borderColor: `hsl(352 72% ${Math.max(lightnessStart + 12, 32)}% / 0.65)`,
     };
   }
 
   if (changePercent < 0) {
-    const alpha = 0.35 + intensity * 0.55;
+    const lightnessStart = 51 - intensity * 30;
+    const lightnessEnd = 42 - intensity * 25;
     return {
-      background: `linear-gradient(135deg, rgba(37, 99, 235, ${alpha}), rgba(30, 64, 175, ${alpha}))`,
-      borderColor: "rgba(96, 165, 250, 0.55)",
+      background: `linear-gradient(135deg, hsl(224 68% ${lightnessStart}%), hsl(222 64% ${lightnessEnd}%))`,
+      borderColor: `hsl(218 86% ${Math.max(lightnessStart + 13, 34)}% / 0.65)`,
     };
   }
 
