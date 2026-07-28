@@ -204,7 +204,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
       <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "12px" }}>
         {unlocked
           ? "✅ 현재 이 종목을 모의 투자할 수 있습니다."
-          : `🧩 퀴즈 진행 ${completed}/${required} · 조건을 완료하면 거래할 수 있습니다.`}
+          : `퀴즈 진행 ${completed}/${required} · 조건을 완료하면 거래할 수 있습니다.`}
       </div>
 
       <div style={{ marginTop: "auto", display: "grid", gridTemplateColumns: "1fr auto", gap: "8px" }}>
@@ -390,7 +390,7 @@ export default function PortfolioPage() {
               color: "var(--text-dim)",
             }}
           >
-            📭 아직 보유 종목이 없습니다. 언락된 종목을 매수해보세요.
+            아직 보유 종목이 없습니다. 언락된 종목을 매수해보세요.
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -411,7 +411,7 @@ export default function PortfolioPage() {
             textAlign: "center",
           }}
         >
-          🧩 종목별 퀴즈를 3개 풀면 모의 투자가 가능해집니다.
+          종목별 퀴즈를 3개 풀면 모의 투자가 가능해집니다.
         </div>
       )}
 
