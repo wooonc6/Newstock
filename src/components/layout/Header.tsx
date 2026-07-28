@@ -1,6 +1,5 @@
 "use client";
 
-
 interface HeaderProps {
   nickname: string;
   coins: number;
@@ -15,6 +14,8 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
+        gap: "16px",
+        flexWrap: "wrap",
         marginBottom: "20px",
         padding: "13px 18px",
         background: "var(--surface)",
@@ -22,9 +23,66 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
         borderRadius: "var(--radius, 16px)",
       }}
     >
-      <img src="/logo.svg" alt="Newstock" style={{ height: "64px", width: "auto" }} />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+          minWidth: 0,
+          flex: "1 1 390px",
+          flexWrap: "wrap",
+        }}
+      >
+        <img
+          src="/logo.svg"
+          alt="Newstock"
+          style={{ height: "64px", width: "auto", flexShrink: 0 }}
+        />
 
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div
+          aria-label="Newstock 멘토와 팀원"
+          style={{
+            minWidth: 0,
+            paddingLeft: "14px",
+            borderLeft: "1px solid var(--border)",
+            lineHeight: 1.45,
+          }}
+        >
+          <div
+            style={{
+              fontSize: "clamp(10px, 1.35vw, 12px)",
+              fontWeight: 700,
+              color: "var(--text-dim)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            하나금융TI 김형민 멘토님
+          </div>
+          <div
+            style={{
+              marginTop: "2px",
+              fontSize: "clamp(9px, 1.2vw, 11px)",
+              fontWeight: 500,
+              color: "var(--text-muted)",
+              whiteSpace: "normal",
+              wordBreak: "keep-all",
+            }}
+          >
+            × 하나고 김성준 · 김승민 · 이은우 · 최원준 · 허조영
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          flexWrap: "wrap",
+          justifyContent: "flex-end",
+          marginLeft: "auto",
+        }}
+      >
         {streak > 0 && (
           <div
             style={{
@@ -35,10 +93,10 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
               border: "1px solid rgba(245,158,11,0.18)",
               padding: "6px 11px",
               borderRadius: "100px",
-              fontFamily: "'Space Mono', monospace",
               fontSize: "12px",
               fontWeight: 700,
               color: "var(--warn)",
+              fontVariantNumeric: "tabular-nums",
             }}
           >
             🔥 {streak}일
@@ -54,10 +112,10 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
             border: "1px solid rgba(251,191,36,0.2)",
             padding: "6px 13px",
             borderRadius: "100px",
-            fontFamily: "'Space Mono', monospace",
             fontSize: "13px",
             fontWeight: 700,
             color: "var(--coin)",
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           ₩{coins.toLocaleString()}
