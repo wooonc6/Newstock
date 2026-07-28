@@ -34,11 +34,11 @@ export default function DashboardClient() {
     <div style={{ display: "grid", gap: "18px" }}>
       <section
         style={{
-          background: "linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98))",
-          border: "1px solid rgba(148, 163, 184, 0.24)",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
           borderRadius: "14px",
           padding: "16px",
-          boxShadow: "0 18px 45px rgba(15, 23, 42, 0.2)",
+          boxShadow: "0 10px 28px rgba(15, 23, 42, 0.08)",
         }}
       >
         <SectionTitle title="오늘 많이 언급된 종목" sub="뉴스 수가 많은 종목부터 보여줍니다" />
@@ -48,23 +48,22 @@ export default function DashboardClient() {
               key={stock.ticker}
               href={`/stocks/${encodeURIComponent(stock.ticker)}`}
               style={{
-                background: "rgba(255, 255, 255, 0.06)",
-                border: "1px solid rgba(148, 163, 184, 0.2)",
+                background: "var(--surface2)",
+                border: "1px solid var(--border)",
                 borderRadius: "10px",
                 padding: "13px",
-                color: "#f8fafc",
+                color: "var(--text)",
                 textDecoration: "none",
                 minWidth: 0,
-                boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.08)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "7px", minWidth: 0 }}>
-                <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8" }}>{index + 1}</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)" }}>{index + 1}</span>
                 <div style={{ fontSize: "13px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {stock.name}
                 </div>
               </div>
-              <div style={{ marginTop: "6px", fontSize: "11px", color: "#cbd5e1" }}>
+              <div style={{ marginTop: "6px", fontSize: "11px", color: "var(--text-dim)" }}>
                 관련 뉴스 {newsCounts[stock.ticker] ?? 0}개
               </div>
             </Link>
@@ -80,8 +79,8 @@ export default function DashboardClient() {
 function SectionTitle({ title, sub }: { title: string; sub: string }) {
   return (
     <div style={{ marginBottom: "12px" }}>
-      <div style={{ fontSize: "16px", fontWeight: 700, lineHeight: 1.4, color: "#f8fafc" }}>{title}</div>
-      <div style={{ marginTop: "4px", fontSize: "12px", lineHeight: 1.55, color: "#94a3b8" }}>{sub}</div>
+      <div style={{ fontSize: "16px", fontWeight: 700, lineHeight: 1.4, color: "var(--text)" }}>{title}</div>
+      <div style={{ marginTop: "4px", fontSize: "12px", lineHeight: 1.55, color: "var(--text-muted)" }}>{sub}</div>
     </div>
   );
 }
