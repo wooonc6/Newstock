@@ -82,7 +82,7 @@ export default function QuizHomeClient() {
         }}
       >
         <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 700 }}>
-          🧠 QUIZ
+          QUIZ
         </div>
         <h1 style={{ fontSize: "20px", lineHeight: 1.35 }}>
           뉴스를 읽고 종목 퀴즈를 풀어보세요
@@ -203,7 +203,7 @@ export default function QuizHomeClient() {
                         <span style={{ fontSize: "10px", color: status.unlocked ? "var(--accent)" : "var(--text-muted)" }}>
                           {status.unlocked
                             ? "✅ 모의 투자 가능"
-                            : `🧩 ${remaining}개 더 풀면 투자 해제`}
+                            : `${remaining}개 더 풀면 투자 해제`}
                         </span>
                         <Link
                           href={`/quiz/${encodeURIComponent(stock.ticker)}`}
