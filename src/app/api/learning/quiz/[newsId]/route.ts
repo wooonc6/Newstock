@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import yahooFinance from 'yahoo-finance2';
+
+export const runtime = 'nodejs';
 
 const PERIODS = [
   { label: '1개월 후', months: 1 },
@@ -21,47 +22,104 @@ type StockData = {
   periods: StockPeriod[];
 };
 
+type YahooChartResponse = {
+  chart?: {
+    result?: Array<{
+      timestamp?: number[];
+      indicators?: {
+        quote?: Array<{
+          close?: Array<number | null>;
+        }>;
+      };
+    }>;
+    error?: {
+      code?: string;
+      description?: string;
+    } | null;
+  };
+};
+
+type PricePoint = {
+  timestamp: number;
+  price: number;
+};
+
+function addUtcMonths(date: Date, months: number): Date {
+  const result = new Date(date);
+  result.setUTCMonth(result.getUTCMonth() + months);
+  return result;
+}
+
+function findPriceOnOrAfter(points: PricePoint[], target: Date): number | null {
+  const targetSeconds = Math.floor(target.getTime() / 1000);
+  return points.find((point) => point.timestamp >= targetSeconds)?.price ?? null;
+}
+
 async function getStockChanges(ticker: string, baseDate: string): Promise<StockData> {
   const base = new Date(`${baseDate}T00:00:00Z`);
-  const endDate = new Date(base);
-  endDate.setUTCMonth(endDate.getUTCMonth() + 6);
-  endDate.setUTCDate(endDate.getUTCDate() + 7);
 
-  const quotes = await yahooFinance.historical(ticker, {
-    period1: base,
-    period2: endDate,
-    interval: '1mo',
-  });
+  if (Number.isNaN(base.getTime())) {
+    throw new Error('뉴스 날짜 형식이 올바르지 않습니다.');
+  }
 
-  const validQuotes = quotes.filter(
-    (quote) => quote.date && typeof quote.close === 'number'
+  const endDate = addUtcMonths(base, 6);
+  endDate.setUTCDate(endDate.getUTCDate() + 14);
+
+  const period1 = Math.floor(base.getTime() / 1000);
+  const period2 = Math.floor(endDate.getTime() / 1000);
+  const url = new URL(
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}`
   );
 
-  if (validQuotes.length === 0) {
+  url.searchParams.set('period1', String(period1));
+  url.searchParams.set('period2', String(period2));
+  url.searchParams.set('interval', '1d');
+  url.searchParams.set('events', 'history');
+  url.searchParams.set('includeAdjustedClose', 'true');
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'Mozilla/5.0 Newstock/1.0',
+    },
+    cache: 'no-store',
+  });
+
+  const payload = (await response.json().catch(() => null)) as YahooChartResponse | null;
+
+  if (!response.ok) {
+    const description = payload?.chart?.error?.description;
+    throw new Error(description || `Yahoo Finance 응답 오류 (${response.status})`);
+  }
+
+  const result = payload?.chart?.result?.[0];
+  const timestamps = result?.timestamp ?? [];
+  const closes = result?.indicators?.quote?.[0]?.close ?? [];
+
+  const points: PricePoint[] = timestamps
+    .map((timestamp, index) => {
+      const close = closes[index];
+      return typeof close === 'number' && Number.isFinite(close)
+        ? { timestamp, price: close }
+        : null;
+    })
+    .filter((point): point is PricePoint => point !== null)
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  if (points.length === 0) {
     throw new Error('주가 데이터가 없습니다.');
   }
 
-  const basePrice = validQuotes[0].close;
+  const basePrice = findPriceOnOrAfter(points, base);
 
-  if (typeof basePrice !== 'number') {
+  if (basePrice == null) {
     throw new Error('기준일 주가를 찾을 수 없습니다.');
   }
 
-  const mapped = PERIODS.map(({ label, months }) => {
-    const target = new Date(base);
-    target.setUTCMonth(target.getUTCMonth() + months);
-
-    const row = validQuotes.find((quote) => {
-      const date = new Date(quote.date);
-      return (
-        date.getUTCFullYear() === target.getUTCFullYear() &&
-        date.getUTCMonth() === target.getUTCMonth()
-      );
-    });
-
-    const price = typeof row?.close === 'number' ? row.close : null;
-    const changeRate =
-      price != null ? ((price - basePrice) / basePrice) * 100 : null;
+  const periods = PERIODS.map(({ label, months }) => {
+    const target = addUtcMonths(base, months);
+    const price = findPriceOnOrAfter(points, target);
+    const changeRate = price == null ? null : ((price - basePrice) / basePrice) * 100;
 
     return {
       label,
@@ -73,7 +131,10 @@ async function getStockChanges(ticker: string, baseDate: string): Promise<StockD
     };
   });
 
-  return { base: { price: basePrice }, periods: mapped };
+  return {
+    base: { price: basePrice },
+    periods,
+  };
 }
 
 export async function GET(
@@ -83,13 +144,13 @@ export async function GET(
   const { newsId } = params;
   const supabase = await createClient();
 
-  const { data: news, error: newsErr } = await supabase
+  const { data: news, error: newsError } = await supabase
     .from('curated_news')
-    .select('*')
+    .select('id, title, company, ticker, news_date, category, difficulty')
     .eq('id', newsId)
     .single();
 
-  if (newsErr || !news) {
+  if (newsError || !news) {
     return NextResponse.json({ error: '뉴스를 찾을 수 없습니다.' }, { status: 404 });
   }
 
@@ -165,7 +226,12 @@ export async function GET(
     }
   }
 
-  const coinsMap: Record<number, number> = { 1: 50000, 3: 100000, 6: 150000 };
+  const coinsMap: Record<number, number> = {
+    1: 50000,
+    3: 100000,
+    6: 150000,
+  };
+
   const periods = stockData.periods
     .filter((period) => period.changeRate != null)
     .map((period) => ({
