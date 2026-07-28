@@ -116,17 +116,20 @@ export default function MarketMap() {
         borderRadius: "14px",
         padding: "16px",
         boxShadow: "0 18px 45px rgba(15, 23, 42, 0.26)",
+        fontFamily: "var(--font-ui)",
+        WebkitFontSmoothing: "antialiased",
+        textRendering: "optimizeLegibility",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", marginBottom: "14px" }}>
         <div>
-          <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 800, marginBottom: "5px" }}>KOSPI MARKET MAP</div>
-          <h2 style={{ margin: 0, fontSize: "18px", lineHeight: 1.35, color: "#f8fafc" }}>코스피 30종목 흐름 한눈에 보기</h2>
-          <p style={{ margin: "6px 0 0", fontSize: "12px", lineHeight: 1.5, color: "#cbd5e1" }}>
+          <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 700, marginBottom: "5px", letterSpacing: "0.02em" }}>KOSPI MARKET MAP</div>
+          <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, lineHeight: 1.45, letterSpacing: "-0.01em", color: "#f8fafc" }}>코스피 30종목 흐름 한눈에 보기</h2>
+          <p style={{ margin: "6px 0 0", fontSize: "12px", fontWeight: 400, lineHeight: 1.65, letterSpacing: 0, color: "#cbd5e1" }}>
             크기는 대표성 가중치, 색은 당일 등락률 기준입니다.
           </p>
         </div>
-        <div style={{ textAlign: "right", fontSize: "10px", lineHeight: 1.5, color: "#94a3b8", whiteSpace: "nowrap" }}>
+        <div style={{ textAlign: "right", fontSize: "11px", fontWeight: 400, lineHeight: 1.65, letterSpacing: 0, color: "#94a3b8", whiteSpace: "nowrap" }}>
           <div>상승: 빨강</div>
           <div>하락: 파랑</div>
           <div>갱신: {formatTime(data?.updatedAt ?? null)}</div>
@@ -134,9 +137,9 @@ export default function MarketMap() {
       </div>
 
       {loading ? (
-        <div style={{ padding: "34px 12px", textAlign: "center", color: "#cbd5e1", fontSize: "13px" }}>마켓맵을 불러오는 중입니다.</div>
+        <div style={{ padding: "34px 12px", textAlign: "center", color: "#cbd5e1", fontSize: "13px", lineHeight: 1.6 }}>마켓맵을 불러오는 중입니다.</div>
       ) : error ? (
-        <div style={{ padding: "34px 12px", textAlign: "center", color: "#cbd5e1", fontSize: "13px" }}>마켓맵 데이터를 불러오지 못했습니다.</div>
+        <div style={{ padding: "34px 12px", textAlign: "center", color: "#cbd5e1", fontSize: "13px", lineHeight: 1.6 }}>마켓맵 데이터를 불러오지 못했습니다.</div>
       ) : (
         <div
           style={{
@@ -177,9 +180,10 @@ export default function MarketMap() {
                 <div style={{ minWidth: 0 }}>
                   <div
                     style={{
-                      fontSize: isBig ? "16px" : "12px",
-                      fontWeight: 900,
-                      lineHeight: 1.2,
+                      fontSize: isBig ? "16px" : "13px",
+                      fontWeight: 700,
+                      lineHeight: 1.4,
+                      letterSpacing: "-0.01em",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -188,17 +192,17 @@ export default function MarketMap() {
                     {item.name}
                   </div>
                   {isBig && (
-                    <div style={{ marginTop: "4px", fontSize: "10px", color: "rgba(255, 255, 255, 0.72)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div style={{ marginTop: "5px", fontSize: "11px", fontWeight: 400, lineHeight: 1.45, letterSpacing: 0, color: "rgba(255, 255, 255, 0.78)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {item.sector}
                     </div>
                   )}
                 </div>
-                <div style={{ fontFamily: "var(--font-ui)" }}>
-                  <div style={{ fontSize: isBig ? "18px" : "12px", fontWeight: 800, lineHeight: 1.1 }}>
+                <div>
+                  <div style={{ fontSize: isBig ? "18px" : "12px", fontWeight: 700, lineHeight: 1.25, letterSpacing: 0 }}>
                     {changePercent == null ? "-" : `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(2)}%`}
                   </div>
                   {isBig && (
-                    <div style={{ marginTop: "4px", fontSize: "10px", fontWeight: 700, color: "rgba(255, 255, 255, 0.76)", whiteSpace: "nowrap" }}>
+                    <div style={{ marginTop: "4px", fontSize: "11px", fontWeight: 500, lineHeight: 1.35, letterSpacing: 0, color: "rgba(255, 255, 255, 0.8)", whiteSpace: "nowrap" }}>
                       {formatPrice(item.price)}
                     </div>
                   )}
