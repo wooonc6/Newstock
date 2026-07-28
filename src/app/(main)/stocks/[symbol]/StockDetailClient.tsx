@@ -65,24 +65,25 @@ export default function StockDetailClient({ stock }: Props) {
               {stock.ticker}
             </div>
           </div>
-          <div style={{ textAlign: "right" }}>
+          <div style={{ textAlign: "right", minWidth: "150px" }}>
             <div
               style={{
                 display: "flex",
                 justifyContent: "flex-end",
                 alignItems: "baseline",
-                gap: "4px",
-                minHeight: "30px",
+                gap: "5px",
+                minHeight: "34px",
               }}
             >
               <span
                 style={{
                   fontFamily: "var(--font-ui)",
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  letterSpacing: "-0.03em",
-                  fontVariantNumeric: "tabular-nums",
-                  lineHeight: 1.2,
+                  fontSize: "27px",
+                  fontWeight: 750,
+                  letterSpacing: "-0.045em",
+                  fontVariantNumeric: "tabular-nums lining-nums",
+                  lineHeight: 1.05,
+                  color: "var(--text)",
                 }}
               >
                 {quoteLoading ? "..." : formatPrice(quote?.price)}
@@ -91,27 +92,39 @@ export default function StockDetailClient({ stock }: Props) {
                 <span
                   style={{
                     fontFamily: "var(--font-ui)",
-                    fontSize: "14px",
-                    fontWeight: 600,
+                    fontSize: "13px",
+                    fontWeight: 650,
                     color: "var(--text-muted)",
+                    letterSpacing: "-0.02em",
                   }}
                 >
                   원
                 </span>
               )}
             </div>
-            <div
-              style={{
-                marginTop: "4px",
-                fontFamily: "var(--font-ui)",
-                fontVariantNumeric: "tabular-nums",
-                fontSize: "13px",
-                fontWeight: 700,
-                color: isUp ? "var(--danger)" : "#2563eb",
-              }}
-            >
-              {quoteLoading ? "" : `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(2)}%`}
-            </div>
+            {!quoteLoading && (
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  marginTop: "7px",
+                  padding: "4px 8px",
+                  borderRadius: "999px",
+                  background: isUp ? "rgba(239, 68, 68, 0.08)" : "rgba(37, 99, 235, 0.08)",
+                  color: isUp ? "var(--danger)" : "#2563eb",
+                  fontFamily: "var(--font-ui)",
+                  fontVariantNumeric: "tabular-nums lining-nums",
+                  fontSize: "12px",
+                  fontWeight: 750,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1,
+                }}
+              >
+                <span style={{ fontSize: "10px", lineHeight: 1 }}>{isUp ? "▲" : "▼"}</span>
+                <span>{`${Math.abs(changePercent).toFixed(2)}%`}</span>
+              </div>
+            )}
           </div>
         </div>
 
