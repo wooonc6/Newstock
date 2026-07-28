@@ -61,9 +61,9 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
           <div
             style={{
               marginTop: "2px",
-              fontSize: "clamp(9px, 1.2vw, 11px)",
-              fontWeight: 500,
-              color: "var(--text-muted)",
+              fontSize: "clamp(10px, 1.35vw, 12px)",
+              fontWeight: 700,
+              color: "var(--text-dim)",
               whiteSpace: "normal",
               wordBreak: "keep-all",
             }}
