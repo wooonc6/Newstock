@@ -49,34 +49,41 @@ function formatTime(value: string | null) {
 function getTileColor(changePercent: number | null) {
   if (changePercent == null) {
     return {
-      background: "linear-gradient(135deg, #334155, #1e293b)",
-      borderColor: "rgba(148, 163, 184, 0.35)",
+      background: "linear-gradient(135deg, #303744, #262d39)",
+      borderColor: "rgba(148, 163, 184, 0.22)",
     };
   }
 
-  const intensity = Math.min(Math.abs(changePercent), 15) / 15;
+  const magnitude = Math.abs(changePercent);
+
+  if (magnitude < 0.15) {
+    return {
+      background: "linear-gradient(135deg, #3a414d, #303742)",
+      borderColor: "rgba(148, 163, 184, 0.24)",
+    };
+  }
+
+  const intensity = Math.min(magnitude, 12) / 12;
+  const eased = intensity * intensity * (3 - 2 * intensity);
 
   if (changePercent > 0) {
-    const lightnessStart = 43 - intensity * 24;
-    const lightnessEnd = 34 - intensity * 20;
+    const lightnessStart = 38 - eased * 12;
+    const lightnessEnd = 32 - eased * 10;
+    const saturation = 38 + eased * 6;
+
     return {
-      background: `linear-gradient(135deg, hsl(352 68% ${lightnessStart}%), hsl(350 63% ${lightnessEnd}%))`,
-      borderColor: `hsl(352 72% ${Math.max(lightnessStart + 12, 32)}% / 0.65)`,
+      background: `linear-gradient(135deg, hsl(354 ${saturation}% ${lightnessStart}%), hsl(350 ${saturation - 4}% ${lightnessEnd}%))`,
+      borderColor: `hsl(352 42% ${Math.min(lightnessStart + 10, 46)}% / 0.5)`,
     };
   }
 
-  if (changePercent < 0) {
-    const lightnessStart = 51 - intensity * 30;
-    const lightnessEnd = 42 - intensity * 25;
-    return {
-      background: `linear-gradient(135deg, hsl(224 68% ${lightnessStart}%), hsl(222 64% ${lightnessEnd}%))`,
-      borderColor: `hsl(218 86% ${Math.max(lightnessStart + 13, 34)}% / 0.65)`,
-    };
-  }
+  const lightnessStart = 40 - eased * 13;
+  const lightnessEnd = 34 - eased * 11;
+  const saturation = 40 + eased * 7;
 
   return {
-    background: "linear-gradient(135deg, #475569, #334155)",
-    borderColor: "rgba(148, 163, 184, 0.45)",
+    background: `linear-gradient(135deg, hsl(220 ${saturation}% ${lightnessStart}%), hsl(222 ${saturation - 4}% ${lightnessEnd}%))`,
+    borderColor: `hsl(218 45% ${Math.min(lightnessStart + 10, 48)}% / 0.5)`,
   };
 }
 
@@ -196,7 +203,7 @@ export default function MarketMap() {
                   flexDirection: "column",
                   justifyContent: "space-between",
                   minWidth: 0,
-                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.12)",
+                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.08)",
                 }}
               >
                 <div style={{ minWidth: 0 }}>
@@ -214,7 +221,7 @@ export default function MarketMap() {
                     {item.name}
                   </div>
                   {isBig && (
-                    <div style={{ marginTop: "5px", fontSize: "11px", fontWeight: 400, lineHeight: 1.45, letterSpacing: 0, color: "rgba(255, 255, 255, 0.78)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div style={{ marginTop: "5px", fontSize: "11px", fontWeight: 400, lineHeight: 1.45, letterSpacing: 0, color: "rgba(255, 255, 255, 0.74)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {item.sector}
                     </div>
                   )}
@@ -224,7 +231,7 @@ export default function MarketMap() {
                     {changePercent == null ? "-" : `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(2)}%`}
                   </div>
                   {isBig && (
-                    <div style={{ marginTop: "4px", fontSize: "11px", fontWeight: 500, lineHeight: 1.35, letterSpacing: 0, color: "rgba(255, 255, 255, 0.8)", whiteSpace: "nowrap" }}>
+                    <div style={{ marginTop: "4px", fontSize: "11px", fontWeight: 500, lineHeight: 1.35, letterSpacing: 0, color: "rgba(255, 255, 255, 0.76)", whiteSpace: "nowrap" }}>
                       {formatPrice(item.price)}
                     </div>
                   )}
