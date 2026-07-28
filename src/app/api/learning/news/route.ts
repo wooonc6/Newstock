@@ -34,9 +34,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("curated_news")
-      .select(
-        "id, title, company, ticker, news_date, category, difficulty, source_url"
-      )
+      .select("id, title, company, ticker, news_date, category, difficulty")
       .order("news_date", { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -62,8 +60,7 @@ export async function GET(request: NextRequest) {
 
     const enrichedNews = (data ?? []).map((news) => ({
       ...news,
-      source_url:
-        news.source_url || buildNaverSearchUrl(news.title, news.news_date),
+      source_url: buildNaverSearchUrl(news.title, news.news_date),
     }));
 
     return NextResponse.json(enrichedNews);
