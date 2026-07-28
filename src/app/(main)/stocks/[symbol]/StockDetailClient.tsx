@@ -71,34 +71,19 @@ export default function StockDetailClient({ stock }: Props) {
                 display: "flex",
                 justifyContent: "flex-end",
                 alignItems: "baseline",
-                gap: "3px",
                 minHeight: "34px",
-                fontFamily: "var(--font-ui)",
                 whiteSpace: "nowrap",
               }}
             >
-              {!quoteLoading && (
-                <span
-                  style={{
-                    fontSize: "18px",
-                    fontWeight: 800,
-                    color: "var(--text)",
-                    lineHeight: 1,
-                  }}
-                >
-                  ₩
-                </span>
-              )}
               <span
                 style={{
-                  fontSize: "26px",
+                  fontSize: "24px",
                   fontWeight: 800,
-                  letterSpacing: "-0.015em",
-                  lineHeight: 1.08,
+                  lineHeight: 1.15,
                   color: "var(--text)",
                 }}
               >
-                {quoteLoading ? "..." : formatPrice(quote?.price)}
+                {quoteLoading ? "..." : `₩${formatPrice(quote?.price)}`}
               </span>
             </div>
             {!quoteLoading && (
@@ -112,10 +97,8 @@ export default function StockDetailClient({ stock }: Props) {
                   borderRadius: "999px",
                   background: isUp ? "rgba(239, 68, 68, 0.08)" : "rgba(37, 99, 235, 0.08)",
                   color: isUp ? "var(--danger)" : "#2563eb",
-                  fontFamily: "var(--font-ui)",
                   fontSize: "12px",
                   fontWeight: 800,
-                  letterSpacing: "-0.01em",
                   lineHeight: 1,
                   whiteSpace: "nowrap",
                 }}
