@@ -143,7 +143,7 @@ export default function MarketMap() {
           <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, lineHeight: 1.45, letterSpacing: "-0.01em", color: "#f8fafc" }}>
             코스피 30종목 흐름 한눈에 보기
             <span style={{ color: "#94a3b8", fontWeight: 500 }}>
-              {` | 코스피 지수 ${formatIndex(data?.kospi?.value)}`}
+              {` | KOSPI ${formatIndex(data?.kospi?.value)}`}
               {kospiChange != null && ` (${kospiChange > 0 ? "+" : ""}${kospiChange.toFixed(2)}%)`}
             </span>
           </h2>
