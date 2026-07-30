@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 interface HeaderProps {
   nickname: string;
   coins: number;
@@ -41,11 +43,13 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
             flexShrink: 0,
           }}
         >
-          <img
-            src="/logo.svg"
-            alt="Newstock"
-            style={{ height: "64px", width: "auto" }}
-          />
+          <Link href="/" aria-label="홈으로 이동" style={{ display: "inline-flex" }}>
+            <img
+              src="/logo.svg"
+              alt="Newstock"
+              style={{ height: "64px", width: "auto", cursor: "pointer" }}
+            />
+          </Link>
           <div
             style={{
               marginTop: "2px",
@@ -60,7 +64,6 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
             하나 드리머스
           </div>
         </div>
-
         <div
           aria-label="Newstock 멘토와 팀원"
           style={{
