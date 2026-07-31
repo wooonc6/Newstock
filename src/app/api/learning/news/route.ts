@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 function buildNaverSearchUrl(title: string, date: string): string {
   const [year, month, day] = date.split("-");
   const ds = `${year}.${month}.01`;
