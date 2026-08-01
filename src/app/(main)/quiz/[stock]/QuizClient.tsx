@@ -1,22 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
-import type { NewsItem, QuizData, QuizPeriod, QuizSubmitResult } from "@/types";
+import type {
+  NewsQuizFeedResponse,
+  NewsQuizItem,
+  QuizSubmitResult,
+} from "@/types";
 
 type Step = "loading" | "quiz" | "result";
+type Direction = "up" | "down";
 
 interface Props {
   ticker: string;
   stockName: string;
 }
 
-type Reveal = {
-  period: QuizPeriod;
-  answer: "up" | "down";
+type AnswerRecord = {
+  item: NewsQuizItem;
+  answer: Direction;
   correct: boolean;
 };
 
@@ -31,122 +36,126 @@ export default function QuizClient({ ticker, stockName }: Props) {
   const { user, refreshUser } = useAuth();
   const { refetch: refetchUnlock } = useQuizUnlock(user?.id);
   const [step, setStep] = useState<Step>("loading");
-  const [news, setNews] = useState<NewsItem | null>(null);
-  const [quiz, setQuiz] = useState<QuizData | null>(null);
+  const [items, setItems] = useState<NewsQuizItem[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [answers, setAnswers] = useState<("up" | "down")[]>([]);
-  const [reveals, setReveals] = useState<Reveal[]>([]);
-  const [activeReveal, setActiveReveal] = useState<Reveal | null>(null);
+  const [answers, setAnswers] = useState<AnswerRecord[]>([]);
+  const [activeReveal, setActiveReveal] = useState<AnswerRecord | null>(null);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
 
     async function loadQuiz() {
       setStep("loading");
       setError("");
 
       try {
-        let selectedNews: NewsItem | null = null;
+        const query = new URLSearchParams({ limit: "15" });
+        if (initialNewsId) query.set("newsId", initialNewsId);
 
-        if (initialNewsId) {
-          const detailRes = await fetch(`/api/learning/news/${encodeURIComponent(initialNewsId)}`);
-          if (detailRes.ok) selectedNews = await detailRes.json();
+        const response = await fetch(
+          `/api/learning/quiz-feed/${encodeURIComponent(ticker)}?${query.toString()}`,
+          { signal: controller.signal }
+        );
+        const payload = (await response.json().catch(() => null)) as
+          | NewsQuizFeedResponse
+          | { error?: string }
+          | null;
+
+        if (!response.ok) {
+          throw new Error(payload && "error" in payload ? payload.error : "퀴즈 데이터를 불러오지 못했습니다.");
         }
 
-        if (!selectedNews) {
-          const newsRes = await fetch(`/api/learning/news?ticker=${encodeURIComponent(ticker)}&limit=1`);
-          const newsList = newsRes.ok ? await newsRes.json() : [];
-          selectedNews = Array.isArray(newsList) ? newsList[0] ?? null : null;
+        const nextItems = payload && "items" in payload && Array.isArray(payload.items)
+          ? payload.items
+          : [];
+
+        if (nextItems.length === 0) {
+          throw new Error(
+            "이 종목에는 아직 조건에 맞는 퀴즈가 없습니다. 14일 이상 지난 기사와 주가 데이터를 확인해 주세요."
+          );
         }
 
-        if (!selectedNews) {
-          throw new Error("이 종목에 연결된 뉴스가 아직 없습니다.");
-        }
-
-        const quizRes = await fetch(`/api/learning/quiz/${encodeURIComponent(selectedNews.id)}`);
-        const quizData = await quizRes.json();
-        if (!quizRes.ok) throw new Error(quizData?.error ?? "퀴즈 데이터를 불러오지 못했습니다.");
-
-        if (!cancelled) {
-          setNews(selectedNews);
-          setQuiz(quizData);
+        if (!controller.signal.aborted) {
+          setItems(nextItems);
           setCurrentIdx(0);
           setAnswers([]);
-          setReveals([]);
           setActiveReveal(null);
           setResult(null);
           setStep("quiz");
         }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "퀴즈를 불러오지 못했습니다.");
+      } catch (loadError) {
+        if (!controller.signal.aborted) {
+          setItems([]);
+          setError(loadError instanceof Error ? loadError.message : "퀴즈를 불러오지 못했습니다.");
           setStep("quiz");
         }
       }
     }
 
-    loadQuiz();
-    return () => {
-      cancelled = true;
-    };
+    void loadQuiz();
+    return () => controller.abort();
   }, [ticker, initialNewsId]);
 
-  const period = quiz?.periods[currentIdx] ?? null;
+  const currentItem = items[currentIdx] ?? null;
+  const progressLabel = items.length > 0 ? `${currentIdx + 1} / ${items.length}` : "뉴스 읽기";
 
-  const progressLabel = useMemo(() => {
-    if (!quiz) return "뉴스 읽기";
-    return `${currentIdx + 1} / ${quiz.periods.length}`;
-  }, [currentIdx, quiz]);
+  function handleAnswer(answer: Direction) {
+    if (!currentItem || activeReveal) return;
 
-  function handleAnswer(answer: "up" | "down") {
-    if (!period || activeReveal) return;
-    const reveal = {
-      period,
+    const reveal: AnswerRecord = {
+      item: currentItem,
       answer,
-      correct: answer === period.direction,
+      correct: answer === currentItem.direction,
     };
-    setAnswers((prev) => [...prev, answer]);
-    setReveals((prev) => [...prev, reveal]);
+    setAnswers((previous) => [...previous, reveal]);
     setActiveReveal(reveal);
   }
 
   async function handleNext() {
-    if (!quiz) return;
-    setActiveReveal(null);
+    if (!currentItem || !activeReveal) return;
 
-    if (currentIdx < quiz.periods.length - 1) {
-      setCurrentIdx((idx) => idx + 1);
+    if (currentIdx < items.length - 1) {
+      setCurrentIdx((index) => index + 1);
+      setActiveReveal(null);
+      setError("");
       return;
     }
 
-    const submitRes = await fetch("/api/quiz/submit", {
+    const submitResponse = await fetch("/api/quiz/submit-v2", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newsId: quiz.newsId, answers }),
+      body: JSON.stringify({
+        results: answers.map((record) => ({
+          newsId: record.item.newsId,
+          answer: record.answer,
+        })),
+      }),
     });
-    const submitData = await submitRes.json();
-    if (!submitRes.ok) {
+    const submitData = await submitResponse.json().catch(() => null);
+
+    if (!submitResponse.ok) {
       setError(submitData?.error ?? "결과 저장에 실패했습니다.");
       return;
     }
 
     setResult(submitData);
+    setActiveReveal(null);
     setStep("result");
     await refreshUser();
     await refetchUnlock();
   }
 
   if (step === "loading") {
-    return <PanelText>뉴스와 Yahoo Finance 주가 데이터를 불러오는 중입니다.</PanelText>;
+    return <PanelText>과거 뉴스와 발표 후 3거래일 주가를 불러오는 중입니다.</PanelText>;
   }
 
-  if (error && !quiz) {
+  if (error && items.length === 0) {
     return <PanelText>{error}</PanelText>;
   }
 
-  if (!quiz || !news || !period) return null;
+  if (!currentItem) return null;
 
   if (step === "result" && result) {
     return (
@@ -160,7 +169,9 @@ export default function QuizClient({ ticker, stockName }: Props) {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>결과 확인</div>
+          <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>
+            결과 확인
+          </div>
           <h2 style={{ fontSize: "26px", marginBottom: "8px" }}>
             {result.score} / {result.total} 정답
           </h2>
@@ -170,9 +181,9 @@ export default function QuizClient({ ticker, stockName }: Props) {
         </section>
 
         <section style={{ display: "grid", gap: "8px" }}>
-          {reveals.map((item) => (
+          {answers.map((record) => (
             <div
-              key={item.period.months}
+              key={record.item.newsId}
               style={{
                 background: "var(--surface)",
                 border: "1px solid var(--border)",
@@ -183,26 +194,37 @@ export default function QuizClient({ ticker, stockName }: Props) {
                 gap: "12px",
               }}
             >
-              <div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{item.period.months}개월 후</div>
-                <div style={{ marginTop: "4px", fontSize: "13px", fontWeight: 800 }}>
-                  {formatPrice(item.period.priceBase)} → {formatPrice(item.period.priceEnd)}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  {record.item.timeLabel} · {record.item.newsDate}
+                </div>
+                <div style={{ marginTop: "4px", fontSize: "12px", fontWeight: 800, lineHeight: 1.4 }}>
+                  {record.item.headline}
+                </div>
+                <div style={{ marginTop: "5px", fontSize: "12px", color: "var(--text-dim)" }}>
+                  {formatPrice(record.item.priceBase)} → {formatPrice(record.item.priceEnd)}
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
+              <div style={{ textAlign: "right", flex: "0 0 auto" }}>
                 <div
                   style={{
                     fontFamily: "'Space Mono', monospace",
                     fontSize: "13px",
                     fontWeight: 800,
-                    color: item.period.direction === "up" ? "var(--danger)" : "#2563eb",
+                    color: record.item.direction === "up" ? "var(--danger)" : "#2563eb",
                   }}
                 >
-                  {item.period.changeRate > 0 ? "+" : ""}
-                  {item.period.changeRate.toFixed(1)}%
+                  {record.item.changeRate > 0 ? "+" : ""}
+                  {record.item.changeRate.toFixed(1)}%
                 </div>
-                <div style={{ marginTop: "4px", fontSize: "12px", color: item.correct ? "var(--accent)" : "var(--danger)" }}>
-                  {item.correct ? "정답" : "오답"}
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "12px",
+                    color: record.correct ? "var(--accent)" : "var(--danger)",
+                  }}
+                >
+                  {record.correct ? "정답" : "오답"}
                 </div>
               </div>
             </div>
@@ -232,12 +254,27 @@ export default function QuizClient({ ticker, stockName }: Props) {
         }}
       >
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "7px" }}>
-          뉴스 읽기 · {news.news_date}
+          {currentItem.timeLabel} 뉴스 · {currentItem.newsDate}
         </div>
-        <h2 style={{ fontSize: "17px", lineHeight: 1.5 }}>{quiz.headline}</h2>
+        <h2 style={{ fontSize: "17px", lineHeight: 1.5 }}>{currentItem.headline}</h2>
         <div style={{ marginTop: "10px", fontSize: "12px", color: "var(--text-muted)" }}>
-          {quiz.company} · {quiz.category} · {quiz.difficulty}
+          {currentItem.company} · {currentItem.category} · {currentItem.difficulty}
         </div>
+        <a
+          href={currentItem.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            marginTop: "12px",
+            color: "var(--accent2)",
+            fontSize: "12px",
+            fontWeight: 800,
+            textDecoration: "none",
+          }}
+        >
+          기사 찾아 읽기 ↗
+        </a>
       </section>
 
       <section
@@ -252,13 +289,17 @@ export default function QuizClient({ ticker, stockName }: Props) {
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
           <div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>발표 당시 주가</div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
+              기사 발표 직전 종가 · {currentItem.baseDate}
+            </div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "18px", fontWeight: 800 }}>
-              {formatPrice(period.priceBase)}
+              {formatPrice(currentItem.priceBase)}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>퀴즈 진행</div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
+              퀴즈 진행
+            </div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "14px", fontWeight: 800 }}>
               {progressLabel}
             </div>
@@ -269,7 +310,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
           <div
             style={{
               height: "100%",
-              width: `${((currentIdx + 1) / quiz.periods.length) * 100}%`,
+              width: `${((currentIdx + 1) / items.length) * 100}%`,
               background: "var(--accent2)",
               borderRadius: "999px",
             }}
@@ -286,14 +327,18 @@ export default function QuizClient({ ticker, stockName }: Props) {
         }}
       >
         <div style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "8px" }}>
-          {period.months}개월 후 퀴즈
+          기사 발표 후 {currentItem.impactTradingDays}거래일 퀴즈
         </div>
         <h3 style={{ fontSize: "18px", lineHeight: 1.45, marginBottom: "14px" }}>
-          이 뉴스 이후 {period.months}개월 뒤 {stockName} 주가는 올랐을까요, 내렸을까요?
+          이 뉴스가 나온 뒤 {currentItem.impactTradingDays}거래일 동안 {stockName} 주가는 올랐을까요, 내렸을까요?
         </h3>
 
         {activeReveal ? (
-          <RevealCard reveal={activeReveal} isLast={currentIdx === quiz.periods.length - 1} onNext={handleNext} />
+          <RevealCard
+            reveal={activeReveal}
+            isLast={currentIdx === items.length - 1}
+            onNext={handleNext}
+          />
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             <button type="button" onClick={() => handleAnswer("up")} style={answerButtonStyle("up")}>
@@ -306,13 +351,21 @@ export default function QuizClient({ ticker, stockName }: Props) {
         )}
       </section>
 
-      {error && <PanelText>{error}</PanelText>}
+      {error ? <PanelText>{error}</PanelText> : null}
     </div>
   );
 }
 
-function RevealCard({ reveal, isLast, onNext }: { reveal: Reveal; isLast: boolean; onNext: () => void }) {
-  const isUp = reveal.period.direction === "up";
+function RevealCard({
+  reveal,
+  isLast,
+  onNext,
+}: {
+  reveal: AnswerRecord;
+  isLast: boolean;
+  onNext: () => void;
+}) {
+  const isUp = reveal.item.direction === "up";
 
   return (
     <div
@@ -327,15 +380,16 @@ function RevealCard({ reveal, isLast, onNext }: { reveal: Reveal; isLast: boolea
         {reveal.correct ? "정답입니다" : "오답입니다"}
       </div>
       <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6, marginBottom: "12px" }}>
-        실제로는 {formatPrice(reveal.period.priceBase)}에서 {formatPrice(reveal.period.priceEnd)}로{" "}
+        {reveal.item.baseDate} 종가 {formatPrice(reveal.item.priceBase)}에서 {reveal.item.impactDate} 종가{" "}
+        {formatPrice(reveal.item.priceEnd)}로{" "}
         <span style={{ fontWeight: 800, color: isUp ? "var(--danger)" : "#2563eb" }}>
-          {reveal.period.changeRate > 0 ? "+" : ""}
-          {reveal.period.changeRate.toFixed(1)}% {isUp ? "상승" : "하락"}
+          {reveal.item.changeRate > 0 ? "+" : ""}
+          {reveal.item.changeRate.toFixed(1)}% {isUp ? "상승" : "하락"}
         </span>
         했습니다.
       </div>
       <button type="button" onClick={onNext} style={primaryButtonStyle}>
-        {isLast ? "결과 확인" : "다음 기간"}
+        {isLast ? "결과 확인" : "다음 기사"}
       </button>
     </div>
   );
@@ -359,7 +413,7 @@ function PanelText({ children }: { children: React.ReactNode }) {
   );
 }
 
-function answerButtonStyle(direction: "up" | "down"): React.CSSProperties {
+function answerButtonStyle(direction: Direction): React.CSSProperties {
   return {
     padding: "24px 12px",
     borderRadius: "8px",

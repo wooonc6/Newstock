@@ -21,7 +21,7 @@ export default function StockDetailClient({ stock }: Props) {
 
   useEffect(() => {
     setNewsLoading(true);
-    fetch(`/api/learning/news?ticker=${encodeURIComponent(stock.ticker)}&limit=5`)
+    fetch(`/api/learning/news?ticker=${encodeURIComponent(stock.ticker)}&limit=15`)
       .then((r) => (r.ok ? r.json() : []))
       .then((items: NewsItem[]) => setNews(Array.isArray(items) ? items : []))
       .catch(() => setNews([]))
@@ -115,7 +115,7 @@ export default function StockDetailClient({ stock }: Props) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
           <MiniMetric label="관련 뉴스" value={`${news.length}개`} />
           <MiniMetric label="최근 퀴즈" value={latestQuizLabel} />
-          <MiniMetric label="학습 목적" value="뉴스 이후 주가 흐름 이해" />
+          <MiniMetric label="판정 기준" value="기사 발표 후 3거래일" />
         </div>
 
         <Link

@@ -1,97 +1,112 @@
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { createClient } from "@/lib/supabase/server";
+import {
+  buildCuratedNewsSourceUrl,
+  getNewsImpact,
+  getQuizAgeBracket,
+  isQuizWorthyImpact,
+  mapWithConcurrency,
+  MAX_NEWS_PER_QUIZ,
+  MIN_QUIZ_CHANGE_PERCENT,
+} from "@/lib/newsImpact";
+import { NextRequest, NextResponse } from "next/server";
 
-const BRACKETS = [
-  { label: '1개월 전', months: 1, coins: 50000 },
-  { label: '3개월 전', months: 3, coins: 100000 },
-  { label: '6개월 전', months: 6, coins: 150000 },
-  { label: '12개월 전', months: 12, coins: 200000 },
-];
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function GET(_req: Request, { params }: { params: { ticker: string } }) {
+type CuratedNewsRow = {
+  id: string;
+  title: string;
+  company: string;
+  ticker: string;
+  news_date: string;
+  category: string | null;
+  difficulty: string | null;
+};
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { ticker: string } }
+) {
   const ticker = decodeURIComponent(params.ticker);
+  const parsedLimit = Number(request.nextUrl.searchParams.get("limit") ?? MAX_NEWS_PER_QUIZ);
+  const limit = Number.isFinite(parsedLimit)
+    ? Math.max(1, Math.min(Math.floor(parsedLimit), MAX_NEWS_PER_QUIZ))
+    : MAX_NEWS_PER_QUIZ;
+  const preferredNewsId = request.nextUrl.searchParams.get("newsId");
   const supabase = await createClient();
 
-  // 현재가 조회
-  let currentPrice: number | null = null;
-  try {
-    const { default: yahooFinance } = await import('yahoo-finance2');
-    const quote = await (yahooFinance as any).quote(ticker, { fields: ['regularMarketPrice'] });
-    currentPrice = quote.regularMarketPrice ?? null;
-  } catch {
-    // 현재가 조회 실패 시 캐시 없이 direction 계산 불가 — graceful skip
+  const { data, error } = await supabase
+    .from("curated_news")
+    .select("id, title, company, ticker, news_date, category, difficulty")
+    .eq("ticker", ticker)
+    .order("news_date", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("[GET /api/learning/quiz-feed/:ticker] Supabase error:", error);
+    return NextResponse.json(
+      { error: "종목별 퀴즈 뉴스를 불러오지 못했습니다." },
+      { status: 500 }
+    );
   }
 
-  const today = new Date();
-  const results = [];
+  const eligibleNews = ((data ?? []) as CuratedNewsRow[])
+    .map((news) => ({ news, bracket: getQuizAgeBracket(news.news_date) }))
+    .filter(
+      (item): item is { news: CuratedNewsRow; bracket: NonNullable<typeof item.bracket> } =>
+        item.bracket !== null
+    )
+    .sort((a, b) => {
+      if (a.news.id === preferredNewsId) return -1;
+      if (b.news.id === preferredNewsId) return 1;
+      if (a.bracket.targetMonths !== b.bracket.targetMonths) {
+        return a.bracket.targetMonths - b.bracket.targetMonths;
+      }
+      return b.news.news_date.localeCompare(a.news.news_date);
+    })
+    .slice(0, Math.min(limit * 3, 45));
 
-  for (const bracket of BRACKETS) {
-    const targetDate = new Date(today);
-    targetDate.setMonth(targetDate.getMonth() - bracket.months);
-    const targetStr = targetDate.toISOString().split('T')[0];
+  const evaluated = await mapWithConcurrency(eligibleNews, 4, async ({ news, bracket }) => {
+    try {
+      const impact = await getNewsImpact(news.ticker, news.news_date);
+      if (!isQuizWorthyImpact(impact)) return null;
 
-    // 해당 기간에서 가장 가까운 뉴스 선택
-    const { data: news } = await supabase
-      .from('curated_news')
-      .select('id, title, company, ticker, news_date, source_url')
-      .eq('ticker', ticker)
-      .lte('news_date', targetStr)
-      .order('news_date', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (!news) continue;
-
-    // 뉴스 시점 주가 캐시 조회
-    const { data: cache } = await supabase
-      .from('stock_price_cache')
-      .select('price_base')
-      .eq('ticker', ticker)
-      .eq('base_date', news.news_date)
-      .single();
-
-    // 캐시 없으면 Yahoo Finance 히스토리컬로 직접 가져오기
-    let basePrice: number | null = cache?.price_base ?? null;
-    if (!basePrice) {
-      try {
-        const { default: yahooFinance } = await import('yahoo-finance2');
-        const endDate = new Date(news.news_date);
-        endDate.setDate(endDate.getDate() + 5);
-        const hist = await (yahooFinance as any).historical(ticker, {
-          period1: news.news_date,
-          period2: endDate.toISOString().split('T')[0],
-          interval: '1d',
-        });
-        if (hist?.length) {
-          basePrice = hist[0].close;
-          // 캐시에 저장
-          await supabase.from('stock_price_cache').upsert(
-            { ticker, base_date: news.news_date, price_base: basePrice },
-            { onConflict: 'ticker,base_date' }
-          );
-        }
-      } catch { /* skip */ }
+      return {
+        newsId: news.id,
+        headline: news.title,
+        company: news.company,
+        ticker: news.ticker,
+        newsDate: news.news_date,
+        category: news.category ?? "기타",
+        difficulty: news.difficulty ?? "medium",
+        sourceUrl: buildCuratedNewsSourceUrl(news.title, news.news_date),
+        timeLabel: bracket.label,
+        impactTradingDays: 3,
+        baseDate: impact.baseDate,
+        priceBase: impact.basePrice,
+        impactDate: impact.impactDate,
+        priceEnd: impact.impactPrice,
+        changeRate: impact.changeRate,
+        direction: impact.direction,
+        coins: bracket.coins,
+      };
+    } catch (impactError) {
+      console.error(
+        `[GET /api/learning/quiz-feed/:ticker] ${news.id} impact error:`,
+        impactError
+      );
+      return null;
     }
+  });
 
-    if (!basePrice || !currentPrice) continue;
+  const items = evaluated.filter((item): item is NonNullable<typeof item> => item !== null).slice(0, limit);
 
-    const changeRate = ((currentPrice - basePrice) / basePrice) * 100;
-
-    results.push({
-      newsId: news.id,
-      title: news.title,
-      company: news.company,
-      ticker: news.ticker,
-      newsDate: news.news_date,
-      sourceUrl: news.source_url ?? null,
-      timeLabel: bracket.label,
-      direction: changeRate >= 0 ? 'up' : 'down',
-      changeRate,
-      basePrice,
-      currentPrice,
-      coins: bracket.coins,
-    });
-  }
-
-  return NextResponse.json(results);
+  return NextResponse.json({
+    items,
+    rule: {
+      base: "기사 발표 직전 거래일 종가",
+      comparison: "기사 발표 후 3거래일 종가",
+      minimumAbsoluteChangePercent: MIN_QUIZ_CHANGE_PERCENT,
+    },
+  });
 }

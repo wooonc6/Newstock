@@ -25,6 +25,8 @@
 | 팀 작업 가이드 | [docs/TEAM_GUIDE.md](docs/TEAM_GUIDE.md) |
 | 배포 셋업 | [docs/SETUP_TASKS.md](docs/SETUP_TASKS.md) |
 | 기획안 | [docs/기획안.md](docs/%EA%B8%B0%ED%9A%8D%EC%95%88.md) |
+| 뉴스 퀴즈 판정 기준 | [docs/NEWS_QUIZ_RULES.md](docs/NEWS_QUIZ_RULES.md) |
+| 버전 기록 | [docs/VERSIONS.md](docs/VERSIONS.md) |
 
 ## 한눈에 보기
 

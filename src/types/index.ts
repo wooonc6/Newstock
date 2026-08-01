@@ -53,6 +53,35 @@ export interface QuizData {
   periods: QuizPeriod[];
 }
 
+export interface NewsQuizItem {
+  newsId: string;
+  headline: string;
+  company: string;
+  ticker: string;
+  newsDate: string;
+  category: string;
+  difficulty: string;
+  sourceUrl: string;
+  timeLabel: string;
+  impactTradingDays: number;
+  baseDate: string;
+  priceBase: number;
+  impactDate: string;
+  priceEnd: number;
+  changeRate: number;
+  direction: "up" | "down";
+  coins: number;
+}
+
+export interface NewsQuizFeedResponse {
+  items: NewsQuizItem[];
+  rule: {
+    base: string;
+    comparison: string;
+    minimumAbsoluteChangePercent: number;
+  };
+}
+
 export interface NewsItem {
   id: string;
   title: string;
