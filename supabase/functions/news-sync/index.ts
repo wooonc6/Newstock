@@ -169,7 +169,12 @@ function isRelevant(stock: StockDefinition, item: NewsApiItem): boolean {
   return stock.aliases.some((alias) => text.includes(alias.toLowerCase()));
 }
 
-async function fetchNewsPage(query: string, sort: "date" | "sim", start: number) {
+async function fetchNewsPage(
+  query: string,
+  sort: "date" | "sim",
+  start: number,
+  retryCount = 0,
+) {
   const url = new URL(NEWS_API_URL);
   url.searchParams.set("query", query);
   url.searchParams.set("display", "100");
@@ -180,6 +185,11 @@ async function fetchNewsPage(query: string, sort: "date" | "sim", start: number)
     headers: { Accept: "application/json", "User-Agent": "Newstock-News-Sync/1.0" },
   });
   const payload = await response.json().catch(() => null);
+
+  if (response.status === 429 && retryCount < 1) {
+    await new Promise((resolve) => setTimeout(resolve, 750));
+    return fetchNewsPage(query, sort, start, retryCount + 1);
+  }
 
   if (!response.ok) {
     throw new Error(payload?.error ?? `뉴스 API 오류 (${response.status})`);
