@@ -64,6 +64,15 @@ export interface NewsItem {
   source_url?: string;
 }
 
+export interface LatestNewsItem {
+  title: string;
+  description: string;
+  link: string;
+  pubDate: string;
+  ago: string;
+  tag: string;
+}
+
 export interface Trade {
   id: string;
   user_id: string;

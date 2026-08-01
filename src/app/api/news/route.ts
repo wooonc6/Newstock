@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface NaverNewsItem {
+  title: string;
+  description: string;
+  link: string;
+  originallink?: string;
+  pubDate: string;
+}
+
+interface NaverNewsResponse {
+  items?: NaverNewsItem[];
+  total?: number;
+}
+
 // 뉴스 카테고리 자동 분류
 function classifyTag(text: string): string {
   const t = text.toLowerCase();
@@ -34,8 +47,11 @@ function timeAgo(dateStr: string): string {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const query   = searchParams.get('query')   || '주식 금리 반도체 환율';
-  const display = searchParams.get('display') || '8';
+  const query = searchParams.get('query')?.trim() || '주식 금리 반도체 환율';
+  const requestedDisplay = Number.parseInt(searchParams.get('display') || '8', 10);
+  const display = Number.isNaN(requestedDisplay)
+    ? 8
+    : Math.min(Math.max(requestedDisplay, 1), 100);
 
   const clientId     = process.env.NAVER_CLIENT_ID;
   const clientSecret = process.env.NAVER_CLIENT_SECRET;
@@ -48,10 +64,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const encodedQuery = encodeURIComponent(query);
-    const naverUrl = `https://openapi.naver.com/v1/search/news.json?query=${encodedQuery}&display=${display}&sort=date`;
+    const naverUrl = new URL('https://openapi.naver.com/v1/search/news.json');
+    naverUrl.searchParams.set('query', query);
+    naverUrl.searchParams.set('display', String(display));
+    naverUrl.searchParams.set('sort', 'date');
 
-    const response = await fetch(naverUrl, {
+    const response = await fetch(naverUrl.toString(), {
       headers: {
         'X-Naver-Client-Id':     clientId,
         'X-Naver-Client-Secret': clientSecret,
@@ -61,26 +79,33 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      const providerMessage = await response.text().catch(() => '');
+      console.error('[GET /api/news] Naver API error:', {
+        status: response.status,
+        body: providerMessage.slice(0, 500),
+      });
+
       return NextResponse.json(
-        { error: `네이버 API 오류: ${response.status}` },
-        { status: response.status }
+        { error: '최신 뉴스를 불러오지 못했어요.' },
+        { status: 502 }
       );
     }
 
-    const data = await response.json();
+    const data = await response.json() as NaverNewsResponse;
 
-    const items = (data.items || []).map((item: any) => ({
+    const items = (data.items || []).map((item) => ({
       title:       stripHtml(item.title),
       description: stripHtml(item.description),
-      link:        item.link,
+      link:        item.originallink || item.link,
       pubDate:     item.pubDate,
       ago:         timeAgo(item.pubDate),
       tag:         classifyTag(item.title + ' ' + item.description),
     }));
 
-    return NextResponse.json({ items, total: data.total });
+    return NextResponse.json({ items, total: data.total ?? items.length });
 
   } catch (error) {
+    console.error('[GET /api/news] Unexpected error:', error);
     return NextResponse.json(
       { error: '서버 오류가 발생했어요.' },
       { status: 500 }

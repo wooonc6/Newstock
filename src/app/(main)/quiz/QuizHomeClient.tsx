@@ -5,16 +5,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
 import { SECTOR_BADGE_STYLES, STOCKS } from "@/lib/stocks";
-import type { NewsItem } from "@/types";
+import type { LatestNewsItem, NewsItem } from "@/types";
 
 export default function QuizHomeClient() {
   const { user } = useAuth();
   const { unlockMap } = useQuizUnlock(user?.id);
 
   const [newsCounts, setNewsCounts] = useState<Record<string, number>>({});
-  const [recentNews, setRecentNews] = useState<NewsItem[]>([]);
+  const [latestNews, setLatestNews] = useState<LatestNewsItem[]>([]);
+  const [fallbackNews, setFallbackNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [quizNewsError, setQuizNewsError] = useState<string | null>(null);
+  const [latestNewsError, setLatestNewsError] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
 
   const sectorGroups = useMemo(() => {
     const groups = new Map<string, typeof STOCKS>();
@@ -29,24 +32,55 @@ export default function QuizHomeClient() {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchQuizNews(): Promise<NewsItem[]> {
+      const response = await fetch("/api/learning/news?limit=100", {
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error ?? `퀴즈용 뉴스 요청에 실패했습니다. (${response.status})`);
+      }
+
+      const data = await response.json();
+      return Array.isArray(data)
+        ? data
+        : Array.isArray(data?.news)
+          ? data.news
+          : [];
+    }
+
+    async function fetchLatestNews(): Promise<LatestNewsItem[]> {
+      const query = encodeURIComponent("주식 증시 기업");
+      const response = await fetch(`/api/news?query=${query}&display=6`, {
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error ?? `최신 뉴스 요청에 실패했습니다. (${response.status})`);
+      }
+
+      const data = await response.json();
+      return Array.isArray(data?.items) ? data.items : [];
+    }
+
     async function fetchNews() {
       setLoading(true);
-      setError(null);
+      setQuizNewsError(null);
+      setLatestNewsError(null);
 
-      try {
-        const response = await fetch("/api/learning/news?limit=100");
+      const [quizNewsResult, latestNewsResult] = await Promise.allSettled([
+        fetchQuizNews(),
+        fetchLatestNews(),
+      ]);
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          throw new Error(errorData?.error ?? `뉴스 요청에 실패했습니다. (${response.status})`);
-        }
+      if (controller.signal.aborted) return;
 
-        const data = await response.json();
-        const items: NewsItem[] = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.news)
-            ? data.news
-            : [];
+      if (quizNewsResult.status === "fulfilled") {
+        const items = quizNewsResult.value;
 
         const counts: Record<string, number> = {};
         for (const item of items) {
@@ -55,19 +89,29 @@ export default function QuizHomeClient() {
         }
 
         setNewsCounts(counts);
-        setRecentNews(items.slice(0, 3));
-      } catch (err) {
-        console.error("뉴스 목록 요청 실패:", err);
+        setFallbackNews(items.slice(0, 3));
+      } else {
+        console.error("퀴즈용 뉴스 목록 요청 실패:", quizNewsResult.reason);
         setNewsCounts({});
-        setRecentNews([]);
-        setError(err instanceof Error ? err.message : "뉴스를 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setLoading(false);
+        setFallbackNews([]);
+        setQuizNewsError(getErrorMessage(quizNewsResult.reason, "퀴즈용 뉴스를 불러오지 못했습니다."));
       }
+
+      if (latestNewsResult.status === "fulfilled") {
+        setLatestNews(latestNewsResult.value);
+      } else {
+        console.error("최신 뉴스 목록 요청 실패:", latestNewsResult.reason);
+        setLatestNews([]);
+        setLatestNewsError(getErrorMessage(latestNewsResult.reason, "최신 뉴스를 불러오지 못했습니다."));
+      }
+
+      setLoading(false);
     }
 
-    fetchNews();
-  }, []);
+    void fetchNews();
+
+    return () => controller.abort();
+  }, [reloadVersion]);
 
   return (
     <div style={{ display: "grid", gap: "18px" }}>
@@ -94,6 +138,12 @@ export default function QuizHomeClient() {
 
       <section style={{ display: "grid", gap: "9px" }}>
         <SectionTitle title="🏢 종목 선택" sub="산업군을 열고 퀴즈를 풀 종목을 골라보세요" />
+        {!loading && quizNewsError && (
+          <ErrorText>
+            <div>종목별 뉴스 개수를 불러오지 못했습니다.</div>
+            <RetryButton onClick={() => setReloadVersion((version) => version + 1)} />
+          </ErrorText>
+        )}
         {sectorGroups.map(([sector, stocks], groupIndex) => {
           const totalNews = stocks.reduce((sum, stock) => sum + (newsCounts[stock.ticker] ?? 0), 0);
           const colorStyle = SECTOR_BADGE_STYLES[stocks[0].sectorColor];
@@ -231,34 +281,94 @@ export default function QuizHomeClient() {
       </section>
 
       <section>
-        <SectionTitle title="📰 최근 읽을 뉴스" sub="종목 상세와 퀴즈의 출발점입니다" />
+        <SectionTitle title="📰 최근 읽을 뉴스" sub="현재 시장의 최신 기사를 확인해보세요" />
 
         {loading && <EmptyText>뉴스를 불러오는 중...</EmptyText>}
-        {!loading && error && <ErrorText>{error}</ErrorText>}
 
-        {!loading && !error && (
+        {!loading && latestNewsError && (
+          <ErrorText>
+            <div>실시간 최신 뉴스를 불러오지 못해 퀴즈용 뉴스를 대신 보여드립니다.</div>
+            <RetryButton onClick={() => setReloadVersion((version) => version + 1)} />
+          </ErrorText>
+        )}
+
+        {!loading && latestNews.length > 0 && (
           <div style={{ display: "grid", gap: "8px" }}>
-            {recentNews.length === 0 ? (
-              <EmptyText>curated_news에 등록된 뉴스가 있으면 여기에 표시됩니다.</EmptyText>
-            ) : (
-              recentNews.map((news) => (
+            {latestNews.map((news) => (
+              <a
+                key={`${news.link}-${news.pubDate}`}
+                href={news.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  color: "inherit",
+                  textDecoration: "none",
+                  display: "grid",
+                  gap: "6px",
+                }}
+              >
                 <div
-                  key={news.id}
                   style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "8px",
-                    padding: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "10px",
+                    fontSize: "11px",
+                    color: "var(--text-muted)",
                   }}
                 >
-                  <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
-                    {news.company} · {news.news_date}
-                  </div>
-                  <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
+                  <span>{news.tag}</span>
+                  <span>{news.ago}</span>
                 </div>
-              ))
-            )}
+                <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
+                {news.description && (
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      lineHeight: 1.55,
+                      color: "var(--text-dim)",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {news.description}
+                  </p>
+                )}
+              </a>
+            ))}
           </div>
+        )}
+
+        {!loading && latestNews.length === 0 && fallbackNews.length > 0 && (
+          <div style={{ display: "grid", gap: "8px", marginTop: latestNewsError ? "8px" : 0 }}>
+            {!latestNewsError && <EmptyText>퀴즈에 등록된 최근 뉴스를 표시하고 있습니다.</EmptyText>}
+            {fallbackNews.map((news) => (
+              <div
+                key={news.id}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "8px",
+                  padding: "12px",
+                }}
+              >
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
+                  {news.company} · {news.news_date}
+                </div>
+                <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && !latestNewsError && latestNews.length === 0 && fallbackNews.length === 0 && (
+          <EmptyText>표시할 뉴스가 아직 없습니다.</EmptyText>
         )}
       </section>
     </div>
@@ -306,4 +416,30 @@ function ErrorText({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   );
+}
+
+function RetryButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        marginTop: "9px",
+        border: "1px solid currentColor",
+        borderRadius: "6px",
+        padding: "5px 8px",
+        background: "transparent",
+        color: "inherit",
+        fontSize: "11px",
+        fontWeight: 700,
+        cursor: "pointer",
+      }}
+    >
+      다시 불러오기
+    </button>
+  );
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
