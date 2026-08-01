@@ -6,6 +6,8 @@ const MAX_ACTIVE_PER_STOCK = 15;
 const MIN_CHANGE_PERCENT = 0.5;
 const IMPACT_TRADING_DAYS = 3;
 const MAX_ARTICLE_AGE_DAYS = 730;
+const STOCKS_PER_BATCH = 5;
+const BATCH_COUNT = Math.ceil(30 / STOCKS_PER_BATCH);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 type Direction = "up" | "down";
@@ -187,38 +189,53 @@ async function fetchNewsPage(query: string, sort: "date" | "sim", start: number)
 }
 
 async function collectCandidates(stock: StockDefinition): Promise<Candidate[]> {
-  const requests: Array<Promise<NewsApiItem[]>> = [];
+  const currentYear = Number(seoulDate().slice(0, 4));
+  const previousYear = currentYear - 1;
+  const twoYearsAgo = currentYear - 2;
   const queryPlans = [
-    { query: stock.search, sort: "date" as const, starts: [1, 101] },
-    { query: stock.search, sort: "sim" as const, starts: [1, 101, 201] },
-    { query: `${stock.search} 실적`, sort: "sim" as const, starts: [1] },
-    { query: `${stock.search} 수주 투자`, sort: "sim" as const, starts: [1] },
+    { query: stock.search, sort: "date" as const, starts: [1] },
+    { query: stock.search, sort: "sim" as const, starts: [901] },
+    {
+      query: `${stock.search} ${previousYear} 실적 발표`,
+      sort: "sim" as const,
+      starts: [1, 401, 901],
+    },
+    {
+      query: `${stock.search} ${previousYear} 투자 수주 계약`,
+      sort: "sim" as const,
+      starts: [401, 901],
+    },
+    {
+      query: `${stock.search} ${twoYearsAgo} 실적 투자`,
+      sort: "sim" as const,
+      starts: [901],
+    },
   ];
+
+  const byUrl = new Map<string, Candidate>();
 
   for (const plan of queryPlans) {
     for (const start of plan.starts) {
-      requests.push(fetchNewsPage(plan.query, plan.sort, start));
-    }
-  }
+      let items: NewsApiItem[];
+      try {
+        items = await fetchNewsPage(plan.query, plan.sort, start);
+      } catch {
+        continue;
+      }
 
-  const settled = await Promise.allSettled(requests);
-  const byUrl = new Map<string, Candidate>();
+      for (const item of items) {
+        if (!item?.title || !item?.link || !item?.pubDate || !isRelevant(stock, item)) continue;
 
-  for (const result of settled) {
-    if (result.status !== "fulfilled") continue;
+        const link = normalizeUrl(item.link);
+        const newsDate = articleDate(item.pubDate);
+        if (!link || !newsDate) continue;
 
-    for (const item of result.value) {
-      if (!item?.title || !item?.link || !item?.pubDate || !isRelevant(stock, item)) continue;
+        const age = daysAgo(newsDate);
+        if (age < 14 || age > MAX_ARTICLE_AGE_DAYS) continue;
 
-      const link = normalizeUrl(item.link);
-      const newsDate = articleDate(item.pubDate);
-      if (!link || !newsDate) continue;
-
-      const age = daysAgo(newsDate);
-      if (age < 14 || age > MAX_ARTICLE_AGE_DAYS) continue;
-
-      const publishedAt = new Date(item.pubDate).toISOString();
-      byUrl.set(link, { ...item, link, newsDate, publishedAt });
+        const publishedAt = new Date(item.pubDate).toISOString();
+        byUrl.set(link, { ...item, link, newsDate, publishedAt });
+      }
     }
   }
 
@@ -501,11 +518,51 @@ Deno.serve(async (request) => {
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  const body = await request.json().catch(() => ({}));
+  const batchIndex = Number(body?.batch_index);
+  if (!Number.isInteger(batchIndex) || batchIndex < 0 || batchIndex >= BATCH_COUNT) {
+    return Response.json(
+      { error: `batch_index must be an integer from 0 to ${BATCH_COUNT - 1}.` },
+      { status: 400 },
+    );
+  }
+
+  const targetStocks = STOCKS.slice(
+    batchIndex * STOCKS_PER_BATCH,
+    (batchIndex + 1) * STOCKS_PER_BATCH,
+  );
+
+  if (batchIndex === 0) {
+    const activeTickers = new Set(STOCKS.map((stock) => stock.ticker));
+    const { data: activeRows, error: activeRowsError } = await admin
+      .from("curated_news")
+      .select("id, ticker")
+      .eq("is_active", true)
+      .limit(1000);
+    if (activeRowsError) {
+      return Response.json({ error: activeRowsError.message }, { status: 500 });
+    }
+
+    const obsoleteIds = (activeRows ?? [])
+      .filter((row) => !activeTickers.has(row.ticker))
+      .map((row) => row.id);
+    if (obsoleteIds.length > 0) {
+      const { error: deactivateObsoleteError } = await admin
+        .from("curated_news")
+        .update({ is_active: false })
+        .in("id", obsoleteIds);
+      if (deactivateObsoleteError) {
+        return Response.json({ error: deactivateObsoleteError.message }, { status: 500 });
+      }
+    }
+  }
+
   const syncDate = seoulDate();
   const { data: existingRun, error: existingRunError } = await admin
     .from("news_sync_runs")
     .select("id, status")
     .eq("sync_date", syncDate)
+    .eq("batch_index", batchIndex)
     .maybeSingle();
 
   if (existingRunError) {
@@ -513,7 +570,13 @@ Deno.serve(async (request) => {
   }
 
   if (existingRun?.status === "success" || existingRun?.status === "running") {
-    return Response.json({ ok: true, skipped: true, reason: "already-synced", syncDate });
+    return Response.json({
+      ok: true,
+      skipped: true,
+      reason: "already-synced",
+      syncDate,
+      batchIndex,
+    });
   }
 
   let runId = existingRun?.id as string | undefined;
@@ -526,7 +589,7 @@ Deno.serve(async (request) => {
   } else {
     const { data, error } = await admin
       .from("news_sync_runs")
-      .insert({ sync_date: syncDate, status: "running" })
+      .insert({ sync_date: syncDate, batch_index: batchIndex, status: "running" })
       .select("id")
       .single();
     if (error) return Response.json({ error: error.message }, { status: 500 });
@@ -538,10 +601,10 @@ Deno.serve(async (request) => {
   }
 
   try {
-    const results = await mapWithConcurrency(STOCKS, 3, (stock) => syncStock(stock, admin));
+    const results = await mapWithConcurrency(targetStocks, 1, (stock) => syncStock(stock, admin));
     const activeNewsCount = results.reduce((sum, result) => sum + result.active, 0);
     const failures = results.filter((result) => result.error);
-    const status = failures.length === STOCKS.length ? "failed" : "success";
+    const status = failures.length === targetStocks.length ? "failed" : "success";
 
     const { error: finishError } = await admin
       .from("news_sync_runs")
@@ -549,7 +612,7 @@ Deno.serve(async (request) => {
         status,
         finished_at: new Date().toISOString(),
         active_news_count: activeNewsCount,
-        summary: { stocks: results, failedStocks: failures.length },
+        summary: { batchIndex, stocks: results, failedStocks: failures.length },
         error: failures.length > 0 ? `${failures.length}개 종목 수집 실패` : null,
       })
       .eq("id", runId);
@@ -558,6 +621,7 @@ Deno.serve(async (request) => {
     return Response.json({
       ok: status === "success",
       syncDate,
+      batchIndex,
       activeNewsCount,
       failedStocks: failures.length,
       stocks: results,

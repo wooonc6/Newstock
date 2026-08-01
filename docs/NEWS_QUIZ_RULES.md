@@ -34,7 +34,7 @@
 
 ## 일일 자동 갱신
 
-- 매일 `06:10 KST`에 Supabase Cron이 `news-sync` Edge Function을 한 번 호출한다.
+- 매일 `06:10~06:35 KST`에 Supabase Cron이 `news-sync` Edge Function을 5종목씩 6개 묶음으로 호출한다.
 - 네이버 뉴스 검색 결과에서 실제 원문 URL과 게시 시각을 수집한다.
 - 기사 발표 직전 종가와 발표 후 3거래일 종가를 Yahoo Finance로 검증한다.
 - 절대 변동률이 `0.5%` 이상인 기사만 저장한다.

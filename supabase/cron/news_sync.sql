@@ -4,14 +4,13 @@
 create extension if not exists pg_cron with schema pg_catalog;
 create extension if not exists pg_net with schema extensions;
 
-select cron.unschedule('newstock-daily-news-sync')
-where exists (
-  select 1 from cron.job where jobname = 'newstock-daily-news-sync'
-);
+select cron.unschedule(jobid)
+from cron.job
+where jobname = 'newstock-daily-news-sync';
 
 select cron.schedule(
   'newstock-daily-news-sync',
-  '10 21 * * *', -- 매일 06:10 KST (UTC 21:10)
+  '10-35/5 21 * * *', -- 매일 06:10~06:35 KST, 5분 간격으로 5종목씩 처리
   $job$
   select net.http_post(
     url := (
@@ -27,7 +26,10 @@ select cron.schedule(
         where name = 'newstock_publishable_key'
       )
     ),
-    body := jsonb_build_object('scheduled_at', now()),
+    body := jsonb_build_object(
+      'scheduled_at', now(),
+      'batch_index', least(5, greatest(0, (extract(minute from now())::integer - 10) / 5))
+    ),
     timeout_milliseconds := 10000
   ) as request_id;
   $job$
