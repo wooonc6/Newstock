@@ -11,6 +11,8 @@ interface NaverNewsItem {
 interface NaverNewsResponse {
   items?: NaverNewsItem[];
   total?: number;
+  start?: number;
+  display?: number;
 }
 
 // 뉴스 카테고리 자동 분류
@@ -52,6 +54,11 @@ export async function GET(request: NextRequest) {
   const display = Number.isNaN(requestedDisplay)
     ? 8
     : Math.min(Math.max(requestedDisplay, 1), 100);
+  const requestedStart = Number.parseInt(searchParams.get('start') || '1', 10);
+  const start = Number.isNaN(requestedStart)
+    ? 1
+    : Math.min(Math.max(requestedStart, 1), 1000);
+  const sort = searchParams.get('sort') === 'sim' ? 'sim' : 'date';
 
   const clientId     = process.env.NAVER_CLIENT_ID;
   const clientSecret = process.env.NAVER_CLIENT_SECRET;
@@ -67,7 +74,8 @@ export async function GET(request: NextRequest) {
     const naverUrl = new URL('https://openapi.naver.com/v1/search/news.json');
     naverUrl.searchParams.set('query', query);
     naverUrl.searchParams.set('display', String(display));
-    naverUrl.searchParams.set('sort', 'date');
+    naverUrl.searchParams.set('start', String(start));
+    naverUrl.searchParams.set('sort', sort);
 
     const response = await fetch(naverUrl.toString(), {
       headers: {
@@ -102,7 +110,12 @@ export async function GET(request: NextRequest) {
       tag:         classifyTag(item.title + ' ' + item.description),
     }));
 
-    return NextResponse.json({ items, total: data.total ?? items.length });
+    return NextResponse.json({
+      items,
+      total: data.total ?? items.length,
+      start: data.start ?? start,
+      display: data.display ?? items.length,
+    });
 
   } catch (error) {
     console.error('[GET /api/news] Unexpected error:', error);

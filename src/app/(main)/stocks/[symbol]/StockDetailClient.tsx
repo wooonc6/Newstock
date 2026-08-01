@@ -165,6 +165,23 @@ export default function StockDetailClient({ stock }: Props) {
                   {item.news_date} · {item.category} · {item.difficulty}
                 </div>
                 <div style={{ fontSize: "14px", fontWeight: 800, lineHeight: 1.5 }}>{item.title}</div>
+                {item.source_url ? (
+                  <a
+                    href={item.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "inline-flex",
+                      marginTop: "9px",
+                      color: "var(--accent2)",
+                      fontSize: "12px",
+                      fontWeight: 800,
+                      textDecoration: "none",
+                    }}
+                  >
+                    기사 원문 읽기 ↗
+                  </a>
+                ) : null}
               </article>
             ))
           )}

@@ -7,6 +7,11 @@ import { useQuizUnlock } from "@/hooks/useQuizUnlock";
 import { SECTOR_BADGE_STYLES, STOCKS } from "@/lib/stocks";
 import type { LatestNewsItem, NewsItem } from "@/types";
 
+type QuizNewsSummary = {
+  counts: Record<string, number>;
+  sample: NewsItem[];
+};
+
 export default function QuizHomeClient() {
   const { user } = useAuth();
   const { unlockMap } = useQuizUnlock(user?.id);
@@ -34,8 +39,8 @@ export default function QuizHomeClient() {
   useEffect(() => {
     const controller = new AbortController();
 
-    async function fetchQuizNews(): Promise<NewsItem[]> {
-      const response = await fetch("/api/learning/news?limit=100", {
+    async function fetchQuizNews(): Promise<QuizNewsSummary> {
+      const response = await fetch("/api/learning/news?summary=1", {
         signal: controller.signal,
       });
 
@@ -45,11 +50,10 @@ export default function QuizHomeClient() {
       }
 
       const data = await response.json();
-      return Array.isArray(data)
-        ? data
-        : Array.isArray(data?.news)
-          ? data.news
-          : [];
+      return {
+        counts: data?.counts && typeof data.counts === "object" ? data.counts : {},
+        sample: Array.isArray(data?.sample) ? data.sample : [],
+      };
     }
 
     async function fetchLatestNews(): Promise<LatestNewsItem[]> {
@@ -80,16 +84,8 @@ export default function QuizHomeClient() {
       if (controller.signal.aborted) return;
 
       if (quizNewsResult.status === "fulfilled") {
-        const items = quizNewsResult.value;
-
-        const counts: Record<string, number> = {};
-        for (const item of items) {
-          if (!item.ticker) continue;
-          counts[item.ticker] = (counts[item.ticker] ?? 0) + 1;
-        }
-
-        setNewsCounts(counts);
-        setFallbackNews(items.slice(0, 3));
+        setNewsCounts(quizNewsResult.value.counts);
+        setFallbackNews(quizNewsResult.value.sample);
       } else {
         console.error("퀴즈용 뉴스 목록 요청 실패:", quizNewsResult.reason);
         setNewsCounts({});

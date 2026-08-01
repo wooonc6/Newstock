@@ -273,7 +273,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
             textDecoration: "none",
           }}
         >
-          기사 찾아 읽기 ↗
+          기사 원문 읽기 ↗
         </a>
       </section>
 

@@ -21,7 +21,42 @@ type CuratedNewsRow = {
   news_date: string;
   category: string | null;
   difficulty: string | null;
+  source_url: string | null;
+  impact_days: number | null;
+  impact_base_date: string | null;
+  impact_base_price: number | string | null;
+  impact_date: string | null;
+  impact_price: number | string | null;
+  impact_change: number | string | null;
+  impact_direction: "up" | "down" | null;
 };
+
+function getCachedImpact(news: CuratedNewsRow) {
+  const basePrice = Number(news.impact_base_price);
+  const impactPrice = Number(news.impact_price);
+  const changeRate = Number(news.impact_change);
+
+  if (
+    news.impact_days !== 3 ||
+    !news.impact_base_date ||
+    !news.impact_date ||
+    !news.impact_direction ||
+    !Number.isFinite(basePrice) ||
+    !Number.isFinite(impactPrice) ||
+    !Number.isFinite(changeRate)
+  ) {
+    return null;
+  }
+
+  return {
+    baseDate: news.impact_base_date,
+    basePrice,
+    impactDate: news.impact_date,
+    impactPrice,
+    changeRate,
+    direction: news.impact_direction,
+  };
+}
 
 export async function GET(
   request: NextRequest,
@@ -37,8 +72,11 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("curated_news")
-    .select("id, title, company, ticker, news_date, category, difficulty")
+    .select(
+      "id, title, company, ticker, news_date, category, difficulty, source_url, impact_days, impact_base_date, impact_base_price, impact_date, impact_price, impact_change, impact_direction"
+    )
     .eq("ticker", ticker)
+    .eq("is_active", true)
     .order("news_date", { ascending: false })
     .limit(100);
 
@@ -68,7 +106,7 @@ export async function GET(
 
   const evaluated = await mapWithConcurrency(eligibleNews, 4, async ({ news, bracket }) => {
     try {
-      const impact = await getNewsImpact(news.ticker, news.news_date);
+      const impact = getCachedImpact(news) ?? await getNewsImpact(news.ticker, news.news_date);
       if (!isQuizWorthyImpact(impact)) return null;
 
       return {
@@ -79,7 +117,7 @@ export async function GET(
         newsDate: news.news_date,
         category: news.category ?? "기타",
         difficulty: news.difficulty ?? "medium",
-        sourceUrl: buildCuratedNewsSourceUrl(news.title, news.news_date),
+        sourceUrl: news.source_url ?? buildCuratedNewsSourceUrl(news.title, news.news_date),
         timeLabel: bracket.label,
         impactTradingDays: 3,
         baseDate: impact.baseDate,

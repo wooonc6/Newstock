@@ -17,8 +17,11 @@ export async function GET(
   const supabase = await createClient();
   const { data: news, error } = await supabase
     .from("curated_news")
-    .select("id, title, company, ticker, news_date, category, difficulty")
+    .select(
+      "id, title, company, ticker, news_date, category, difficulty, source_url, impact_days, impact_base_date, impact_base_price, impact_date, impact_price, impact_change, impact_direction"
+    )
     .eq("id", params.newsId)
+    .eq("is_active", true)
     .single();
 
   if (error || !news) {
@@ -34,7 +37,27 @@ export async function GET(
   }
 
   try {
-    const impact = await getNewsImpact(news.ticker, news.news_date);
+    const basePrice = Number(news.impact_base_price);
+    const impactPrice = Number(news.impact_price);
+    const changeRate = Number(news.impact_change);
+    const cachedImpact =
+      news.impact_days === 3 &&
+      news.impact_base_date &&
+      news.impact_date &&
+      (news.impact_direction === "up" || news.impact_direction === "down") &&
+      Number.isFinite(basePrice) &&
+      Number.isFinite(impactPrice) &&
+      Number.isFinite(changeRate)
+        ? {
+            baseDate: news.impact_base_date,
+            basePrice,
+            impactDate: news.impact_date,
+            impactPrice,
+            changeRate,
+            direction: news.impact_direction,
+          }
+        : null;
+    const impact = cachedImpact ?? await getNewsImpact(news.ticker, news.news_date);
 
     if (!isQuizWorthyImpact(impact)) {
       return NextResponse.json(
@@ -51,7 +74,7 @@ export async function GET(
       headline: news.title,
       category: news.category ?? "기타",
       difficulty: news.difficulty ?? "medium",
-      sourceUrl: buildCuratedNewsSourceUrl(news.title, news.news_date),
+      sourceUrl: news.source_url ?? buildCuratedNewsSourceUrl(news.title, news.news_date),
       timeLabel: bracket.label,
       impactTradingDays: 3,
       baseDate: impact.baseDate,
