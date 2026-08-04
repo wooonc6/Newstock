@@ -1,34 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { STOCKS } from "@/lib/stocks";
-import type { NewsItem } from "@/types";
+import type { TrendingStockItem } from "@/types";
 import MarketMap from "@/components/dashboard/MarketMap";
 
 export default function DashboardClient() {
-  const [newsCounts, setNewsCounts] = useState<Record<string, number>>({});
+  const [recommendedStocks, setRecommendedStocks] = useState<TrendingStockItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/learning/news?limit=100")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((items: NewsItem[]) => {
-        const counts: Record<string, number> = {};
-        for (const item of Array.isArray(items) ? items : []) {
-          counts[item.ticker] = (counts[item.ticker] ?? 0) + 1;
-        }
-        setNewsCounts(counts);
+    fetch("/api/news/market-feed")
+      .then((response) => {
+        if (!response.ok) throw new Error("시장 뉴스 집계 요청 실패");
+        return response.json();
+      })
+      .then((data) => {
+        setRecommendedStocks(Array.isArray(data?.trending) ? data.trending : []);
       })
       .catch(() => {
-        setNewsCounts({});
-      });
+        setRecommendedStocks([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
-
-  const recommendedStocks = useMemo(() => {
-    return [...STOCKS]
-      .sort((a, b) => (newsCounts[b.ticker] ?? 0) - (newsCounts[a.ticker] ?? 0))
-      .slice(0, 3);
-  }, [newsCounts]);
 
   return (
     <div style={{ display: "grid", gap: "18px" }}>
@@ -41,7 +35,11 @@ export default function DashboardClient() {
           boxShadow: "0 10px 28px rgba(15, 23, 42, 0.08)",
         }}
       >
-        <SectionTitle title="🔥 오늘 많이 언급된 종목" sub="뉴스 수가 많은 종목부터 보여줍니다" />
+        <SectionTitle title="🔥 최근 24시간 많이 언급된 종목" sub="중복 기사를 제외한 종목별 뉴스 언급량입니다" />
+        {loading && <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>언급량을 집계하는 중...</div>}
+        {!loading && recommendedStocks.length === 0 && (
+          <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>최근 24시간에 집계된 종목 뉴스가 없습니다.</div>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
           {recommendedStocks.map((stock, index) => (
             <Link
@@ -64,7 +62,7 @@ export default function DashboardClient() {
                 </div>
               </div>
               <div style={{ marginTop: "6px", fontSize: "11px", color: "var(--text-dim)" }}>
-                관련 뉴스 {newsCounts[stock.ticker] ?? 0}개
+                뉴스 {stock.count}건 · 이전 24시간보다 {stock.change >= 0 ? "+" : ""}{stock.change}건
               </div>
             </Link>
           ))}

@@ -102,6 +102,13 @@ export interface LatestNewsItem {
   tag: string;
 }
 
+export interface TrendingStockItem {
+  ticker: string;
+  name: string;
+  count: number;
+  change: number;
+}
+
 export interface Trade {
   id: string;
   user_id: string;

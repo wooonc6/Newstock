@@ -57,8 +57,7 @@ export default function QuizHomeClient() {
     }
 
     async function fetchLatestNews(): Promise<LatestNewsItem[]> {
-      const query = encodeURIComponent("주식 증시 기업");
-      const response = await fetch(`/api/news?query=${query}&display=6`, {
+      const response = await fetch("/api/news/market-feed", {
         signal: controller.signal,
       });
 
@@ -68,7 +67,7 @@ export default function QuizHomeClient() {
       }
 
       const data = await response.json();
-      return Array.isArray(data?.items) ? data.items : [];
+      return Array.isArray(data?.articles) ? data.articles : [];
     }
 
     async function fetchNews() {
@@ -131,6 +130,14 @@ export default function QuizHomeClient() {
           관심 산업군을 열어 기업을 비교하고, 관련 뉴스 퀴즈로 주가 흐름을 학습해보세요.
         </p>
       </section>
+
+      <LatestNewsSection
+        loading={loading}
+        latestNews={latestNews}
+        fallbackNews={fallbackNews}
+        error={latestNewsError}
+        onRetry={() => setReloadVersion((version) => version + 1)}
+      />
 
       <section style={{ display: "grid", gap: "9px" }}>
         <SectionTitle title="🏢 종목 선택" sub="산업군을 열고 퀴즈를 풀 종목을 골라보세요" />
@@ -276,98 +283,115 @@ export default function QuizHomeClient() {
         })}
       </section>
 
-      <section>
-        <SectionTitle title="📰 최근 읽을 뉴스" sub="현재 시장의 최신 기사를 확인해보세요" />
+    </div>
+  );
+}
 
-        {loading && <EmptyText>뉴스를 불러오는 중...</EmptyText>}
+function LatestNewsSection({
+  loading,
+  latestNews,
+  fallbackNews,
+  error,
+  onRetry,
+}: {
+  loading: boolean;
+  latestNews: LatestNewsItem[];
+  fallbackNews: NewsItem[];
+  error: string | null;
+  onRetry: () => void;
+}) {
+  return (
+    <section>
+      <SectionTitle title="📰 지금 읽을 주요 뉴스" sub="화제 종목·시장 흐름을 함께 볼 수 있는 기사 6개입니다" />
 
-        {!loading && latestNewsError && (
-          <ErrorText>
-            <div>실시간 최신 뉴스를 불러오지 못해 퀴즈용 뉴스를 대신 보여드립니다.</div>
-            <RetryButton onClick={() => setReloadVersion((version) => version + 1)} />
-          </ErrorText>
-        )}
+      {loading && <EmptyText>뉴스를 불러오는 중...</EmptyText>}
 
-        {!loading && latestNews.length > 0 && (
-          <div style={{ display: "grid", gap: "8px" }}>
-            {latestNews.map((news) => (
-              <a
-                key={`${news.link}-${news.pubDate}`}
-                href={news.link}
-                target="_blank"
-                rel="noopener noreferrer"
+      {!loading && error && (
+        <ErrorText>
+          <div>실시간 주요 뉴스를 불러오지 못해 퀴즈용 뉴스를 대신 보여드립니다.</div>
+          <RetryButton onClick={onRetry} />
+        </ErrorText>
+      )}
+
+      {!loading && latestNews.length > 0 && (
+        <div style={{ display: "grid", gap: "8px" }}>
+          {latestNews.map((news) => (
+            <a
+              key={`${news.link}-${news.pubDate}`}
+              href={news.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                padding: "12px",
+                color: "inherit",
+                textDecoration: "none",
+                display: "grid",
+                gap: "6px",
+              }}
+            >
+              <div
                 style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "8px",
-                  padding: "12px",
-                  color: "inherit",
-                  textDecoration: "none",
-                  display: "grid",
-                  gap: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                  fontSize: "11px",
+                  color: "var(--text-muted)",
                 }}
               >
-                <div
+                <span>{news.tag}</span>
+                <span>{news.ago}</span>
+              </div>
+              <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
+              {news.description && (
+                <p
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "10px",
                     fontSize: "11px",
-                    color: "var(--text-muted)",
+                    lineHeight: 1.55,
+                    color: "var(--text-dim)",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
                   }}
                 >
-                  <span>{news.tag}</span>
-                  <span>{news.ago}</span>
-                </div>
-                <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
-                {news.description && (
-                  <p
-                    style={{
-                      fontSize: "11px",
-                      lineHeight: 1.55,
-                      color: "var(--text-dim)",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {news.description}
-                  </p>
-                )}
-              </a>
-            ))}
-          </div>
-        )}
+                  {news.description}
+                </p>
+              )}
+            </a>
+          ))}
+        </div>
+      )}
 
-        {!loading && latestNews.length === 0 && fallbackNews.length > 0 && (
-          <div style={{ display: "grid", gap: "8px", marginTop: latestNewsError ? "8px" : 0 }}>
-            {!latestNewsError && <EmptyText>퀴즈에 등록된 최근 뉴스를 표시하고 있습니다.</EmptyText>}
-            {fallbackNews.map((news) => (
-              <div
-                key={news.id}
-                style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "8px",
-                  padding: "12px",
-                }}
-              >
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
-                  {news.company} · {news.news_date}
-                </div>
-                <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
+      {!loading && latestNews.length === 0 && fallbackNews.length > 0 && (
+        <div style={{ display: "grid", gap: "8px", marginTop: error ? "8px" : 0 }}>
+          {!error && <EmptyText>퀴즈에 등록된 최근 뉴스를 표시하고 있습니다.</EmptyText>}
+          {fallbackNews.map((news) => (
+            <div
+              key={news.id}
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                padding: "12px",
+              }}
+            >
+              <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
+                {news.company} · {news.news_date}
               </div>
-            ))}
-          </div>
-        )}
+              <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {!loading && !latestNewsError && latestNews.length === 0 && fallbackNews.length === 0 && (
-          <EmptyText>표시할 뉴스가 아직 없습니다.</EmptyText>
-        )}
-      </section>
-    </div>
+      {!loading && !error && latestNews.length === 0 && fallbackNews.length === 0 && (
+        <EmptyText>표시할 뉴스가 아직 없습니다.</EmptyText>
+      )}
+    </section>
   );
 }
 
