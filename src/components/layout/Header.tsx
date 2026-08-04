@@ -146,6 +146,27 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
           ₩{coins.toLocaleString()}
         </div>
 
+        <Link
+          href="/portfolio"
+          aria-label="내 자산 보기"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "7px",
+            padding: "6px 13px",
+            borderRadius: "100px",
+            background: "rgba(5,124,104,0.08)",
+            border: "1px solid rgba(5,124,104,0.2)",
+            fontSize: "12px",
+            fontWeight: 700,
+            color: "var(--primary)",
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          자산
+        </Link>
+
         <button
           onClick={onLogout}
           style={{
