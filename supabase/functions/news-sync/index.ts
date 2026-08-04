@@ -165,8 +165,12 @@ function normalizeUrl(value: string): string | null {
 }
 
 function isRelevant(stock: StockDefinition, item: NewsApiItem): boolean {
-  const text = `${item.title} ${item.description}`.toLowerCase();
-  return stock.aliases.some((alias) => text.includes(alias.toLowerCase()));
+  // A company name mentioned only in the summary can be incidental context
+  // (for example, a construction project located at Samsung's campus). Quiz
+  // news must name the target company in the headline so the stock whose price
+  // we score is actually one of the article's main subjects.
+  const title = item.title.toLowerCase();
+  return stock.aliases.some((alias) => title.includes(alias.toLowerCase()));
 }
 
 async function fetchNewsPage(
@@ -425,6 +429,15 @@ async function syncStock(
       .map((candidate) => evaluateCandidate(candidate, points))
       .filter((item): item is EvaluatedArticle => item !== null);
     const existing = ((existingResult.data ?? []) as ExistingArticleRow[])
+      .filter((item) =>
+        isRelevant(stock, {
+          title: item.title,
+          description: item.description ?? "",
+          link: item.source_url ?? "",
+          pubDate: item.published_at ?? "",
+          tag: item.category ?? "시장동향",
+        })
+      )
       .map(existingToEvaluated)
       .filter((item): item is EvaluatedArticle => item !== null);
     const selected = chooseBalanced([...evaluated, ...existing]);
