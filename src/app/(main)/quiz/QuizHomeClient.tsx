@@ -5,11 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
 import { SECTOR_BADGE_STYLES, STOCKS } from "@/lib/stocks";
-import type { LatestNewsItem, NewsItem } from "@/types";
+import type { LatestNewsItem } from "@/types";
 
 type QuizNewsSummary = {
   counts: Record<string, number>;
-  sample: NewsItem[];
 };
 
 export default function QuizHomeClient() {
@@ -18,7 +17,6 @@ export default function QuizHomeClient() {
 
   const [newsCounts, setNewsCounts] = useState<Record<string, number>>({});
   const [latestNews, setLatestNews] = useState<LatestNewsItem[]>([]);
-  const [fallbackNews, setFallbackNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [quizNewsError, setQuizNewsError] = useState<string | null>(null);
   const [latestNewsError, setLatestNewsError] = useState<string | null>(null);
@@ -52,7 +50,6 @@ export default function QuizHomeClient() {
       const data = await response.json();
       return {
         counts: data?.counts && typeof data.counts === "object" ? data.counts : {},
-        sample: Array.isArray(data?.sample) ? data.sample : [],
       };
     }
 
@@ -84,11 +81,9 @@ export default function QuizHomeClient() {
 
       if (quizNewsResult.status === "fulfilled") {
         setNewsCounts(quizNewsResult.value.counts);
-        setFallbackNews(quizNewsResult.value.sample);
       } else {
         console.error("퀴즈용 뉴스 목록 요청 실패:", quizNewsResult.reason);
         setNewsCounts({});
-        setFallbackNews([]);
         setQuizNewsError(getErrorMessage(quizNewsResult.reason, "퀴즈용 뉴스를 불러오지 못했습니다."));
       }
 
@@ -134,7 +129,6 @@ export default function QuizHomeClient() {
       <LatestNewsSection
         loading={loading}
         latestNews={latestNews}
-        fallbackNews={fallbackNews}
         error={latestNewsError}
         onRetry={() => setReloadVersion((version) => version + 1)}
       />
@@ -290,13 +284,11 @@ export default function QuizHomeClient() {
 function LatestNewsSection({
   loading,
   latestNews,
-  fallbackNews,
   error,
   onRetry,
 }: {
   loading: boolean;
   latestNews: LatestNewsItem[];
-  fallbackNews: NewsItem[];
   error: string | null;
   onRetry: () => void;
 }) {
@@ -308,7 +300,7 @@ function LatestNewsSection({
 
       {!loading && error && (
         <ErrorText>
-          <div>실시간 주요 뉴스를 불러오지 못해 퀴즈용 뉴스를 대신 보여드립니다.</div>
+          <div>실시간 주요 뉴스를 불러오지 못했습니다. 과거 퀴즈 뉴스로 대체하지 않습니다.</div>
           <RetryButton onClick={onRetry} />
         </ErrorText>
       )}
@@ -366,30 +358,8 @@ function LatestNewsSection({
         </div>
       )}
 
-      {!loading && latestNews.length === 0 && fallbackNews.length > 0 && (
-        <div style={{ display: "grid", gap: "8px", marginTop: error ? "8px" : 0 }}>
-          {!error && <EmptyText>퀴즈에 등록된 최근 뉴스를 표시하고 있습니다.</EmptyText>}
-          {fallbackNews.map((news) => (
-            <div
-              key={news.id}
-              style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                padding: "12px",
-              }}
-            >
-              <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
-                {news.company} · {news.news_date}
-              </div>
-              <div style={{ fontSize: "13px", fontWeight: 700, lineHeight: 1.45 }}>{news.title}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!loading && !error && latestNews.length === 0 && fallbackNews.length === 0 && (
-        <EmptyText>표시할 뉴스가 아직 없습니다.</EmptyText>
+      {!loading && !error && latestNews.length === 0 && (
+        <EmptyText>현재 표시할 최근 뉴스가 없습니다.</EmptyText>
       )}
     </section>
   );
