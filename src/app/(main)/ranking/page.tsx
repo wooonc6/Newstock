@@ -164,7 +164,7 @@ export default function RankingPage() {
                         : "아직 매도 내역이 없습니다."
                     }
                   >
-                    실현 {realizedReturnRate > 0 ? "+" : ""}{realizedReturnRate.toFixed(2)}%
+                    실현 수익률 {realizedReturnRate > 0 ? "+" : ""}{realizedReturnRate.toFixed(2)}%
                   </div>
                 </div>
               </div>
