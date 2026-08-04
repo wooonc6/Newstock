@@ -30,6 +30,30 @@ function formatPrice(price: number | null | undefined) {
   return `${Math.round(price).toLocaleString()}원`;
 }
 
+function createNewsAnalysisPrompt(item: NewsQuizItem) {
+  const directionLabel = item.direction === "up" ? "상승" : "하락";
+
+  return `다음 뉴스와 당시 시장 상황을 바탕으로 ${item.company} 주가가 왜 움직였는지 분석해 주세요.
+
+[분석 대상]
+- 종목: ${item.company} (${item.ticker})
+- 기사 제목: ${item.headline}
+- 기사 날짜: ${item.newsDate}
+- 기사 원문: ${item.sourceUrl}
+- 주가 변화: ${item.baseDate} 종가 ${formatPrice(item.priceBase)} → ${item.impactDate} 종가 ${formatPrice(item.priceEnd)}
+- 결과: 기사 발표 후 ${item.impactTradingDays}거래일 동안 ${Math.abs(item.changeRate).toFixed(1)}% ${directionLabel}
+
+[분석 요청]
+1. 기사 핵심 내용을 주식 초보자도 이해할 수 있게 3줄 이내로 요약해 주세요.
+2. 이 뉴스가 해당 기업의 매출, 비용, 성장성, 위험에 어떤 영향을 줄 수 있는지 설명해 주세요.
+3. 같은 기간의 시장 전체, 업종, 기업별 이슈를 찾아 주가 변동의 다른 원인도 확인해 주세요.
+4. 뉴스의 직접 영향과 단순한 동시 발생을 구분하고, 기사 하나만으로 원인을 단정하지 마세요.
+5. 상승 요인과 하락 요인을 표로 비교한 뒤, 가장 가능성 높은 원인과 판단 근거를 정리해 주세요.
+6. 확인한 근거 자료의 출처와 날짜를 링크로 제시하고, 확인할 수 없는 내용은 추측하지 말고 '확인 불가'라고 표시해 주세요.
+
+투자 추천이나 매수·매도 지시는 하지 말고, 당시 정보만을 기준으로 교육 목적으로 분석해 주세요.`;
+}
+
 export default function QuizClient({ ticker, stockName }: Props) {
   const searchParams = useSearchParams();
   const initialNewsId = searchParams.get("newsId") ?? undefined;
@@ -41,6 +65,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
   const [activeReveal, setActiveReveal] = useState<AnswerRecord | null>(null);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -114,7 +139,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
   }
 
   async function handleNext() {
-    if (!currentItem || !activeReveal) return;
+    if (!currentItem || !activeReveal || isSubmitting) return;
 
     if (currentIdx < items.length - 1) {
       setCurrentIdx((index) => index + 1);
@@ -123,28 +148,36 @@ export default function QuizClient({ ticker, stockName }: Props) {
       return;
     }
 
-    const submitResponse = await fetch("/api/quiz/submit-v2", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        results: answers.map((record) => ({
-          newsId: record.item.newsId,
-          answer: record.answer,
-        })),
-      }),
-    });
-    const submitData = await submitResponse.json().catch(() => null);
+    setIsSubmitting(true);
+    setError("");
 
-    if (!submitResponse.ok) {
-      setError(submitData?.error ?? "결과 저장에 실패했습니다.");
-      return;
+    try {
+      const submitResponse = await fetch("/api/quiz/submit-v2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          results: answers.map((record) => ({
+            newsId: record.item.newsId,
+            answer: record.answer,
+          })),
+        }),
+      });
+      const submitData = await submitResponse.json().catch(() => null);
+
+      if (!submitResponse.ok) {
+        setError(submitData?.error ?? "결과 저장에 실패했습니다.");
+        return;
+      }
+
+      setResult(submitData);
+      setActiveReveal(null);
+      setStep("result");
+      await Promise.all([refreshUser(), refetchUnlock()]);
+    } catch {
+      setError("결과 저장 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setResult(submitData);
-    setActiveReveal(null);
-    setStep("result");
-    await refreshUser();
-    await refetchUnlock();
   }
 
   if (step === "loading") {
@@ -189,44 +222,46 @@ export default function QuizClient({ ticker, stockName }: Props) {
                 border: "1px solid var(--border)",
                 borderRadius: "8px",
                 padding: "13px",
-                display: "flex",
-                justifyContent: "space-between",
+                display: "grid",
                 gap: "12px",
               }}
             >
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                  {record.item.timeLabel} · {record.item.newsDate}
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                    {record.item.timeLabel} · {record.item.newsDate}
+                  </div>
+                  <div style={{ marginTop: "4px", fontSize: "12px", fontWeight: 800, lineHeight: 1.4 }}>
+                    {record.item.headline}
+                  </div>
+                  <div style={{ marginTop: "5px", fontSize: "12px", color: "var(--text-dim)" }}>
+                    {formatPrice(record.item.priceBase)} → {formatPrice(record.item.priceEnd)}
+                  </div>
                 </div>
-                <div style={{ marginTop: "4px", fontSize: "12px", fontWeight: 800, lineHeight: 1.4 }}>
-                  {record.item.headline}
-                </div>
-                <div style={{ marginTop: "5px", fontSize: "12px", color: "var(--text-dim)" }}>
-                  {formatPrice(record.item.priceBase)} → {formatPrice(record.item.priceEnd)}
+                <div style={{ textAlign: "right", flex: "0 0 auto" }}>
+                  <div
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: "13px",
+                      fontWeight: 800,
+                      color: record.item.direction === "up" ? "var(--danger)" : "#2563eb",
+                    }}
+                  >
+                    {record.item.changeRate > 0 ? "+" : ""}
+                    {record.item.changeRate.toFixed(1)}%
+                  </div>
+                  <div
+                    style={{
+                      marginTop: "4px",
+                      fontSize: "12px",
+                      color: record.correct ? "var(--accent)" : "var(--danger)",
+                    }}
+                  >
+                    {record.correct ? "정답" : "오답"}
+                  </div>
                 </div>
               </div>
-              <div style={{ textAlign: "right", flex: "0 0 auto" }}>
-                <div
-                  style={{
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: "13px",
-                    fontWeight: 800,
-                    color: record.item.direction === "up" ? "var(--danger)" : "#2563eb",
-                  }}
-                >
-                  {record.item.changeRate > 0 ? "+" : ""}
-                  {record.item.changeRate.toFixed(1)}%
-                </div>
-                <div
-                  style={{
-                    marginTop: "4px",
-                    fontSize: "12px",
-                    color: record.correct ? "var(--accent)" : "var(--danger)",
-                  }}
-                >
-                  {record.correct ? "정답" : "오답"}
-                </div>
-              </div>
+              <NewsAnalysisPrompt item={record.item} />
             </div>
           ))}
         </section>
@@ -337,6 +372,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
           <RevealCard
             reveal={activeReveal}
             isLast={currentIdx === items.length - 1}
+            isSubmitting={isSubmitting}
             onNext={handleNext}
           />
         ) : (
@@ -359,10 +395,12 @@ export default function QuizClient({ ticker, stockName }: Props) {
 function RevealCard({
   reveal,
   isLast,
+  isSubmitting,
   onNext,
 }: {
   reveal: AnswerRecord;
   isLast: boolean;
+  isSubmitting: boolean;
   onNext: () => void;
 }) {
   const isUp = reveal.item.direction === "up";
@@ -388,9 +426,96 @@ function RevealCard({
         </span>
         했습니다.
       </div>
-      <button type="button" onClick={onNext} style={primaryButtonStyle}>
-        {isLast ? "결과 확인" : "다음 기사"}
+      <NewsAnalysisPrompt item={reveal.item} />
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={isSubmitting}
+        style={{
+          ...primaryButtonStyle,
+          opacity: isSubmitting ? 0.65 : 1,
+          cursor: isSubmitting ? "wait" : "pointer",
+        }}
+      >
+        {isSubmitting ? "결과 저장 중..." : isLast ? "결과 확인" : "다음 기사"}
       </button>
+    </div>
+  );
+}
+
+function NewsAnalysisPrompt({ item }: { item: NewsQuizItem }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const prompt = createNewsAnalysisPrompt(item);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        marginBottom: "12px",
+        padding: "12px",
+        borderRadius: "8px",
+        border: "1px solid var(--border)",
+        background: "var(--surface)",
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setIsOpen((open) => !open)}
+        aria-expanded={isOpen}
+        style={{
+          width: "100%",
+          border: "none",
+          background: "transparent",
+          color: "var(--text-dim)",
+          padding: 0,
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "10px",
+          fontSize: "12px",
+          fontWeight: 800,
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+      >
+        <span>생성형 AI로 상승·하락 원인 분석하기</span>
+        <span aria-hidden="true">{isOpen ? "접기" : "열기"}</span>
+      </button>
+
+      {isOpen ? (
+        <div style={{ marginTop: "10px", display: "grid", gap: "9px" }}>
+          <textarea
+            readOnly
+            value={prompt}
+            aria-label={`${item.company} 뉴스 분석 프롬프트`}
+            style={{
+              width: "100%",
+              minHeight: "190px",
+              resize: "vertical",
+              border: "1px solid var(--border)",
+              borderRadius: "7px",
+              background: "var(--surface2)",
+              color: "var(--text-dim)",
+              padding: "11px",
+              font: "inherit",
+              fontSize: "12px",
+              lineHeight: 1.55,
+            }}
+          />
+          <button type="button" onClick={handleCopy} style={secondaryButtonStyle}>
+            {copied ? "복사했습니다" : "분석 프롬프트 복사"}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
