@@ -4,7 +4,7 @@ import { getQuote } from "@/lib/yahoo";
 
 export const dynamic = "force-dynamic";
 
-const MARKET_MAP_WEIGHTS: Record<string, number> = {
+const FALLBACK_MARKET_MAP_WEIGHTS: Record<string, number> = {
   "005930.KS": 12,
   "000660.KS": 10,
   "373220.KS": 8,
@@ -38,7 +38,7 @@ const MARKET_MAP_WEIGHTS: Record<string, number> = {
 };
 
 export async function GET() {
-  const [items, kospi] = await Promise.all([
+  const [quotedItems, kospi] = await Promise.all([
     Promise.all(
       STOCKS.map(async (stock) => {
         try {
@@ -47,7 +47,8 @@ export async function GET() {
             ticker: stock.ticker,
             name: stock.name,
             sector: stock.sector,
-            weight: MARKET_MAP_WEIGHTS[stock.ticker] ?? 3,
+            weight: FALLBACK_MARKET_MAP_WEIGHTS[stock.ticker] ?? 3,
+            marketCap: quote.marketCap ?? null,
             price: quote.regularMarketPrice ?? null,
             changePercent: quote.regularMarketChangePercent ?? null,
           };
@@ -56,7 +57,8 @@ export async function GET() {
             ticker: stock.ticker,
             name: stock.name,
             sector: stock.sector,
-            weight: MARKET_MAP_WEIGHTS[stock.ticker] ?? 3,
+            weight: FALLBACK_MARKET_MAP_WEIGHTS[stock.ticker] ?? 3,
+            marketCap: null,
             price: null,
             changePercent: null,
           };
@@ -71,11 +73,23 @@ export async function GET() {
       .catch(() => ({ value: null, changePercent: null })),
   ]);
 
+  const maxMarketCap = Math.max(
+    0,
+    ...quotedItems.map((item) => item.marketCap ?? 0)
+  );
+  const items = quotedItems.map(({ marketCap, ...item }) => ({
+    ...item,
+    weight:
+      marketCap != null && marketCap > 0 && maxMarketCap > 0
+        ? 3 + 9 * Math.sqrt(marketCap / maxMarketCap)
+        : item.weight,
+  }));
+
   return NextResponse.json({
     updatedAt: new Date().toISOString(),
     kospi,
     basis: {
-      size: "코스피 대표성 가중치",
+      size: "Yahoo Finance 시가총액 상대 비율",
       color: "Yahoo Finance 당일 등락률",
       refresh: "대시보드 접속 또는 새로고침 시 1회",
     },
