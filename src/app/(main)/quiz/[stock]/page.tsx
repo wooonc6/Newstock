@@ -78,7 +78,7 @@ export default function QuizPage({ params }: Props) {
             📚 과거 뉴스 퀴즈
           </h2>
           <p style={{ marginTop: "4px", fontSize: "12px", color: "var(--text-muted)" }}>
-            당시 기사를 읽고 발표 후 3거래일 동안의 주가 상승·하락을 예측하세요.
+            당시 기사를 읽고 발표 후 3거래일 동안의 주가 상승·하락을 예측하세요. 답안은 문제마다 저장됩니다.
           </p>
         </div>
 

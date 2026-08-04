@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { data: rewardRows, error: rewardError } = await supabase.rpc("record_quiz_results", {
-    p_results: [{ news_id: newsId, correct }],
+    p_results: [{ news_id: newsId, answer, correct }],
   });
 
   if (rewardError) {

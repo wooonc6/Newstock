@@ -205,7 +205,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
       <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "12px" }}>
         {unlocked
           ? "✅ 현재 이 종목을 모의 투자할 수 있습니다."
-          : `퀴즈 진행 ${completed}/${required} · 조건을 완료하면 거래할 수 있습니다.`}
+          : `저장된 퀴즈 ${completed}/${required} · 문제별 저장이므로 ${required}개를 채우는 즉시 거래할 수 있습니다.`}
       </div>
 
       <div style={{ marginTop: "auto", display: "grid", gridTemplateColumns: "1fr auto", gap: "8px" }}>
@@ -226,7 +226,11 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
           {unlocked ? `🛒 ${holding ? "거래하기" : "매수하기"}` : "🔒 잠금 상태"}
         </button>
         <Link
-          href={`/stocks/${encodeURIComponent(ticker)}`}
+          href={
+            unlocked
+              ? `/stocks/${encodeURIComponent(ticker)}`
+              : `/quiz/${encodeURIComponent(ticker)}`
+          }
           style={{
             border: "1px solid var(--border)",
             borderRadius: "9px",
@@ -239,7 +243,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
             whiteSpace: "nowrap",
           }}
         >
-          🔍 종목 보기
+          {unlocked ? "🔍 종목 보기" : "🎯 퀴즈 이어 풀기"}
         </Link>
       </div>
     </div>
@@ -431,7 +435,7 @@ export default function PortfolioPage() {
             textAlign: "center",
           }}
         >
-          종목별 퀴즈를 3개 풀면 모의 투자가 가능해집니다.
+          종목별 퀴즈 답안이 문제마다 저장되며, 3개가 저장되는 즉시 해당 종목의 모의 투자가 열립니다.
         </div>
       )}
 

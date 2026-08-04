@@ -75,6 +75,10 @@ export interface NewsQuizItem {
 
 export interface NewsQuizFeedResponse {
   items: NewsQuizItem[];
+  progress: {
+    completed: number;
+    total: number;
+  };
   rule: {
     base: string;
     comparison: string;
@@ -163,6 +167,7 @@ export interface QuizSession {
   user_id: string;
   stock_ticker: string;
   news_id: string;
+  user_answer: "up" | "down" | null;
   score: number;
   total: number;
   coins_earned: number;

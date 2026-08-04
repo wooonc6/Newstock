@@ -94,6 +94,7 @@ export async function POST(req: NextRequest) {
       const correct = item.answer === impact.direction;
       return {
         news,
+        answer: item.answer,
         correct,
       };
     } catch (impactError) {
@@ -118,6 +119,7 @@ export async function POST(req: NextRequest) {
   const { data: rewardRows, error: rewardError } = await supabase.rpc("record_quiz_results", {
     p_results: validScores.map((item) => ({
       news_id: item.news.id,
+      answer: item.answer,
       correct: item.correct,
     })),
   });

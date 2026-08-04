@@ -69,16 +69,31 @@ export async function GET(
     : MAX_NEWS_PER_QUIZ;
   const preferredNewsId = request.nextUrl.searchParams.get("newsId");
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase
-    .from("curated_news")
-    .select(
-      "id, title, company, ticker, news_date, category, difficulty, source_url, impact_days, impact_base_date, impact_base_price, impact_date, impact_price, impact_change, impact_direction"
-    )
-    .eq("ticker", ticker)
-    .eq("is_active", true)
-    .order("news_date", { ascending: false })
-    .limit(100);
+  const [newsResult, completedResult] = await Promise.all([
+    supabase
+      .from("curated_news")
+      .select(
+        "id, title, company, ticker, news_date, category, difficulty, source_url, impact_days, impact_base_date, impact_base_price, impact_date, impact_price, impact_change, impact_direction"
+      )
+      .eq("ticker", ticker)
+      .eq("is_active", true)
+      .order("news_date", { ascending: false })
+      .limit(100),
+    user
+      ? supabase
+          .from("quiz_sessions")
+          .select("news_id")
+          .eq("user_id", user.id)
+          .eq("stock_ticker", ticker)
+          .not("news_id", "is", null)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  const { data, error } = newsResult;
 
   if (error) {
     console.error("[GET /api/learning/quiz-feed/:ticker] Supabase error:", error);
@@ -88,7 +103,25 @@ export async function GET(
     );
   }
 
+  if (completedResult.error) {
+    console.error(
+      "[GET /api/learning/quiz-feed/:ticker] completed quiz read error:",
+      completedResult.error
+    );
+    return NextResponse.json(
+      { error: "완료한 퀴즈 기록을 확인하지 못했습니다." },
+      { status: 500 }
+    );
+  }
+
+  const completedNewsIds = new Set(
+    (completedResult.data ?? [])
+      .map((row: { news_id: string | null }) => row.news_id)
+      .filter((newsId): newsId is string => typeof newsId === "string")
+  );
+
   const eligibleNews = ((data ?? []) as CuratedNewsRow[])
+    .filter((news) => !completedNewsIds.has(news.id))
     .map((news) => ({ news, bracket: getQuizAgeBracket(news.news_date) }))
     .filter(
       (item): item is { news: CuratedNewsRow; bracket: NonNullable<typeof item.bracket> } =>
@@ -141,6 +174,10 @@ export async function GET(
 
   return NextResponse.json({
     items,
+    progress: {
+      completed: completedNewsIds.size,
+      total: completedNewsIds.size + items.length,
+    },
     rule: {
       base: "기사 발표 직전 거래일 종가",
       comparison: "기사 발표 후 3거래일 종가",
