@@ -4,6 +4,7 @@ import {
   buildCuratedNewsSourceUrl,
   getQuizAgeBracket,
 } from "@/lib/newsImpact";
+import { getStock } from "@/lib/stocks";
 import { createClient } from "@/lib/supabase/server";
 import type { NewsQuizItem } from "@/types";
 
@@ -47,6 +48,11 @@ type StockHistoryGroup = {
   ticker: string;
   company: string;
   records: HistoryRecord[];
+};
+
+type SectorHistoryGroup = {
+  sector: string;
+  stocks: StockHistoryGroup[];
 };
 
 export const dynamic = "force-dynamic";
@@ -98,7 +104,7 @@ export default async function HistoryPage() {
   );
   const totalCorrect = sessions.filter((session) => session.score === 1).length;
   const earnedCoins = sessions.reduce((sum, session) => sum + (session.coins_earned ?? 0), 0);
-  const groupedRecords = groupRecordsByStock(
+  const groupedRecords = groupRecordsBySector(
     sessions.map((session) => {
       const news = session.news_id ? newsById.get(session.news_id) : undefined;
       const item = news ? toNewsQuizItem(news) : null;
@@ -142,9 +148,10 @@ export default async function HistoryPage() {
       </section>
 
       <div style={{ display: "grid", gap: "16px" }}>
-        {groupedRecords.map((group) => (
-          <section
-            key={group.ticker}
+        {groupedRecords.map((sectorGroup) => (
+          <details
+            key={sectorGroup.sector}
+            open
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border)",
@@ -152,25 +159,55 @@ export default async function HistoryPage() {
               overflow: "hidden",
             }}
           >
-            <div style={{ padding: "15px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+            <summary style={{ padding: "15px", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
               <div>
-                <h2 style={{ fontSize: "15px", lineHeight: 1.35 }}>{group.company}</h2>
-                <div style={{ marginTop: "3px", fontSize: "11px", color: "var(--text-muted)" }}>{group.ticker}</div>
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginBottom: "3px" }}>INDUSTRY</div>
+                <h2 style={{ fontSize: "15px", lineHeight: 1.35 }}>{sectorGroup.sector}</h2>
               </div>
               <div style={{ textAlign: "right", fontSize: "11px", color: "var(--text-dim)", lineHeight: 1.6 }}>
-                <div>{group.records.length}문제 · 정답 {group.records.filter(({ session }) => session.score === 1).length}개</div>
-                <strong style={{ color: "var(--accent)", fontSize: "12px" }}>₩{group.records.reduce((sum, { session }) => sum + (session.coins_earned ?? 0), 0).toLocaleString()}</strong>
+                <div>{sectorGroup.stocks.length}종목 · {sectorGroup.stocks.reduce((sum, stock) => sum + stock.records.length, 0)}문제</div>
+                <strong style={{ color: "var(--accent)", fontSize: "12px" }}>펼치기 / 접기</strong>
               </div>
-            </div>
+            </summary>
 
-            <div style={{ display: "grid", gap: "10px", padding: "10px" }}>
-              {group.records.map((record) => <HistoryQuizCard key={record.session.id} record={record} />)}
+            <div style={{ display: "grid", gap: "10px", padding: "10px", borderTop: "1px solid var(--border)" }}>
+              {sectorGroup.stocks.map((stockGroup) => (
+                <details key={stockGroup.ticker} style={{ background: "var(--surface2)", borderRadius: "9px", overflow: "hidden" }}>
+                  <summary style={{ padding: "14px", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                    <div>
+                      <h3 style={{ fontSize: "14px", lineHeight: 1.35 }}>{stockGroup.company}</h3>
+                      <div style={{ marginTop: "3px", fontSize: "11px", color: "var(--text-muted)" }}>{stockGroup.ticker}</div>
+                    </div>
+                    <div style={{ textAlign: "right", fontSize: "11px", color: "var(--text-dim)", lineHeight: 1.6 }}>
+                      <div>{stockGroup.records.length}문제 · 정답 {stockGroup.records.filter(({ session }) => session.score === 1).length}개</div>
+                      <strong style={{ color: "var(--accent)", fontSize: "12px" }}>₩{stockGroup.records.reduce((sum, { session }) => sum + (session.coins_earned ?? 0), 0).toLocaleString()}</strong>
+                    </div>
+                  </summary>
+
+                  <div style={{ display: "grid", gap: "10px", padding: "10px", borderTop: "1px solid var(--border)" }}>
+                    {stockGroup.records.map((record) => <HistoryQuizCard key={record.session.id} record={record} />)}
+                  </div>
+                </details>
+              ))}
             </div>
-          </section>
+          </details>
         ))}
       </div>
     </div>
   );
+}
+
+function groupRecordsBySector(records: HistoryRecord[]): SectorHistoryGroup[] {
+  const sectors = new Map<string, StockHistoryGroup[]>();
+
+  for (const stockGroup of groupRecordsByStock(records)) {
+    const sector = getStock(stockGroup.ticker)?.sector ?? "기타 / 미분류";
+    const stocks = sectors.get(sector) ?? [];
+    stocks.push(stockGroup);
+    sectors.set(sector, stocks);
+  }
+
+  return Array.from(sectors, ([sector, stocks]) => ({ sector, stocks }));
 }
 
 function groupRecordsByStock(records: HistoryRecord[]): StockHistoryGroup[] {
