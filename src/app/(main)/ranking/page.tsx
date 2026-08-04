@@ -7,7 +7,10 @@ import { useAuth } from "@/context/AuthContext";
 interface RankingUser {
   id: string;
   nickname: string | null;
-  coins: number | null;
+  total_earned_coins: number | string | null;
+  realized_profit: number | string | null;
+  realized_cost_basis: number | string | null;
+  realized_return_rate: number | string | null;
 }
 
 export default function RankingPage() {
@@ -20,15 +23,12 @@ export default function RankingPage() {
     async function fetchRankings() {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from("users")
-        .select("id, nickname, coins")
-        .order("coins", { ascending: false })
-        .limit(50);
+        .rpc("get_learning_rankings", { p_limit: 50 });
 
       if (error) {
-        setError("랭킹을 불러오지 못했습니다. users 테이블 조회 정책을 확인해주세요.");
+        setError("랭킹을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       } else {
-        setRankings(data ?? []);
+        setRankings((data as RankingUser[] | null) ?? []);
       }
       setLoading(false);
     }
@@ -43,7 +43,10 @@ export default function RankingPage() {
           랭킹
         </div>
         <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-          보유 모의투자금 기준 상위 사용자
+          총 획득 모의투자금 순 · 동률이면 실현 수익률 순
+        </div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>
+          수익률은 주식을 매도한 뒤에만 반영됩니다.
         </div>
       </div>
 
@@ -83,6 +86,16 @@ export default function RankingPage() {
           {rankings.map((item, index) => {
             const isMe = item.id === user?.id;
             const rank = index + 1;
+            const totalEarned = Number(item.total_earned_coins ?? 0);
+            const realizedProfit = Number(item.realized_profit ?? 0);
+            const realizedCostBasis = Number(item.realized_cost_basis ?? 0);
+            const realizedReturnRate = Number(item.realized_return_rate ?? 0);
+            const returnColor =
+              realizedReturnRate > 0
+                ? "#ef4444"
+                : realizedReturnRate < 0
+                  ? "#2563eb"
+                  : "var(--text-muted)";
 
             return (
               <div
@@ -123,15 +136,36 @@ export default function RankingPage() {
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: "14px",
-                    fontWeight: 900,
-                    color: "var(--coin)",
-                  }}
-                >
-                  ₩{(item.coins ?? 0).toLocaleString()}
+                <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                  <div
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: "14px",
+                      fontWeight: 900,
+                      color: "var(--coin)",
+                    }}
+                  >
+                    ₩{totalEarned.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "3px" }}>
+                    총 획득
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      color: returnColor,
+                      marginTop: "5px",
+                    }}
+                    title={
+                      realizedCostBasis > 0
+                        ? `실현손익 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()}`
+                        : "아직 매도 내역이 없습니다."
+                    }
+                  >
+                    실현 {realizedReturnRate > 0 ? "+" : ""}{realizedReturnRate.toFixed(2)}%
+                  </div>
                 </div>
               </div>
             );

@@ -86,36 +86,42 @@ export async function POST(req: NextRequest) {
     if (current_coins < coins_delta) {
       return NextResponse.json({ error: '모의투자금이 부족합니다.' }, { status: 400 });
     }
-  } else {
-    const { data: holding } = await supabase
-      .from('portfolio')
-      .select('quantity')
-      .eq('user_id', user.id)
-      .eq('ticker', ticker)
-      .single();
-
-    if (!holding || holding.quantity < quantity) {
-      return NextResponse.json({ error: '보유 수량이 부족합니다.' }, { status: 400 });
-    }
   }
 
-  // trades 기록
-  await supabase.from('trades').insert({
-    user_id: user.id,
-    ticker,
-    trade_type,
-    quantity,
-    price,
-    coins_delta: trade_type === 'buy' ? -coins_delta : coins_delta,
-  });
-
-  // portfolio 업데이트
   const { data: existing } = await supabase
     .from('portfolio')
     .select('quantity, avg_cost')
     .eq('user_id', user.id)
     .eq('ticker', ticker)
     .single();
+
+  if (trade_type === 'sell' && (!existing || existing.quantity < quantity)) {
+    return NextResponse.json({ error: '보유 수량이 부족합니다.' }, { status: 400 });
+  }
+
+  const cost_basis =
+    trade_type === 'sell' ? Math.round((existing?.avg_cost ?? 0) * quantity) : null;
+  const realized_profit = trade_type === 'sell' ? coins_delta - (cost_basis ?? 0) : null;
+
+  // 매도 시점의 평균 매입원가와 실현손익을 함께 기록한다.
+  // 보유 중인 종목의 평가손익은 랭킹 수익률에 포함하지 않는다.
+  const { error: tradeError } = await supabase.from('trades').insert({
+    user_id: user.id,
+    ticker,
+    trade_type,
+    quantity,
+    price,
+    coins_delta: trade_type === 'buy' ? -coins_delta : coins_delta,
+    cost_basis,
+    realized_profit,
+  });
+
+  if (tradeError) {
+    console.error('[POST /api/trade] trade insert error:', tradeError);
+    return NextResponse.json({ error: '거래 내역을 저장하지 못했습니다.' }, { status: 500 });
+  }
+
+  // portfolio 업데이트
 
   let portfolio_after;
 
