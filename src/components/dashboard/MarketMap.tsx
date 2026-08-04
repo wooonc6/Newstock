@@ -90,8 +90,10 @@ function formatLegendLabel(value: number) {
 }
 
 function getSpan(weight: number) {
-  if (weight >= 10) return { column: 3, row: 2 };
+  if (weight >= 11.5) return { column: 4, row: 2 };
+  if (weight >= 9) return { column: 3, row: 2 };
   if (weight >= 7) return { column: 2, row: 2 };
+  if (weight >= 5.7) return { column: 3, row: 1 };
   if (weight >= 5) return { column: 2, row: 1 };
   return { column: 1, row: 1 };
 }
@@ -157,7 +159,7 @@ export default function MarketMap() {
             </span>
           </h2>
           <p style={{ margin: "6px 0 0", fontSize: "12px", fontWeight: 400, lineHeight: 1.65, letterSpacing: 0, color: "#cbd5e1" }}>
-            크기는 대표성 가중치, 색은 당일 등락률 기준입니다.
+            크기는 시가총액 상대 비율, 색은 당일 등락률 기준입니다.
           </p>
         </div>
         <div style={{ textAlign: "right", fontSize: "11px", fontWeight: 400, lineHeight: 1.65, letterSpacing: 0, color: "#94a3b8", whiteSpace: "nowrap" }}>
@@ -176,6 +178,7 @@ export default function MarketMap() {
           <div
             style={{
               display: "grid",
+              gridAutoFlow: "dense",
               gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
               gridAutoRows: "74px",
               gap: "6px",
@@ -185,7 +188,7 @@ export default function MarketMap() {
               const changePercent = item.changePercent;
               const color = getTileColor(changePercent);
               const span = getSpan(item.weight);
-              const isBig = item.weight >= 7;
+              const isBig = span.column * span.row >= 4;
 
               return (
                 <Link
