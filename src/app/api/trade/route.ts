@@ -66,108 +66,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '현재 주가를 가져올 수 없습니다.' }, { status: 502 });
   }
 
-  const coins_delta = Math.round(price * quantity);
-
   // users 행 방어
   await supabase.from('users').upsert(
     { id: user.id, coins: 1000000, streak: 0, sessions: 0 },
     { onConflict: 'id', ignoreDuplicates: true }
   );
 
-  const { data: userData } = await supabase
-    .from('users')
-    .select('coins')
-    .eq('id', user.id)
-    .single();
-
-  const current_coins = userData?.coins ?? 1000000;
-
-  if (trade_type === 'buy') {
-    if (current_coins < coins_delta) {
-      return NextResponse.json({ error: '모의투자금이 부족합니다.' }, { status: 400 });
-    }
-  }
-
-  const { data: existing } = await supabase
-    .from('portfolio')
-    .select('quantity, avg_cost')
-    .eq('user_id', user.id)
-    .eq('ticker', ticker)
-    .single();
-
-  if (trade_type === 'sell' && (!existing || existing.quantity < quantity)) {
-    return NextResponse.json({ error: '보유 수량이 부족합니다.' }, { status: 400 });
-  }
-
-  const cost_basis =
-    trade_type === 'sell' ? Math.round((existing?.avg_cost ?? 0) * quantity) : null;
-  const realized_profit = trade_type === 'sell' ? coins_delta - (cost_basis ?? 0) : null;
-
-  // 매도 시점의 평균 매입원가와 실현손익을 함께 기록한다.
-  // 보유 중인 종목의 평가손익은 랭킹 수익률에 포함하지 않는다.
-  const { error: tradeError } = await supabase.from('trades').insert({
-    user_id: user.id,
-    ticker,
-    trade_type,
-    quantity,
-    price,
-    coins_delta: trade_type === 'buy' ? -coins_delta : coins_delta,
-    cost_basis,
-    realized_profit,
+  // 거래 기록, 포트폴리오, 현금을 하나의 DB 트랜잭션에서 함께 갱신한다.
+  const { data: result, error: tradeError } = await supabase.rpc('execute_simulated_trade', {
+    p_ticker: ticker,
+    p_trade_type: trade_type,
+    p_quantity: quantity,
+    p_execution_price: price,
+    p_conditional_order_id: null,
   });
 
   if (tradeError) {
-    console.error('[POST /api/trade] trade insert error:', tradeError);
-    return NextResponse.json({ error: '거래 내역을 저장하지 못했습니다.' }, { status: 500 });
+    console.error('[POST /api/trade] atomic trade error:', tradeError);
+    return NextResponse.json({ error: '거래를 처리하지 못했습니다.' }, { status: 500 });
   }
 
-  // portfolio 업데이트
-
-  let portfolio_after;
-
-  if (trade_type === 'buy') {
-    const old_qty = existing?.quantity ?? 0;
-    const old_avg = existing?.avg_cost ?? 0;
-    const new_qty = old_qty + quantity;
-    const new_avg = (old_qty * old_avg + quantity * price) / new_qty;
-
-    const { data } = await supabase
-      .from('portfolio')
-      .upsert(
-        { user_id: user.id, ticker, quantity: new_qty, avg_cost: new_avg },
-        { onConflict: 'user_id,ticker' }
-      )
-      .select()
-      .single();
-    portfolio_after = data;
-  } else {
-    const new_qty = (existing?.quantity ?? 0) - quantity;
-    if (new_qty <= 0) {
-      await supabase
-        .from('portfolio')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('ticker', ticker);
-      portfolio_after = null;
-    } else {
-      const { data } = await supabase
-        .from('portfolio')
-        .update({ quantity: new_qty })
-        .eq('user_id', user.id)
-        .eq('ticker', ticker)
-        .select()
-        .single();
-      portfolio_after = data;
-    }
+  if (!result?.success) {
+    return NextResponse.json({ error: result?.error ?? '거래에 실패했습니다.' }, { status: 400 });
   }
 
-  const coins_after =
-    trade_type === 'buy' ? current_coins - coins_delta : current_coins + coins_delta;
-
-  await supabase
-    .from('users')
-    .update({ coins: coins_after })
-    .eq('id', user.id);
-
-  return NextResponse.json({ success: true, coins_after, portfolio_after });
+  return NextResponse.json(result);
 }

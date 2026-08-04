@@ -9,6 +9,7 @@ import { STOCKS, getStock } from "@/lib/stocks";
 import { createClient } from "@/lib/supabase/client";
 import type { PortfolioHolding } from "@/types";
 import TradeModal from "./TradeModal";
+import ConditionalOrders from "./ConditionalOrders";
 
 interface HoldingRowProps {
   holding: PortfolioHolding;
@@ -246,12 +247,13 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
 }
 
 export default function PortfolioPage() {
-  const { user, coins } = useAuth();
+  const { user, coins, refreshUser } = useAuth();
   const { unlockMap, loading: unlockLoading, error: unlockError } = useQuizUnlock(user?.id);
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
   const [loading, setLoading] = useState(true);
   const [tradeTarget, setTradeTarget] = useState<string | null>(null);
   const [selectedTicker, setSelectedTicker] = useState(STOCKS[0]?.ticker ?? "");
+  const [ordersRefreshKey, setOrdersRefreshKey] = useState(0);
 
   const fetchHoldings = useCallback(async () => {
     if (!user?.id) {
@@ -271,6 +273,11 @@ export default function PortfolioPage() {
   useEffect(() => {
     fetchHoldings();
   }, [fetchHoldings]);
+
+  const handlePortfolioChanged = useCallback(() => {
+    fetchHoldings();
+    refreshUser();
+  }, [fetchHoldings, refreshUser]);
 
   const holdingsByTicker = new Map(holdings.map((h) => [h.ticker, h]));
   const hasUnlockedStock = STOCKS.some((s) => unlockMap[s.ticker]?.unlocked);
@@ -382,6 +389,11 @@ export default function PortfolioPage() {
         )}
       </section>
 
+      <ConditionalOrders
+        refreshKey={ordersRefreshKey}
+        onPortfolioChanged={handlePortfolioChanged}
+      />
+
       <section style={{ marginBottom: "16px" }}>
         <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "8px", color: "var(--text-dim)" }}>💼 보유 종목</div>
         {loading ? (
@@ -431,6 +443,7 @@ export default function PortfolioPage() {
           onClose={() => setTradeTarget(null)}
           onSuccess={(_coins_after, _portfolio_after) => {
             fetchHoldings();
+            setOrdersRefreshKey((key) => key + 1);
             setTradeTarget(null);
           }}
         />

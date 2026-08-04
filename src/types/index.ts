@@ -128,6 +128,21 @@ export interface PortfolioHolding {
   updated_at: string;
 }
 
+export interface ConditionalOrder {
+  id: string;
+  ticker: string;
+  trade_type: "buy" | "sell";
+  condition_type: "at_or_below" | "at_or_above";
+  quantity: number;
+  target_price: number;
+  status: "pending" | "filled" | "cancelled" | "rejected";
+  execution_price: number | null;
+  failure_reason: string | null;
+  created_at: string;
+  filled_at: string | null;
+  cancelled_at: string | null;
+}
+
 export interface QuizSubmitResult {
   score: number;
   total: number;
