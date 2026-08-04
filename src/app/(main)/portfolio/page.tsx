@@ -11,6 +11,13 @@ import type { PortfolioHolding } from "@/types";
 import TradeModal from "./TradeModal";
 import ConditionalOrders from "./ConditionalOrders";
 
+function formatUpdatedAt(value: string | null | undefined) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
 interface HoldingRowProps {
   holding: PortfolioHolding;
   onTrade: (ticker: string) => void;
@@ -189,6 +196,11 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
             </span>
           )}
         </div>
+        {!loading && (
+          <div style={{ marginTop: "7px", fontSize: "10px", color: "var(--text-muted)" }}>
+            Yahoo Finance 기준 · 30초 자동 갱신 · 갱신 {formatUpdatedAt(priceData?.updatedAt)}
+          </div>
+        )}
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", padding: "16px 0" }}>

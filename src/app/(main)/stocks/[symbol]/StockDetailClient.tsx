@@ -15,6 +15,13 @@ function formatPrice(price: number | null | undefined) {
   return Math.round(price).toLocaleString();
 }
 
+function formatUpdatedAt(value: string | null | undefined) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
 export default function StockDetailClient({ stock }: Props) {
   const { data: quote, loading: quoteLoading } = useStockPrice(stock.ticker);
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -108,6 +115,9 @@ export default function StockDetailClient({ stock }: Props) {
                 <span>{`${Math.abs(changePercent).toFixed(2)}%`}</span>
               </div>
             )}
+            <div style={{ marginTop: "8px", fontSize: "10px", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+              Yahoo Finance · 30초 자동 갱신 · {formatUpdatedAt(quote?.updatedAt)}
+            </div>
           </div>
         </div>
 

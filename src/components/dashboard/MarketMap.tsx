@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+const REFRESH_INTERVAL_MS = 30_000;
 
 type MarketMapItem = {
   ticker: string;
@@ -71,7 +73,7 @@ function formatTime(value: string | null) {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 function getTileColor(changePercent: number | null) {
@@ -184,31 +186,49 @@ export default function MarketMap() {
   const [dimensions, setDimensions] = useState({ width: 1000, height: 680 });
   const mapRef = useRef<HTMLDivElement | null>(null);
 
+  const loadMarketMap = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const response = await fetch("/api/market-map", { cache: "no-store", signal });
+      if (!response.ok) throw new Error("market map api error");
+      const json = (await response.json()) as MarketMapResponse;
+      setData(json);
+      setError(false);
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") setError(true);
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    let fetching = false;
 
     setLoading(true);
     setError(false);
 
-    fetch("/api/market-map")
-      .then((response) => {
-        if (!response.ok) throw new Error("market map api error");
-        return response.json();
-      })
-      .then((json: MarketMapResponse) => {
-        if (!cancelled) setData(json);
-      })
-      .catch(() => {
-        if (!cancelled) setError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    const refresh = async () => {
+      if (cancelled || fetching || document.visibilityState !== "visible") return;
+      fetching = true;
+      await loadMarketMap(controller.signal);
+      fetching = false;
+    };
+
+    refresh();
+    const intervalId = window.setInterval(refresh, REFRESH_INTERVAL_MS);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
 
     return () => {
       cancelled = true;
+      controller.abort();
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
-  }, []);
+  }, [loadMarketMap]);
 
   useEffect(() => {
     const element = mapRef.current;
@@ -290,6 +310,7 @@ export default function MarketMap() {
           <div>상승: 빨강</div>
           <div>하락: 파랑</div>
           <div>갱신: {formatTime(data?.updatedAt ?? null)}</div>
+          <div>Yahoo Finance · 30초 자동 갱신</div>
         </div>
       </div>
 

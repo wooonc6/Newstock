@@ -4,6 +4,8 @@ import { getQuote } from "@/lib/yahoo";
 
 export const dynamic = "force-dynamic";
 
+const SHARED_RESPONSE_CACHE = "public, s-maxage=25, stale-while-revalidate=5";
+
 const FALLBACK_MARKET_MAP_WEIGHTS: Record<string, number> = {
   "005930.KS": 12,
   "000660.KS": 10,
@@ -102,14 +104,17 @@ export async function GET() {
     };
   });
 
-  return NextResponse.json({
-    updatedAt: new Date().toISOString(),
-    kospi,
-    basis: {
-      size: "산업군 합계 및 종목별 Yahoo Finance 시가총액",
-      color: "Yahoo Finance 당일 등락률",
-      refresh: "대시보드 접속 또는 새로고침 시 1회",
+  return NextResponse.json(
+    {
+      updatedAt: new Date().toISOString(),
+      kospi,
+      basis: {
+        size: "산업군 합계 및 종목별 Yahoo Finance 시가총액",
+        color: "Yahoo Finance 당일 등락률",
+        refresh: "화면이 열려 있는 동안 30초마다 자동 갱신 (서버 공유 캐시 25초)",
+      },
+      items,
     },
-    items,
-  });
+    { headers: { "Cache-Control": SHARED_RESPONSE_CACHE } }
+  );
 }

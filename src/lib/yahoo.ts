@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 type YahooQuote = {
   regularMarketPrice?: number;
   regularMarketChange?: number;
@@ -21,7 +23,14 @@ async function getYahooClient() {
   return yahooClient;
 }
 
-export async function getQuote(ticker: string): Promise<YahooQuote> {
+/**
+ * Shared quote snapshot lifetime.  It is slightly shorter than the 30-second
+ * client refresh so a newly started refresh cycle can normally obtain a new
+ * Yahoo value, while simultaneous visitors reuse the same snapshot.
+ */
+export const QUOTE_CACHE_SECONDS = 25;
+
+async function fetchQuoteFromYahoo(ticker: string): Promise<YahooQuote> {
   const yahoo = await getYahooClient();
 
   if (typeof yahoo.quote !== "function") {
@@ -44,6 +53,20 @@ export async function getQuote(ticker: string): Promise<YahooQuote> {
   } catch {
     return getChartQuote(ticker);
   }
+}
+
+// Next's Data Cache is shared by Vercel server instances, unlike a module-level
+// Map. The ticker argument is part of the cache key, so each supported symbol
+// has one shared 25-second Yahoo snapshot across dashboard, portfolio, detail,
+// trade, and conditional-order requests.
+const getCachedQuote = unstable_cache(
+  async (ticker: string) => fetchQuoteFromYahoo(ticker),
+  ["yahoo-quote-v1"],
+  { revalidate: QUOTE_CACHE_SECONDS }
+);
+
+export async function getQuote(ticker: string): Promise<YahooQuote> {
+  return getCachedQuote(ticker);
 }
 
 async function getChartQuote(ticker: string): Promise<YahooQuote> {
