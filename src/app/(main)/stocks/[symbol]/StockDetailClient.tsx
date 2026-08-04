@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { NewsItem, Stock } from "@/types";
 import { useStockPrice } from "@/hooks/useStockPrice";
+import RecentStockNews from "../../quiz/[stock]/RecentStockNews";
 
 interface Props {
   stock: Stock;
@@ -137,11 +138,36 @@ export default function StockDetailClient({ stock }: Props) {
         </Link>
       </section>
 
+      <div
+        style={{
+          background: "#f0f9ff",
+          border: "1px solid #bae6fd",
+          borderRadius: "12px",
+          padding: "16px",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-flex",
+            marginBottom: "10px",
+            borderRadius: "999px",
+            padding: "5px 9px",
+            background: "#e0f2fe",
+            color: "#0369a1",
+            fontSize: "10px",
+            fontWeight: 800,
+          }}
+        >
+          실시간 정보 · 퀴즈 및 보상 없음
+        </div>
+        <RecentStockNews ticker={stock.ticker} stockName={stock.name} />
+      </div>
+
       <section>
         <div style={{ marginBottom: "10px" }}>
-          <h2 style={{ fontSize: "16px" }}>관련 뉴스</h2>
+          <h2 style={{ fontSize: "16px" }}>📚 과거 뉴스 퀴즈 자료</h2>
           <div style={{ marginTop: "3px", fontSize: "12px", color: "var(--text-muted)" }}>
-            이 종목이 왜 이슈인지 먼저 확인합니다
+            퀴즈에 사용되는 과거 기사입니다. 퀴즈는 위 버튼에서 시작할 수 있습니다.
           </div>
         </div>
 
