@@ -25,6 +25,7 @@ type FeedArticle = {
 };
 
 const HOUR = 60 * 60 * 1000;
+const SEARCH_CONCURRENCY = 3;
 const STOCK_ALIASES: Record<string, string[]> = {
   "000660.KS": ["SK하이닉스", "에스케이하이닉스"],
   "267260.KS": ["HD현대일렉트릭", "현대일렉트릭"],
@@ -97,6 +98,27 @@ function toArticle(item: NaverNewsItem, tag: string, ticker?: string): FeedArtic
   };
 }
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function runWorker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await worker(items[index]);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, () => runWorker())
+  );
+  return results;
+}
+
 async function searchNews(query: string, display = 100): Promise<NaverNewsItem[]> {
   const clientId = process.env.NAVER_CLIENT_ID;
   const clientSecret = process.env.NAVER_CLIENT_SECRET;
@@ -107,25 +129,43 @@ async function searchNews(query: string, display = 100): Promise<NaverNewsItem[]
   url.searchParams.set("display", String(display));
   url.searchParams.set("sort", "date");
 
-  const response = await fetch(url, {
-    headers: {
-      "X-Naver-Client-Id": clientId,
-      "X-Naver-Client-Secret": clientSecret,
-    },
-    next: { revalidate: 3600 },
-  });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch(url, {
+      headers: {
+        "X-Naver-Client-Id": clientId,
+        "X-Naver-Client-Secret": clientSecret,
+      },
+      next: { revalidate: 3600 },
+    });
 
-  if (!response.ok) throw new Error(`NAVER_API_${response.status}`);
-  const data = (await response.json()) as NaverNewsResponse;
-  return data.items ?? [];
+    if (response.ok) {
+      const data = (await response.json()) as NaverNewsResponse;
+      return data.items ?? [];
+    }
+
+    if (response.status !== 429 || attempt === 2) {
+      throw new Error(`NAVER_API_${response.status}`);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)));
+  }
+
+  return [];
 }
 
 export async function GET() {
   try {
-    const stockResults = await Promise.all(
-      STOCKS.map(async (stock) => {
+    const stockResults = await mapWithConcurrency(
+      STOCKS,
+      SEARCH_CONCURRENCY,
+      async (stock) => {
         const aliases = STOCK_ALIASES[stock.ticker] ?? [stock.name];
-        const raw = await searchNews(stock.name);
+        let raw: NaverNewsItem[] = [];
+        try {
+          raw = await searchNews(stock.name);
+        } catch (error) {
+          console.warn(`[GET /api/news/market-feed] ${stock.ticker} skipped:`, error);
+        }
         const articles = uniqueArticles(
           raw
             .map((item) => toArticle(item, stock.name, stock.ticker))
@@ -143,7 +183,7 @@ export async function GET() {
         });
 
         return { stock, articles, current, previous };
-      })
+      }
     );
 
     const ranked = stockResults
@@ -167,7 +207,10 @@ export async function GET() {
       if (representative) selected.push(representative);
     }
 
-    const marketRaw = await searchNews("코스피 환율 금리 증시", 100);
+    const marketRaw = await searchNews("코스피 환율 금리 증시", 100).catch((error) => {
+      console.warn("[GET /api/news/market-feed] market search skipped:", error);
+      return [];
+    });
     const marketArticles = uniqueArticles(
       marketRaw
         .map((item) => toArticle(item, "시장동향"))
