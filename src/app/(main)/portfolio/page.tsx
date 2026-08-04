@@ -247,7 +247,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
 
 export default function PortfolioPage() {
   const { user, coins } = useAuth();
-  const { unlockMap, loading: unlockLoading } = useQuizUnlock(user?.id);
+  const { unlockMap, loading: unlockLoading, error: unlockError } = useQuizUnlock(user?.id);
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
   const [loading, setLoading] = useState(true);
   const [tradeTarget, setTradeTarget] = useState<string | null>(null);
@@ -372,6 +372,14 @@ export default function PortfolioPage() {
             투자 권한을 확인하는 중...
           </div>
         )}
+        {!unlockLoading && unlockError && (
+          <div
+            role="alert"
+            style={{ fontSize: "11px", color: "var(--danger)", marginTop: "6px" }}
+          >
+            {unlockError}
+          </div>
+        )}
       </section>
 
       <section style={{ marginBottom: "16px" }}>
@@ -399,7 +407,7 @@ export default function PortfolioPage() {
         )}
       </section>
 
-      {!loading && !unlockLoading && !hasUnlockedStock && holdings.length === 0 && (
+      {!loading && !unlockLoading && !unlockError && !hasUnlockedStock && holdings.length === 0 && (
         <div
           style={{
             background: "rgba(59,130,246,0.06)",

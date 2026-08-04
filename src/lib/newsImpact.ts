@@ -11,7 +11,7 @@ export const QUIZ_AGE_BRACKETS = [
   { label: "약 3개월 전", targetMonths: 3, minDaysAgo: 61, maxDaysAgo: 135, coins: 100000 },
   { label: "약 6개월 전", targetMonths: 6, minDaysAgo: 136, maxDaysAgo: 270, coins: 150000 },
   {
-    label: "12개월 이상 전",
+    label: "약 9개월 이상 전",
     targetMonths: 12,
     minDaysAgo: 271,
     maxDaysAgo: Number.POSITIVE_INFINITY,

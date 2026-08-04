@@ -34,11 +34,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Newstock에서 지원하지 않는 종목입니다.' }, { status: 400 });
   }
 
-  const { count: completedQuizzes } = await supabase
+  const { count: completedQuizzes, error: unlockError } = await supabase
     .from('quiz_sessions')
-    .select('*', { count: 'exact', head: true })
+    .select('news_id', { count: 'exact', head: true })
     .eq('user_id', user.id)
-    .eq('stock_ticker', ticker);
+    .eq('stock_ticker', ticker)
+    .not('news_id', 'is', null);
+
+  if (unlockError) {
+    console.error('[POST /api/trade] unlock check error:', unlockError);
+    return NextResponse.json(
+      { error: '모의투자 권한을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.' },
+      { status: 500 }
+    );
+  }
 
   if ((completedQuizzes ?? 0) < QUIZZES_TO_UNLOCK) {
     return NextResponse.json(
@@ -75,7 +84,7 @@ export async function POST(req: NextRequest) {
 
   if (trade_type === 'buy') {
     if (current_coins < coins_delta) {
-      return NextResponse.json({ error: '코인이 부족합니다.' }, { status: 400 });
+      return NextResponse.json({ error: '모의투자금이 부족합니다.' }, { status: 400 });
     }
   } else {
     const { data: holding } = await supabase

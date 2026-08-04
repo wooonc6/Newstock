@@ -10,9 +10,11 @@ const QUIZZES_TO_UNLOCK = 3;
 export function useQuizUnlock(userId: string | undefined) {
   const [unlockMap, setUnlockMap] = useState<Record<string, UnlockStatus>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const fetchStatus = useCallback(async () => {
     const noSupabase = !process.env.NEXT_PUBLIC_SUPABASE_URL;
+    setError("");
 
     if (!userId || noSupabase) {
       const defaultMap: Record<string, UnlockStatus> = {};
@@ -36,6 +38,8 @@ export function useQuizUnlock(userId: string | undefined) {
       .eq("user_id", userId);
 
     if (error) {
+      console.error("[useQuizUnlock] quiz session read error:", error);
+      setError("모의투자 권한 정보를 불러오지 못했습니다. 페이지를 새로고침해 주세요.");
       setLoading(false);
       return;
     }
@@ -63,5 +67,5 @@ export function useQuizUnlock(userId: string | undefined) {
     fetchStatus();
   }, [fetchStatus]);
 
-  return { unlockMap, loading, refetch: fetchStatus };
+  return { unlockMap, loading, error, refetch: fetchStatus };
 }

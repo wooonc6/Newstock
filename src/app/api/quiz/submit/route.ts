@@ -61,54 +61,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "주가 데이터를 확인하지 못했습니다." }, { status: 502 });
   }
 
-  const coinsEarned = correct ? bracket.coins : 0;
-  const { error: userInitError } = await supabase.from("users").upsert(
-    { id: user.id, coins: 1000000, streak: 0, sessions: 0 },
-    { onConflict: "id", ignoreDuplicates: true }
-  );
-
-  if (userInitError) {
-    return NextResponse.json({ error: "사용자 정보를 준비하지 못했습니다." }, { status: 500 });
-  }
-
-  const { data: userData, error: userReadError } = await supabase
-    .from("users")
-    .select("coins")
-    .eq("id", user.id)
-    .single();
-
-  if (userReadError) {
-    return NextResponse.json({ error: "현재 코인 정보를 불러오지 못했습니다." }, { status: 500 });
-  }
-
-  const currentCoins = userData?.coins ?? 1000000;
-  const newCoinsTotal = currentCoins + coinsEarned;
-  const { error: rewardError } = await supabase
-    .from("users")
-    .update({ coins: newCoinsTotal })
-    .eq("id", user.id);
-
-  if (rewardError) {
-    return NextResponse.json({ error: "코인 보상을 저장하지 못했습니다." }, { status: 500 });
-  }
-
-  const { error: sessionError } = await supabase.from("quiz_sessions").insert({
-    user_id: user.id,
-    stock_ticker: news.ticker,
-    news_id: newsId,
-    score: correct ? 1 : 0,
-    total: 1,
-    coins_earned: coinsEarned,
+  const { data: rewardRows, error: rewardError } = await supabase.rpc("record_quiz_results", {
+    p_results: [{ news_id: newsId, correct }],
   });
 
-  if (sessionError) {
-    return NextResponse.json({ error: "퀴즈 기록을 저장하지 못했습니다." }, { status: 500 });
+  if (rewardError) {
+    console.error("[POST /api/quiz/submit] atomic reward error:", rewardError);
+    return NextResponse.json(
+      { error: "퀴즈 결과와 모의투자금 보상을 저장하지 못했습니다." },
+      { status: 500 }
+    );
+  }
+
+  const reward = rewardRows?.[0] as
+    | { inserted_count: number; reward_amount: number; balance_after: number }
+    | undefined;
+
+  if (!reward) {
+    return NextResponse.json({ error: "보상 처리 결과를 확인하지 못했습니다." }, { status: 500 });
   }
 
   return NextResponse.json({
     score: correct ? 1 : 0,
     total: 1,
-    coins_earned: coinsEarned,
-    new_coins_total: newCoinsTotal,
+    coins_earned: reward.reward_amount,
+    new_coins_total: reward.balance_after,
+    already_completed: reward.inserted_count === 0 ? 1 : 0,
   });
 }

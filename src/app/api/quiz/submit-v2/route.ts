@@ -95,7 +95,6 @@ export async function POST(req: NextRequest) {
       return {
         news,
         correct,
-        coinsEarned: correct ? bracket.coins : 0,
       };
     } catch (impactError) {
       console.error(
@@ -116,63 +115,34 @@ export async function POST(req: NextRequest) {
   }
 
   const totalScore = validScores.filter((item) => item.correct).length;
-  const totalCoins = validScores.reduce((sum, item) => sum + item.coinsEarned, 0);
-
-  const { error: userInitError } = await supabase.from("users").upsert(
-    { id: user.id, coins: 1000000, streak: 0, sessions: 0 },
-    { onConflict: "id", ignoreDuplicates: true }
-  );
-
-  if (userInitError) {
-    console.error("[POST /api/quiz/submit-v2] user init error:", userInitError);
-    return NextResponse.json({ error: "사용자 보상 정보를 준비하지 못했습니다." }, { status: 500 });
-  }
-
-  const { data: userData, error: userReadError } = await supabase
-    .from("users")
-    .select("coins")
-    .eq("id", user.id)
-    .single();
-
-  if (userReadError) {
-    console.error("[POST /api/quiz/submit-v2] user read error:", userReadError);
-    return NextResponse.json({ error: "현재 코인 정보를 불러오지 못했습니다." }, { status: 500 });
-  }
-
-  const currentCoins = userData?.coins ?? 1000000;
-  const newCoins = currentCoins + totalCoins;
-  const { error: rewardError } = await supabase
-    .from("users")
-    .update({ coins: newCoins })
-    .eq("id", user.id);
+  const { data: rewardRows, error: rewardError } = await supabase.rpc("record_quiz_results", {
+    p_results: validScores.map((item) => ({
+      news_id: item.news.id,
+      correct: item.correct,
+    })),
+  });
 
   if (rewardError) {
-    console.error("[POST /api/quiz/submit-v2] reward update error:", rewardError);
-    return NextResponse.json({ error: "코인 보상을 저장하지 못했습니다." }, { status: 500 });
-  }
-
-  const sessionRows = validScores.map((item) => ({
-    user_id: user.id,
-    stock_ticker: item.news.ticker,
-    news_id: item.news.id,
-    score: item.correct ? 1 : 0,
-    total: 1,
-    coins_earned: item.coinsEarned,
-  }));
-  const { error: sessionError } = await supabase.from("quiz_sessions").insert(sessionRows);
-
-  if (sessionError) {
-    console.error("[POST /api/quiz/submit-v2] session write error:", sessionError);
+    console.error("[POST /api/quiz/submit-v2] atomic reward error:", rewardError);
     return NextResponse.json(
-      { error: "퀴즈 기록 저장에 실패했습니다. 코인 반영 여부를 확인해 주세요." },
+      { error: "퀴즈 결과와 모의투자금 보상을 저장하지 못했습니다." },
       { status: 500 }
     );
+  }
+
+  const reward = rewardRows?.[0] as
+    | { inserted_count: number; reward_amount: number; balance_after: number }
+    | undefined;
+
+  if (!reward) {
+    return NextResponse.json({ error: "보상 처리 결과를 확인하지 못했습니다." }, { status: 500 });
   }
 
   return NextResponse.json({
     score: totalScore,
     total: validScores.length,
-    coins_earned: totalCoins,
-    new_coins_total: newCoins,
+    coins_earned: reward.reward_amount,
+    new_coins_total: reward.balance_after,
+    already_completed: validScores.length - reward.inserted_count,
   });
 }

@@ -43,7 +43,7 @@ export default function RankingPage() {
           랭킹
         </div>
         <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-          보유 코인 기준 상위 사용자
+          보유 모의투자금 기준 상위 사용자
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export default function RankingPage() {
                     color: "var(--coin)",
                   }}
                 >
-                  {(item.coins ?? 0).toLocaleString()}
+                  ₩{(item.coins ?? 0).toLocaleString()}
                 </div>
               </div>
             );

@@ -135,8 +135,8 @@ export default async function StatsPage() {
       >
         <div style={{ fontSize: "14px", fontWeight: 800, marginBottom: "10px" }}>내 정답률 요약</div>
         <div style={{ fontSize: "13px", lineHeight: 1.7, color: "var(--text-dim)" }}>
-          지원 종목 {STOCKS.length}개 중 퀴즈 기록이 있는 종목을 기준으로 계산했습니다. 지금까지 획득한 코인은{" "}
-          <strong style={{ color: "var(--accent)" }}>{coins.toLocaleString()}코인</strong>입니다.
+          지원 종목 {STOCKS.length}개 중 퀴즈 기록이 있는 종목을 기준으로 계산했습니다. 지금까지 획득한 모의투자금은{" "}
+          <strong style={{ color: "var(--accent)" }}>₩{coins.toLocaleString()}</strong>입니다.
         </div>
       </section>
     </div>

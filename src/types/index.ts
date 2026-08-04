@@ -126,6 +126,7 @@ export interface QuizSubmitResult {
   total: number;
   coins_earned: number;
   new_coins_total: number;
+  already_completed?: number;
 }
 
 export interface TradeResult {

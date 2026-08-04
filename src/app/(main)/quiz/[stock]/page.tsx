@@ -44,7 +44,7 @@ export default function QuizPage({ params }: Props) {
         </div>
         <h1 style={{ fontSize: "22px", marginBottom: "6px" }}>{stock.name} 뉴스 퀴즈</h1>
         <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>
-          1·3·6개월 전과 12개월 이상 전의 서로 다른 뉴스를 읽고, 각 기사 발표 후 3거래일 동안의 주가 방향을 맞혀보세요.
+          약 1·3·6개월 전과 9개월 이상 전의 서로 다른 뉴스를 읽고, 각 기사 발표 후 3거래일 동안의 주가 방향을 맞혀보세요.
         </div>
       </section>
 

@@ -209,8 +209,13 @@ export default function QuizClient({ ticker, stockName }: Props) {
             {result.score} / {result.total} 정답
           </h2>
           <div style={{ fontSize: "14px", color: "var(--accent)", fontWeight: 800 }}>
-            +{result.coins_earned.toLocaleString()} 코인
+            +₩{result.coins_earned.toLocaleString()} 모의투자금
           </div>
+          {(result.already_completed ?? 0) > 0 && (
+            <div style={{ marginTop: "7px", fontSize: "11px", color: "var(--text-muted)" }}>
+              이미 완료한 뉴스 {result.already_completed}개는 정답 결과만 표시하고 보상과 완료 횟수에는 다시 포함하지 않았습니다.
+            </div>
+          )}
         </section>
 
         <section style={{ display: "grid", gap: "8px" }}>
