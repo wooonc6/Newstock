@@ -77,19 +77,36 @@ export async function GET() {
     0,
     ...quotedItems.map((item) => item.marketCap ?? 0)
   );
-  const items = quotedItems.map(({ marketCap, ...item }) => ({
-    ...item,
-    weight:
-      marketCap != null && marketCap > 0 && maxMarketCap > 0
-        ? 3 + 9 * Math.sqrt(marketCap / maxMarketCap)
+  const items = quotedItems.map((item) => {
+    const hasMarketCap = item.marketCap != null && item.marketCap > 0 && maxMarketCap > 0;
+    const fallbackRatio = Math.max(
+      0.018,
+      Math.pow(Math.max(item.weight - 3, 0) / 9, 2)
+    );
+
+    return {
+      ticker: item.ticker,
+      name: item.name,
+      sector: item.sector,
+      weight: hasMarketCap
+        ? 3 + 9 * Math.sqrt(item.marketCap! / maxMarketCap)
         : item.weight,
-  }));
+      marketCap: item.marketCap,
+      size: hasMarketCap
+        ? item.marketCap!
+        : maxMarketCap > 0
+          ? maxMarketCap * fallbackRatio
+          : item.weight,
+      price: item.price,
+      changePercent: item.changePercent,
+    };
+  });
 
   return NextResponse.json({
     updatedAt: new Date().toISOString(),
     kospi,
     basis: {
-      size: "Yahoo Finance 시가총액 상대 비율",
+      size: "산업군 합계 및 종목별 Yahoo Finance 시가총액",
       color: "Yahoo Finance 당일 등락률",
       refresh: "대시보드 접속 또는 새로고침 시 1회",
     },
