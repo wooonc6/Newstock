@@ -49,20 +49,69 @@ export default function QuizPage({ params }: Props) {
         </div>
       </section>
 
-      <RecentStockNews ticker={ticker} stockName={stock.name} />
+      <div
+        style={{
+          background: "#f0f9ff",
+          border: "1px solid #bae6fd",
+          borderRadius: "12px",
+          padding: "16px",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-flex",
+            marginBottom: "10px",
+            borderRadius: "999px",
+            padding: "5px 9px",
+            background: "#e0f2fe",
+            color: "#0369a1",
+            fontSize: "10px",
+            fontWeight: 800,
+          }}
+        >
+          실시간 정보 · 퀴즈 및 보상 없음
+        </div>
+        <RecentStockNews ticker={ticker} stockName={stock.name} />
+      </div>
 
-      <section aria-labelledby="past-news-quiz-title">
-        <h2 id="past-news-quiz-title" style={{ fontSize: "16px", lineHeight: 1.4 }}>
-          📚 과거 뉴스 퀴즈
-        </h2>
-        <p style={{ marginTop: "4px", fontSize: "12px", color: "var(--text-muted)" }}>
-          당시 기사를 읽고 발표 후 3거래일 동안의 주가 상승·하락을 예측하세요.
-        </p>
+      <section
+        aria-labelledby="past-news-quiz-title"
+        style={{
+          background: "var(--surface)",
+          border: "2px solid var(--border)",
+          borderRadius: "12px",
+          padding: "16px",
+          display: "grid",
+          gap: "14px",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              display: "inline-flex",
+              marginBottom: "10px",
+              borderRadius: "999px",
+              padding: "5px 9px",
+              background: "var(--surface2)",
+              color: "var(--accent2)",
+              fontSize: "10px",
+              fontWeight: 800,
+            }}
+          >
+            과거 학습 · 정답 보상 있음
+          </div>
+          <h2 id="past-news-quiz-title" style={{ fontSize: "16px", lineHeight: 1.4 }}>
+            📚 과거 뉴스 퀴즈
+          </h2>
+          <p style={{ marginTop: "4px", fontSize: "12px", color: "var(--text-muted)" }}>
+            당시 기사를 읽고 발표 후 3거래일 동안의 주가 상승·하락을 예측하세요.
+          </p>
+        </div>
+
+        <Suspense fallback={null}>
+          <QuizClient ticker={ticker} stockName={stock.name} />
+        </Suspense>
       </section>
-
-      <Suspense fallback={null}>
-        <QuizClient ticker={ticker} stockName={stock.name} />
-      </Suspense>
     </div>
   );
 }
