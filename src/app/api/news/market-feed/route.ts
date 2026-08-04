@@ -153,8 +153,30 @@ async function searchNews(query: string, display = 100): Promise<NaverNewsItem[]
   return [];
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const requestedTicker = new URL(request.url).searchParams.get("ticker");
+    if (requestedTicker) {
+      const stock = STOCKS.find((item) => item.ticker === requestedTicker);
+      if (!stock) {
+        return NextResponse.json({ error: "지원하지 않는 종목입니다." }, { status: 404 });
+      }
+
+      const aliases = STOCK_ALIASES[stock.ticker] ?? [stock.name];
+      const recentArticles = uniqueArticles(
+        (await searchNews(stock.name))
+          .map((item) => toArticle(item, stock.name, stock.ticker))
+          .filter((item) => hasAliasInTitle(item.title, aliases))
+          .filter((item) => Date.now() - new Date(item.pubDate).getTime() <= 24 * HOUR)
+          .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+      ).slice(0, 5);
+
+      return NextResponse.json(
+        { ticker: stock.ticker, name: stock.name, articles: recentArticles },
+        { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600" } }
+      );
+    }
+
     const stockResults = await mapWithConcurrency(
       STOCKS,
       SEARCH_CONCURRENCY,
