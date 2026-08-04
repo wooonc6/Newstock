@@ -36,6 +36,19 @@ type CuratedNewsRow = {
   impact_direction: "up" | "down" | null;
 };
 
+type HistoryRecord = {
+  session: QuizSessionRow;
+  news: CuratedNewsRow | undefined;
+  item: NewsQuizItem | null;
+  correctDirection: "up" | "down" | null;
+};
+
+type StockHistoryGroup = {
+  ticker: string;
+  company: string;
+  records: HistoryRecord[];
+};
+
 export const dynamic = "force-dynamic";
 
 export default async function HistoryPage() {
@@ -85,6 +98,19 @@ export default async function HistoryPage() {
   );
   const totalCorrect = sessions.filter((session) => session.score === 1).length;
   const earnedCoins = sessions.reduce((sum, session) => sum + (session.coins_earned ?? 0), 0);
+  const groupedRecords = groupRecordsByStock(
+    sessions.map((session) => {
+      const news = session.news_id ? newsById.get(session.news_id) : undefined;
+      const item = news ? toNewsQuizItem(news) : null;
+
+      return {
+        session,
+        news,
+        item,
+        correctDirection: news?.impact_direction ?? item?.direction ?? null,
+      };
+    })
+  );
 
   return (
     <div style={{ display: "grid", gap: "16px" }}>
@@ -115,77 +141,82 @@ export default async function HistoryPage() {
         </div>
       </section>
 
-      <div style={{ display: "grid", gap: "10px" }}>
-        {sessions.map((session) => {
-          const news = session.news_id ? newsById.get(session.news_id) : undefined;
-          const item = news ? toNewsQuizItem(news) : null;
-          const correctDirection = news?.impact_direction ?? item?.direction ?? null;
-
-          return (
-            <article
-              key={session.id}
-              style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                borderRadius: "10px",
-                padding: "15px",
-                display: "grid",
-                gap: "12px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", alignItems: "flex-start" }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                    {formatCompletedAt(session.created_at)} · {news?.company ?? session.stock_ticker}
-                  </div>
-                  <h2 style={{ marginTop: "5px", fontSize: "14px", lineHeight: 1.45 }}>
-                    {news?.title ?? "연결된 뉴스 정보를 찾을 수 없습니다."}
-                  </h2>
-                  {news ? (
-                    <a
-                      href={news.source_url ?? buildCuratedNewsSourceUrl(news.title, news.news_date)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: "inline-flex",
-                        marginTop: "7px",
-                        color: "var(--accent2)",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        textDecoration: "none",
-                      }}
-                    >
-                      기사 원문 ↗
-                    </a>
-                  ) : null}
-                </div>
-                <span
-                  style={{
-                    padding: "5px 8px",
-                    borderRadius: "999px",
-                    background: session.score === 1 ? "rgba(0,168,120,0.09)" : "rgba(239,68,68,0.07)",
-                    color: session.score === 1 ? "var(--accent)" : "var(--danger)",
-                    fontSize: "11px",
-                    fontWeight: 800,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {session.score === 1 ? "정답" : "오답"}
-                </span>
+      <div style={{ display: "grid", gap: "16px" }}>
+        {groupedRecords.map((group) => (
+          <section
+            key={group.ticker}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "12px",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ padding: "15px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+              <div>
+                <h2 style={{ fontSize: "15px", lineHeight: 1.35 }}>{group.company}</h2>
+                <div style={{ marginTop: "3px", fontSize: "11px", color: "var(--text-muted)" }}>{group.ticker}</div>
               </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
-                <AnswerBox label="내 선택" value={directionLabel(session.user_answer)} />
-                <AnswerBox label="실제 결과" value={directionLabel(correctDirection)} />
-                <AnswerBox label="받은 보상" value={`₩${(session.coins_earned ?? 0).toLocaleString()}`} />
+              <div style={{ textAlign: "right", fontSize: "11px", color: "var(--text-dim)", lineHeight: 1.6 }}>
+                <div>{group.records.length}문제 · 정답 {group.records.filter(({ session }) => session.score === 1).length}개</div>
+                <strong style={{ color: "var(--accent)", fontSize: "12px" }}>₩{group.records.reduce((sum, { session }) => sum + (session.coins_earned ?? 0), 0).toLocaleString()}</strong>
               </div>
+            </div>
 
-              {item ? <NewsAnalysisPrompt item={item} /> : null}
-            </article>
-          );
-        })}
+            <div style={{ display: "grid", gap: "10px", padding: "10px" }}>
+              {group.records.map((record) => <HistoryQuizCard key={record.session.id} record={record} />)}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
+  );
+}
+
+function groupRecordsByStock(records: HistoryRecord[]): StockHistoryGroup[] {
+  const groups = new Map<string, StockHistoryGroup>();
+
+  records.forEach((record) => {
+    const ticker = record.news?.ticker ?? record.session.stock_ticker;
+    const existing = groups.get(ticker);
+
+    if (existing) {
+      existing.records.push(record);
+      return;
+    }
+
+    groups.set(ticker, {
+      ticker,
+      company: record.news?.company ?? ticker,
+      records: [record],
+    });
+  });
+
+  return Array.from(groups.values());
+}
+
+function HistoryQuizCard({ record }: { record: HistoryRecord }) {
+  const { session, news, item, correctDirection } = record;
+
+  return (
+    <article style={{ background: "var(--surface2)", borderRadius: "9px", padding: "14px", display: "grid", gap: "12px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", alignItems: "flex-start" }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{formatCompletedAt(session.created_at)}</div>
+          <h3 style={{ marginTop: "5px", fontSize: "14px", lineHeight: 1.45 }}>{news?.title ?? "연결된 뉴스 정보를 찾을 수 없습니다."}</h3>
+          {news ? <a href={news.source_url ?? buildCuratedNewsSourceUrl(news.title, news.news_date)} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", marginTop: "7px", color: "var(--accent2)", fontSize: "11px", fontWeight: 700, textDecoration: "none" }}>기사 원문 ↗</a> : null}
+        </div>
+        <span style={{ padding: "5px 8px", borderRadius: "999px", background: session.score === 1 ? "rgba(0,168,120,0.09)" : "rgba(239,68,68,0.07)", color: session.score === 1 ? "var(--accent)" : "var(--danger)", fontSize: "11px", fontWeight: 800, whiteSpace: "nowrap" }}>
+          {session.score === 1 ? "정답" : "오답"}
+        </span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
+        <AnswerBox label="내 선택" value={directionLabel(session.user_answer)} />
+        <AnswerBox label="실제 결과" value={directionLabel(correctDirection)} />
+        <AnswerBox label="받은 보상" value={`₩${(session.coins_earned ?? 0).toLocaleString()}`} />
+      </div>
+      {item ? <NewsAnalysisPrompt item={item} /> : null}
+    </article>
   );
 }
 
