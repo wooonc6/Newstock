@@ -4,6 +4,7 @@ type YahooQuote = {
   regularMarketChangePercent?: number;
   regularMarketPreviousClose?: number;
   regularMarketVolume?: number;
+  marketCap?: number;
   shortName?: string;
   currency?: string;
 };
@@ -35,6 +36,7 @@ export async function getQuote(ticker: string): Promise<YahooQuote> {
         "regularMarketChangePercent",
         "regularMarketPreviousClose",
         "regularMarketVolume",
+        "marketCap",
         "shortName",
         "currency",
       ],
