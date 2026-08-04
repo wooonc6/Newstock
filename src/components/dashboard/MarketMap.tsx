@@ -90,12 +90,13 @@ function formatLegendLabel(value: number) {
 }
 
 function getSpan(weight: number) {
-  if (weight >= 11.5) return { column: 4, row: 2 };
-  if (weight >= 9) return { column: 3, row: 2 };
-  if (weight >= 7) return { column: 2, row: 2 };
-  if (weight >= 5.7) return { column: 3, row: 1 };
-  if (weight >= 5) return { column: 2, row: 1 };
-  return { column: 1, row: 1 };
+  if (weight >= 11.5) return { column: 6, row: 4 };
+  if (weight >= 10) return { column: 5, row: 4 };
+  if (weight >= 8.5) return { column: 5, row: 3 };
+  if (weight >= 7.25) return { column: 4, row: 3 };
+  if (weight >= 6.25) return { column: 4, row: 2 };
+  if (weight >= 5.25) return { column: 3, row: 2 };
+  return { column: 2, row: 2 };
 }
 
 export default function MarketMap() {
@@ -179,16 +180,16 @@ export default function MarketMap() {
             style={{
               display: "grid",
               gridAutoFlow: "dense",
-              gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
-              gridAutoRows: "74px",
-              gap: "6px",
+              gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
+              gridAutoRows: "48px",
+              gap: "5px",
             }}
           >
             {items.map((item) => {
               const changePercent = item.changePercent;
               const color = getTileColor(changePercent);
               const span = getSpan(item.weight);
-              const isBig = span.column * span.row >= 4;
+              const isBig = span.column * span.row >= 8;
 
               return (
                 <Link
