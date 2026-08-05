@@ -30,12 +30,6 @@ const s = {
     gap: "12px",
     marginBottom: "18px",
   } as React.CSSProperties,
-  logo: {
-    fontSize: "24px",
-    fontWeight: 900,
-    color: "var(--accent)",
-    letterSpacing: "-0.02em",
-  } as React.CSSProperties,
   sub: { fontSize: "14px", color: "var(--text-dim)", lineHeight: 1.65, marginBottom: "28px" } as React.CSSProperties,
   label: {
     fontSize: "10px",
@@ -119,7 +113,6 @@ export default function ResetPasswordPage() {
       <div style={s.card}>
         <div style={s.brand}>
           <img src="/logo.svg" alt="Newstock" style={{ height: "52px", width: "auto" }} />
-          <div style={s.logo}>Newstock</div>
         </div>
         <div style={s.sub}>새 비밀번호를 설정해 주세요. 변경 후에는 로그인 화면으로 이동합니다.</div>
         <div style={s.helper}>재설정 메일을 다시 찾는 중이라면 받은편지함과 스팸함을 함께 확인해주세요.</div>
