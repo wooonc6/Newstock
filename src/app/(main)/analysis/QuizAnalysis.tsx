@@ -2,6 +2,7 @@
 
 import QuizAccuracyChart from "./QuizAccuracyChart";
 import CompanyQuizStats from "./CompanyQuizStats";
+import RecentQuizHistory from "./RecentQuizHistory";
 
 interface QuizAnalysisProps {
   totalQuiz: number;
@@ -153,6 +154,42 @@ export default function QuizAnalysis({
             company: "현대차",
             completed: 3,
             required: 3,
+          },
+        ]}
+      />
+
+      {/* 최근 퀴즈 기록 */}
+      <RecentQuizHistory
+        history={[
+          {
+            company: "삼성전자",
+            title: "HBM 공급 확대 뉴스",
+            result: "정답",
+            date: "오늘",
+          },
+          {
+            company: "SK하이닉스",
+            title: "AI 메모리 투자 확대",
+            result: "정답",
+            date: "어제",
+          },
+          {
+            company: "NAVER",
+            title: "클라우드 실적 발표",
+            result: "오답",
+            date: "2일 전",
+          },
+          {
+            company: "현대차",
+            title: "전기차 판매 증가",
+            result: "정답",
+            date: "3일 전",
+          },
+          {
+            company: "카카오",
+            title: "광고 매출 발표",
+            result: "오답",
+            date: "5일 전",
           },
         ]}
       />
