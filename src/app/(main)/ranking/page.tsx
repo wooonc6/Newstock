@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useStockPrice } from "@/hooks/useStockPrice";
 import { getStock } from "@/lib/stocks";
+import { TradeHistoryList, type TradeHistoryItem } from "@/components/trading/TradeHistoryList";
 
 interface RankingUser {
   id: string;
@@ -51,15 +52,22 @@ function HoldingSnapshot({ holding }: { holding: PublicHolding }) {
 
 function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => void }) {
   const [holdings, setHoldings] = useState<PublicHolding[]>([]);
+  const [trades, setTrades] = useState<TradeHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const loadSnapshot = useCallback(async () => {
-    const { data, error } = await createClient().rpc("get_public_portfolio_snapshot", { p_user_id: user.id });
-    if (error) {
+    const supabase = createClient();
+    const [portfolioResult, tradeResult] = await Promise.all([
+      supabase.rpc("get_public_portfolio_snapshot", { p_user_id: user.id }),
+      supabase.rpc("get_public_trade_history", { p_user_id: user.id, p_limit: 30 }),
+    ]);
+
+    if (portfolioResult.error || tradeResult.error) {
       setError("투자 현황을 불러오지 못했습니다.");
     } else {
-      setHoldings((data as PublicHolding[] | null) ?? []);
+      setHoldings((portfolioResult.data as PublicHolding[] | null) ?? []);
+      setTrades((tradeResult.data as TradeHistoryItem[] | null) ?? []);
       setError("");
     }
     setLoading(false);
@@ -91,6 +99,16 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
       </div>
 
       {loading ? <Panel>투자 현황을 불러오는 중입니다.</Panel> : error ? <Panel>{error}</Panel> : activeHoldings.length === 0 ? <Panel>현재 보유 중인 종목이 없습니다.</Panel> : <div style={{ display: "grid", gap: "8px" }}>{activeHoldings.map((holding) => <HoldingSnapshot key={holding.ticker} holding={holding} />)}</div>}
+
+      {!loading && !error && (
+        <div style={{ display: "grid", gap: "8px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+            <div style={{ fontSize: "13px", fontWeight: 900 }}>🧾 매수·매도 기록</div>
+            <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>최근 30건</div>
+          </div>
+          <TradeHistoryList trades={trades} emptyText="아직 공개할 매수·매도 기록이 없습니다." />
+        </div>
+      )}
       <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>보유 내역은 30초마다 갱신되고, 평가금액은 최신 시세에 따라 함께 바뀝니다.</div>
     </section>
   );

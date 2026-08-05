@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useStockPrice } from "@/hooks/useStockPrice";
 import { getStock } from "@/lib/stocks";
 import { createClient } from "@/lib/supabase/client";
+import { TradeHistoryList, type TradeHistoryItem } from "@/components/trading/TradeHistoryList";
 import type { PortfolioHolding } from "@/types";
 
 function HoldingCard({ holding }: { holding: PortfolioHolding }) {
@@ -39,20 +40,34 @@ function HoldingCard({ holding }: { holding: PortfolioHolding }) {
 export default function AssetsPage() {
   const { user, coins } = useAuth();
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
+  const [trades, setTrades] = useState<TradeHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadHoldings = useCallback(async () => {
+  const loadAssets = useCallback(async () => {
     if (!user?.id) {
       setHoldings([]);
+      setTrades([]);
       setLoading(false);
       return;
     }
-    const { data } = await createClient().from("portfolio").select("user_id, ticker, quantity, avg_cost, updated_at").eq("user_id", user.id);
-    setHoldings(data ?? []);
+
+    const supabase = createClient();
+    const [holdingsResult, tradesResult] = await Promise.all([
+      supabase.from("portfolio").select("user_id, ticker, quantity, avg_cost, updated_at").eq("user_id", user.id),
+      supabase
+        .from("trades")
+        .select("id, ticker, trade_type, quantity, price, coins_delta, cost_basis, realized_profit, traded_at")
+        .eq("user_id", user.id)
+        .order("traded_at", { ascending: false })
+        .limit(30),
+    ]);
+
+    setHoldings(holdingsResult.data ?? []);
+    setTrades((tradesResult.data as TradeHistoryItem[] | null) ?? []);
     setLoading(false);
   }, [user?.id]);
 
-  useEffect(() => { void loadHoldings(); }, [loadHoldings]);
+  useEffect(() => { void loadAssets(); }, [loadAssets]);
 
   const investedCost = useMemo(() => holdings.reduce((sum, holding) => sum + holding.avg_cost * holding.quantity, 0), [holdings]);
 
@@ -74,6 +89,14 @@ export default function AssetsPage() {
           <Link href="/portfolio" style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 700, textDecoration: "none" }}>모의투자하기 →</Link>
         </div>
         {loading ? <Panel>자산을 불러오는 중입니다.</Panel> : holdings.length === 0 ? <Panel>아직 보유한 종목이 없습니다. 모의투자 탭에서 첫 거래를 시작해 보세요.</Panel> : <div style={{ display: "grid", gap: "8px" }}>{holdings.map((holding) => <HoldingCard key={holding.ticker} holding={holding} />)}</div>}
+      </section>
+
+      <section>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", marginBottom: "10px" }}>
+          <div style={{ fontSize: "14px", fontWeight: 800 }}>🧾 매수·매도 기록</div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>최근 30건</div>
+        </div>
+        {loading ? <Panel>거래 기록을 불러오는 중입니다.</Panel> : <TradeHistoryList trades={trades} emptyText="아직 매수·매도 기록이 없습니다." />}
       </section>
     </div>
   );
