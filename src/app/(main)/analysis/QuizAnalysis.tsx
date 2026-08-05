@@ -4,6 +4,7 @@ import QuizAccuracyChart from "./QuizAccuracyChart";
 import CompanyQuizStats from "./CompanyQuizStats";
 import RecentQuizHistory from "./RecentQuizHistory";
 import LearningInsight from "./LearningInsight";
+import AchievementCards from "./AchievementCards";
 
 interface QuizAnalysisProps {
   totalQuiz: number;
@@ -82,7 +83,7 @@ export default function QuizAnalysis({
         </p>
       </section>
 
-      {/* 통계 카드 */}
+      {/* 통계 */}
       <div
         style={{
           display: "grid",
@@ -128,6 +129,13 @@ export default function QuizAnalysis({
         total={totalQuiz}
       />
 
+      {/* 업적 */}
+      <AchievementCards
+        totalQuiz={totalQuiz}
+        unlockedCompanies={unlockedCompanies}
+        accuracy={accuracy}
+      />
+
       {/* 기업별 진행도 */}
       <CompanyQuizStats
         companies={[
@@ -159,7 +167,7 @@ export default function QuizAnalysis({
         ]}
       />
 
-      {/* 최근 퀴즈 기록 */}
+      {/* 최근 기록 */}
       <RecentQuizHistory
         history={[
           {
@@ -195,7 +203,7 @@ export default function QuizAnalysis({
         ]}
       />
 
-      {/* 학습 인사이트 */}
+      {/* AI 없이 규칙 기반 인사이트 */}
       <LearningInsight
         totalQuiz={totalQuiz}
         correctQuiz={correctQuiz}
