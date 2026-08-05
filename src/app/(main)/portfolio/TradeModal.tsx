@@ -112,7 +112,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
       }}
       onClick={(event) => event.target === event.currentTarget && onClose()}
     >
-      <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "20px 20px 0 0", padding: "24px", width: "100%", maxWidth: "740px", maxHeight: "92vh", overflowY: "auto" }}>
+      <div className="trade-modal-panel" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "20px 20px 0 0", padding: "24px", width: "100%", maxWidth: "740px", maxHeight: "92vh", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div>
             <div style={{ fontSize: "16px", fontWeight: 700 }}>{stockName} 거래</div>
@@ -140,7 +140,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "12px" }}>
+        <div className="trade-modal-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "12px" }}>
           {(["market", "conditional"] as const).map((mode) => (
             <button key={mode} onClick={() => { setOrderMode(mode); setConfirming(false); setError(null); }} style={{ padding: "10px", borderRadius: "9px", border: "1px solid var(--border)", background: orderMode === mode ? "rgba(5,124,104,0.1)" : "var(--surface)", color: orderMode === mode ? "#057c68" : "var(--text-dim)", fontWeight: 800, cursor: "pointer" }}>
               {mode === "market" ? "즉시 거래" : "조건 거래"}
@@ -169,7 +169,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
         {orderMode === "conditional" && (
           <div style={{ background: "var(--surface2)", borderRadius: "10px", padding: "12px", marginBottom: "16px" }}>
             {tradeType === "sell" && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "10px" }}>
+              <div className="trade-modal-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "10px" }}>
                 <button onClick={() => setConditionType("at_or_above")} style={{ padding: "9px", borderRadius: "8px", border: conditionType === "at_or_above" ? "1px solid #ef4444" : "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>목표가 매도(이상)</button>
                 <button onClick={() => setConditionType("at_or_below")} style={{ padding: "9px", borderRadius: "8px", border: conditionType === "at_or_below" ? "1px solid #2563eb" : "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>손절가 매도(이하)</button>
               </div>
@@ -228,7 +228,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: confirming ? "1fr 2fr" : "1fr", gap: "8px" }}>
+        <div className="trade-modal-actions" style={{ display: "grid", gridTemplateColumns: confirming ? "1fr 2fr" : "1fr", gap: "8px" }}>
           {confirming && <button onClick={() => setConfirming(false)} disabled={loading} style={{ padding: "15px", borderRadius: "12px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-dim)", fontWeight: 700, cursor: "pointer" }}>다시 확인</button>}
           <button onClick={() => confirming ? handleSubmit() : setConfirming(true)} disabled={!canTrade} style={{ width: "100%", padding: "16px", borderRadius: "12px", border: "none", background: tradeType === "buy" ? "var(--accent)" : "#ef4444", color: "#fff", fontSize: "15px", fontWeight: 700, cursor: "pointer", opacity: canTrade ? 1 : 0.55 }}>
             {loading ? "처리 중..." : !canSubmitInCurrentSession ? "즉시 거래 시간 아님" : maxQuantity <= 0 ? "거래 가능 수량 없음" : confirming ? `${orderMode === "market" ? "거래" : "조건 주문"} 확정` : buttonLabel}

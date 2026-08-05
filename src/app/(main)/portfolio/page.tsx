@@ -36,6 +36,7 @@ function HoldingRow({ holding, onTrade }: HoldingRowProps) {
 
   return (
     <div
+      className="holding-row"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
@@ -101,6 +102,7 @@ function StockListRow({ ticker, selected, unlocked, holding, onSelect }: StockLi
 
   return (
     <button
+      className="portfolio-stock-row"
       onClick={() => onSelect(ticker)}
       style={{
         width: "100%",
@@ -162,7 +164,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
   const isUp = (changePercent ?? 0) >= 0;
 
   return (
-    <div style={{ padding: "18px", minHeight: "320px", display: "flex", flexDirection: "column" }}>
+    <div className="portfolio-order-panel" style={{ padding: "18px", minHeight: "320px", display: "flex", flexDirection: "column" }}>
       <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 700, marginBottom: "10px" }}>
         📈 선택 종목
       </div>
@@ -223,7 +225,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
           : `저장된 퀴즈 ${completed}/${required} · 문제별 저장이므로 ${required}개를 채우는 즉시 거래할 수 있습니다.`}
       </div>
 
-      <div style={{ marginTop: "auto", display: "grid", gridTemplateColumns: "1fr auto", gap: "8px" }}>
+      <div className="portfolio-order-actions" style={{ marginTop: "auto", display: "grid", gridTemplateColumns: "1fr auto", gap: "8px" }}>
         <button
           onClick={() => unlocked && onTrade(ticker)}
           disabled={!unlocked}
@@ -270,6 +272,7 @@ function MarketStatusBanner({ status, onOpenRules }: { status: MarketStatus; onO
 
   return (
     <section
+      className="portfolio-status-banner"
       style={{
         border: "1px solid var(--border)",
         borderRadius: "10px",
@@ -349,7 +352,7 @@ function MarketRuleModal({ status, onClose }: { status: MarketStatus; onClose: (
       onClick={(event) => event.target === event.currentTarget && onClose()}
       style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.48)", zIndex: 120, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
     >
-      <div style={{ width: "100%", maxWidth: "720px", maxHeight: "88vh", overflowY: "auto", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px 14px 0 0", padding: "20px" }}>
+      <div className="market-rule-modal-panel" style={{ width: "100%", maxWidth: "720px", maxHeight: "88vh", overflowY: "auto", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px 14px 0 0", padding: "20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", marginBottom: "16px" }}>
           <div>
             <div style={{ fontSize: "16px", fontWeight: 800 }}>시장 시간과 Newstock 세션 규칙</div>
@@ -387,7 +390,7 @@ function MarketRuleModal({ status, onClose }: { status: MarketStatus; onClose: (
 
 function RuleRow({ time, title, desc }: { time: string; title: string; desc: string }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "116px minmax(0,1fr)", gap: "10px", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface)" }}>
+    <div className="market-rule-row" style={{ display: "grid", gridTemplateColumns: "116px minmax(0,1fr)", gap: "10px", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface)" }}>
       <div style={{ fontFamily: "var(--font-ui)", fontSize: "11px", color: "var(--text-muted)", fontWeight: 800 }}>{time}</div>
       <div>
         <div style={{ fontSize: "12px", fontWeight: 800, marginBottom: "3px" }}>{title}</div>
@@ -445,6 +448,7 @@ export default function PortfolioPage() {
       <MarketStatusBanner status={marketStatus} onOpenRules={() => setShowMarketRules(true)} />
 
       <div
+        className="portfolio-summary"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
@@ -476,6 +480,7 @@ export default function PortfolioPage() {
         </div>
 
         <div
+          className="portfolio-workspace"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -485,8 +490,9 @@ export default function PortfolioPage() {
             overflow: "hidden",
           }}
         >
-          <div style={{ borderRight: "1px solid var(--border)", minWidth: 0 }}>
+          <div className="portfolio-stock-list" style={{ borderRight: "1px solid var(--border)", minWidth: 0 }}>
             <div
+              className="portfolio-stock-header"
               style={{
                 display: "grid",
                 gridTemplateColumns: "minmax(0, 1fr) auto auto",

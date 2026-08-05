@@ -48,6 +48,7 @@ export default async function StatsPage() {
   return (
     <div style={{ display: "grid", gap: "16px" }}>
       <section
+        className="mobile-section"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
@@ -59,7 +60,7 @@ export default async function StatsPage() {
         <h1 style={{ fontSize: "21px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>뉴스 퀴즈 정답률</h1>
       </section>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+      <div className="mobile-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
         <Metric label="전체 퀴즈" value={`${total}개`} />
         <Metric label="정답" value={`${correct}개`} />
         <Metric label="오답" value={`${wrong}개`} />
@@ -67,6 +68,7 @@ export default async function StatsPage() {
       </div>
 
       <section
+        className="mobile-section"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",

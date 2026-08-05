@@ -12,6 +12,7 @@ interface HeaderProps {
 export default function Header({ nickname, coins, streak, onLogout }: HeaderProps) {
   return (
     <header
+      className="app-header"
       style={{
         display: "flex",
         alignItems: "center",
@@ -26,6 +27,7 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
       }}
     >
       <div
+        className="app-header-brand"
         style={{
           display: "flex",
           alignItems: "center",
@@ -36,6 +38,7 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
         }}
       >
         <div
+          className="app-header-logo"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -51,6 +54,7 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
             />
           </Link>
           <div
+            className="app-header-logo-caption"
             style={{
               marginTop: "2px",
               fontSize: "10px",
@@ -65,6 +69,7 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
           </div>
         </div>
         <div
+          className="app-header-meta"
           aria-label="Newstock 멘토와 팀원"
           style={{
             minWidth: 0,
@@ -99,6 +104,7 @@ export default function Header({ nickname, coins, streak, onLogout }: HeaderProp
       </div>
 
       <div
+        className="app-header-actions"
         style={{
           display: "flex",
           alignItems: "center",

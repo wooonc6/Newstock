@@ -17,6 +17,7 @@ export default function NavTabs() {
 
   return (
     <nav
+      className="app-nav-tabs"
       style={{
         display: "flex",
         gap: "3px",
@@ -37,6 +38,7 @@ export default function NavTabs() {
           <Link
             key={href}
             href={href}
+            className="app-nav-tab"
             style={{
               flex: 1,
               minWidth: "58px",

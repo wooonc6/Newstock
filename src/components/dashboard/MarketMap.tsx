@@ -281,6 +281,7 @@ export default function MarketMap() {
 
   return (
     <section
+      className="market-map-section"
       style={{
         background: "linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98))",
         border: "1px solid rgba(148, 163, 184, 0.24)",
@@ -292,7 +293,7 @@ export default function MarketMap() {
         textRendering: "optimizeLegibility",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", marginBottom: "14px" }}>
+      <div className="market-map-head" style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", marginBottom: "14px" }}>
         <div>
           <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 700, marginBottom: "5px", letterSpacing: "0.02em" }}>KOSPI MARKET MAP</div>
           <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, lineHeight: 1.45, letterSpacing: "-0.01em", color: "#f8fafc" }}>
@@ -306,7 +307,7 @@ export default function MarketMap() {
             산업군은 소속 종목의 총 시가총액, 산업군 안의 종목은 각 시가총액에 비례합니다. 색은 당일 등락률 기준입니다.
           </p>
         </div>
-        <div style={{ textAlign: "right", fontSize: "11px", fontWeight: 400, lineHeight: 1.65, letterSpacing: 0, color: "#94a3b8", whiteSpace: "nowrap" }}>
+        <div className="market-map-meta" style={{ textAlign: "right", fontSize: "11px", fontWeight: 400, lineHeight: 1.65, letterSpacing: 0, color: "#94a3b8", whiteSpace: "nowrap" }}>
           <div>상승: 빨강</div>
           <div>하락: 파랑</div>
           <div>갱신: {formatTime(data?.updatedAt ?? null)}</div>
@@ -322,6 +323,7 @@ export default function MarketMap() {
         <>
           <div
             ref={mapRef}
+            className="market-map-canvas"
             style={{
               position: "relative",
               width: "100%",
@@ -456,13 +458,13 @@ export default function MarketMap() {
             })}
           </div>
 
-          <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(148, 163, 184, 0.18)" }}>
+          <div className="market-map-legend" style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(148, 163, 184, 0.18)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px", fontSize: "10px", color: "#94a3b8" }}>
               <span>하락</span>
               <span>등락률 색상 기준</span>
               <span>상승</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: `repeat(${LEGEND_POINTS.length}, minmax(0, 1fr))`, gap: "5px" }}>
+            <div className="market-map-legend-grid" style={{ display: "grid", gridTemplateColumns: `repeat(${LEGEND_POINTS.length}, minmax(0, 1fr))`, gap: "5px" }}>
               {LEGEND_POINTS.map((value) => {
                 const color = getTileColor(value);
                 return (

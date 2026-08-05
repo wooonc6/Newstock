@@ -21,6 +21,7 @@ function HoldingCard({ holding }: { holding: PortfolioHolding }) {
   return (
     <Link
       href={`/stocks/${encodeURIComponent(holding.ticker)}`}
+      className="assets-holding-card"
       style={{ display: "block", padding: "14px", border: "1px solid var(--border)", borderRadius: "10px", background: "var(--surface)", color: "inherit", textDecoration: "none" }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start" }}>
@@ -72,10 +73,10 @@ export default function AssetsPage() {
 
   return (
     <div style={{ display: "grid", gap: "16px" }}>
-      <section style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px" }}>
+      <section className="mobile-section" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px" }}>
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>💼 자산</div>
         <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>내 모의투자 자산 💰</h1>
-        <div style={{ marginTop: "16px", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
+        <div className="mobile-grid-3" style={{ marginTop: "16px", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
           <Metric label="보유 모의현금" value={`₩${coins.toLocaleString()}`} />
           <Metric label="매수 금액" value={`₩${investedCost.toLocaleString()}`} />
           <Metric label="보유 종목" value={`${holdings.length}개`} />
@@ -98,7 +99,7 @@ export default function AssetsPage() {
         {loading ? (
           <Panel>거래 기록을 불러오는 중입니다.</Panel>
         ) : (
-          <div style={{ maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
+          <div className="mobile-scroll-frame" style={{ maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
             <TradeHistoryList trades={trades} emptyText="아직 매수·매도 기록이 없습니다." />
           </div>
         )}

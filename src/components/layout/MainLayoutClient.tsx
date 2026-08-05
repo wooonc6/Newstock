@@ -31,7 +31,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
 
   return (
     <ToastProvider>
-      <div style={{ maxWidth: "740px", margin: "0 auto", padding: "24px 18px", position: "relative", zIndex: 1 }}>
+      <div className="app-shell">
         <Header nickname={displayName} coins={coins} streak={streak} onLogout={handleLogout} />
         <NavTabs />
         {children}

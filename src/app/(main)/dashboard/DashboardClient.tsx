@@ -27,6 +27,7 @@ export default function DashboardClient() {
   return (
     <div style={{ display: "grid", gap: "18px" }}>
       <section
+        className="mobile-section"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
@@ -40,7 +41,7 @@ export default function DashboardClient() {
         {!loading && recommendedStocks.length === 0 && (
           <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>최근 24시간에 집계된 종목 뉴스가 없습니다.</div>
         )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
+        <div className="dashboard-trending-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
           {recommendedStocks.map((stock, index) => (
             <Link
               key={stock.ticker}

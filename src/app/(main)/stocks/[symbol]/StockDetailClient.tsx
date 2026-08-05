@@ -56,6 +56,7 @@ export default function StockDetailClient({ stock }: Props) {
       </Link>
 
       <section
+        className="mobile-section"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
@@ -123,7 +124,7 @@ export default function StockDetailClient({ stock }: Props) {
 
         <p style={{ fontSize: "13px", lineHeight: 1.65, color: "var(--text-dim)" }}>{stock.description}</p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+        <div className="stock-detail-metrics" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
           <MiniMetric label="관련 뉴스" value={`${news.length}개`} />
           <MiniMetric label="최근 퀴즈" value={latestQuizLabel} />
           <MiniMetric label="판정 기준" value="기사 발표 후 3거래일" />

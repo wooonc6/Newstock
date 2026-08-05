@@ -44,7 +44,7 @@ export function TradeHistoryList({ trades, emptyText }: { trades: TradeHistoryIt
         const isProfit = realizedProfit >= 0;
 
         return (
-          <div key={trade.id} style={{ padding: "12px", border: "1px solid var(--border)", borderRadius: "10px", background: "var(--surface2)", display: "grid", gap: "8px" }}>
+          <div key={trade.id} className="trade-history-card" style={{ padding: "12px", border: "1px solid var(--border)", borderRadius: "10px", background: "var(--surface2)", display: "grid", gap: "8px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start" }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>

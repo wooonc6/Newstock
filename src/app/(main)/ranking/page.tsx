@@ -40,7 +40,7 @@ function HoldingSnapshot({ holding }: { holding: PublicHolding }) {
   const stock = getStock(ticker);
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "12px", alignItems: "center", padding: "12px", border: "1px solid var(--border)", borderRadius: "10px", background: "var(--surface2)" }}>
+    <div className="holding-snapshot" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "12px", alignItems: "center", padding: "12px", border: "1px solid var(--border)", borderRadius: "10px", background: "var(--surface2)" }}>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: "13px", fontWeight: 800 }}>{stock?.name ?? ticker}</div>
         <div style={{ marginTop: "4px", fontSize: "11px", color: "var(--text-muted)" }}>{quantity}주 · 평균 ₩{avgCost.toLocaleString()}</div>
@@ -112,7 +112,7 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
             <div style={{ fontSize: "14px", color: "var(--text)", fontWeight: 800 }}>매수·매도 기록</div>
             <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>전체 {trades.length.toLocaleString()}건</div>
           </div>
-          <div style={{ maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
+          <div className="mobile-scroll-frame" style={{ maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
             <TradeHistoryList trades={trades} emptyText="아직 공개할 매수·매도 기록이 없습니다." />
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function RankingPage() {
             const returnColor = realizedReturnRate > 0 ? "#ef4444" : realizedReturnRate < 0 ? "#2563eb" : "var(--text-muted)";
             const displayName = item.nickname || "아이디 미설정 사용자";
 
-            return <button key={item.id} type="button" onClick={() => setSelectedUser(item)} style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0, 1fr) auto", alignItems: "center", gap: "12px", background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)", border: `1px solid ${isMe ? "rgba(0,168,120,0.25)" : "var(--border)"}`, borderRadius: "12px", padding: "14px 16px", cursor: "pointer", color: "inherit", textAlign: "left" }}>
+            return <button key={item.id} type="button" onClick={() => setSelectedUser(item)} className="ranking-row" style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0, 1fr) auto", alignItems: "center", gap: "12px", background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)", border: `1px solid ${isMe ? "rgba(0,168,120,0.25)" : "var(--border)"}`, borderRadius: "12px", padding: "14px 16px", cursor: "pointer", color: "inherit", textAlign: "left" }}>
               <div style={{ width: "34px", height: "34px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)", color: rank <= 3 ? "var(--coin)" : "var(--text-muted)", fontFamily: "var(--font-ui)", fontSize: "13px", fontWeight: 900 }}>{rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : rank}</div>
               <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", color: "var(--text)", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px", fontWeight: 800 }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "11px", color: "var(--text-muted)" }}>클릭하여 투자 현황 보기 · 보유 종목 {holdingCount}개</div></div>
               <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>

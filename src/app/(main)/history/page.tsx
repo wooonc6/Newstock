@@ -121,6 +121,7 @@ export default async function HistoryPage({ selectedTicker }: { selectedTicker?:
   return (
     <div style={{ display: "grid", gap: "16px" }}>
       <section
+        className="mobile-section"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
@@ -140,7 +141,7 @@ export default async function HistoryPage({ selectedTicker }: { selectedTicker?:
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
+        <div className="mobile-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
           <Metric label="완료" value={`${sessions.length}개`} />
           <Metric label="정답" value={`${totalCorrect}개`} />
           <Metric label="획득" value={`₩${earnedCoins.toLocaleString()}`} />
@@ -252,7 +253,7 @@ function HistoryQuizCard({ record }: { record: HistoryRecord }) {
           {session.score === 1 ? "정답" : "오답"}
         </span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
+      <div className="mobile-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
         <AnswerBox label="내 선택" value={directionLabel(session.user_answer)} />
         <AnswerBox label="실제 결과" value={directionLabel(correctDirection)} />
         <AnswerBox label="받은 보상" value={`₩${(session.coins_earned ?? 0).toLocaleString()}`} />
