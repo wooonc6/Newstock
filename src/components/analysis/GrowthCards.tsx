@@ -52,7 +52,7 @@ export default function GrowthCards({
       color: "#7c3aed",
     },
     {
-      title: "해금 기업",
+      title: "기업 잠금 해제",
       value: `${unlockedCompanies}개`,
       color: "#f59e0b",
     },
