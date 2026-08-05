@@ -1,37 +1,23 @@
 "use client";
 
 import { useMemo } from "react";
+
 import GrowthCards from "./GrowthCards";
 import GrowthScore from "./GrowthScore";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
-import { usePortfolio } from "@/hooks/usePortfolio";
-import { useTradingPrice } from "@/hooks/useTradingPrice";
 
 export default function GrowthReport() {
   const { user, coins = 0 } = useAuth();
 
   const { unlockMap } = useQuizUnlock(user?.id);
 
-  const { holdings = [] } = usePortfolio(user?.id);
-
   const unlockedCompanies = useMemo(
     () =>
-      Object.values(unlockMap).filter((v) => v.unlocked).length,
+      Object.values(unlockMap).filter((item) => item.unlocked).length,
     [unlockMap]
   );
-
-  const totalAsset = useMemo(() => {
-    let asset = coins;
-
-    holdings.forEach((holding) => {
-      const { price } = useTradingPrice(holding.ticker);
-      asset += price * holding.quantity;
-    });
-
-    return Math.round(asset);
-  }, [coins, holdings]);
 
   const solvedNews = useMemo(() => {
     return Object.values(unlockMap).reduce(
@@ -40,8 +26,17 @@ export default function GrowthReport() {
     );
   }, [unlockMap]);
 
+  const totalAsset = useMemo(() => {
+    return Math.round(coins);
+  }, [coins]);
+
   return (
-    <div style={{ display: "grid", gap: 28 }}>
+    <div
+      style={{
+        display: "grid",
+        gap: 28,
+      }}
+    >
       <section>
         <div
           style={{
@@ -71,6 +66,7 @@ export default function GrowthReport() {
           }}
         >
           뉴스를 학습하고 기업 잠금을 해제하며
+          <br />
           투자 실력을 키우는 과정을 분석합니다.
         </p>
       </section>
@@ -124,7 +120,7 @@ export default function GrowthReport() {
             "기업 잠금 해제",
             "첫 투자",
             "첫 수익",
-          ].map((step, i) => (
+          ].map((step, index) => (
             <div
               key={step}
               style={{
@@ -148,10 +144,14 @@ export default function GrowthReport() {
                   fontWeight: 800,
                 }}
               >
-                {i + 1}
+                {index + 1}
               </div>
 
-              <div style={{ fontWeight: 700 }}>
+              <div
+                style={{
+                  fontWeight: 700,
+                }}
+              >
                 {step}
               </div>
             </div>
