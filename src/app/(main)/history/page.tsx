@@ -131,10 +131,10 @@ export default async function HistoryPage({ selectedTicker }: { selectedTicker?:
         }}
       >
         <div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "5px" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "5px" }}>
             HISTORY
           </div>
-          <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>📝 내 퀴즈 기록</h1>
+          <h1 style={{ fontSize: "21px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>내 퀴즈 기록</h1>
           <p style={{ marginTop: "5px", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.6 }}>
             완료한 문제는 퀴즈에 다시 나오지 않습니다. 내가 고른 답과 당시 주가 결과, AI 분석 프롬프트를 여기서 확인하세요.
           </p>
@@ -162,11 +162,11 @@ export default async function HistoryPage({ selectedTicker }: { selectedTicker?:
             <summary style={{ padding: "15px", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
               <div>
                 <div style={{ fontSize: "10px", color: "var(--text-muted)", marginBottom: "3px" }}>INDUSTRY</div>
-                <h2 style={{ fontSize: "15px", lineHeight: 1.35 }}>{sectorGroup.sector}</h2>
+                <h2 style={{ fontSize: "15px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>{sectorGroup.sector}</h2>
               </div>
               <div style={{ textAlign: "right", fontSize: "11px", color: "var(--text-dim)", lineHeight: 1.6 }}>
                 <div>{sectorGroup.stocks.length}종목 · {sectorGroup.stocks.reduce((sum, stock) => sum + stock.records.length, 0)}문제</div>
-                <strong style={{ color: "var(--accent)", fontSize: "12px" }}>펼치기 / 접기</strong>
+                <strong style={{ color: "var(--accent)", fontSize: "11px", fontWeight: 800 }}>펼치기 / 접기</strong>
               </div>
             </summary>
 
@@ -180,12 +180,12 @@ export default async function HistoryPage({ selectedTicker }: { selectedTicker?:
                 >
                   <summary style={{ padding: "14px", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                     <div>
-                      <h3 style={{ fontSize: "14px", lineHeight: 1.35 }}>{stockGroup.company}</h3>
+                      <h3 style={{ fontSize: "14px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>{stockGroup.company}</h3>
                       <div style={{ marginTop: "3px", fontSize: "11px", color: "var(--text-muted)" }}>{stockGroup.ticker}</div>
                     </div>
                     <div style={{ textAlign: "right", fontSize: "11px", color: "var(--text-dim)", lineHeight: 1.6 }}>
                       <div>{stockGroup.records.length}문제 · 정답 {stockGroup.records.filter(({ session }) => session.score === 1).length}개</div>
-                      <strong style={{ color: "var(--accent)", fontSize: "12px" }}>⌄ 퀴즈 내역 보기</strong>
+                      <strong style={{ color: "var(--accent)", fontSize: "11px", fontWeight: 800 }}>퀴즈 내역 보기</strong>
                     </div>
                   </summary>
 

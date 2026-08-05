@@ -92,8 +92,8 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
     <section style={{ border: "1px solid rgba(0,168,120,0.32)", borderRadius: "14px", padding: "16px", background: "rgba(0,168,120,0.045)", display: "grid", gap: "13px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start" }}>
         <div>
-          <div style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 800 }}>🔎 선택한 사용자 투자 현황</div>
-          <div style={{ marginTop: "4px", fontSize: "17px", fontWeight: 900 }}>{displayName}</div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "5px" }}>PORTFOLIO</div>
+          <div style={{ fontSize: "17px", color: "var(--text)", fontWeight: 900 }}>{displayName}</div>
         </div>
         <button type="button" onClick={onClose} style={{ border: "1px solid var(--border)", background: "var(--surface)", borderRadius: "7px", padding: "6px 9px", fontSize: "11px", fontWeight: 700, cursor: "pointer", color: "var(--text-dim)" }}>닫기</button>
       </div>
@@ -109,7 +109,7 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
       {!loading && !error && (
         <div style={{ display: "grid", gap: "8px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-            <div style={{ fontSize: "13px", fontWeight: 900 }}>🧾 매수·매도 기록</div>
+            <div style={{ fontSize: "14px", color: "var(--text)", fontWeight: 800 }}>매수·매도 기록</div>
             <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>전체 {trades.length.toLocaleString()}건</div>
           </div>
           <div style={{ maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
@@ -155,10 +155,11 @@ export default function RankingPage() {
   return (
     <div style={{ display: "grid", gap: "14px" }}>
       <div style={{ marginBottom: "4px" }}>
-        <div style={{ fontSize: "22px", fontWeight: 900, color: "var(--accent2)", marginBottom: "6px" }}>🏆 랭킹</div>
-        <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>총 계좌 자산, 총 획득 모의투자금, 실현 수익률을 함께 반영한 학습투자 점수 순</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "6px" }}>RANKING</div>
+        <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35, marginBottom: "7px" }}>랭킹</h1>
+        <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>총 계좌 자산, 총 획득 모의투자금, 실현 수익률을 함께 반영한 학습투자 점수 순</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산은 보유 모의현금과 보유 주식의 최신 평가금액을 더해 계산합니다.</div>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>💡 실현 수익률은 주식을 매도한 뒤에만 반영되고, 과도한 수익률 쏠림을 막기 위해 보너스 범위를 제한합니다.</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>실현 수익률은 주식을 매도한 뒤에만 반영되고, 과도한 수익률 쏠림을 막기 위해 보너스 범위를 제한합니다.</div>
       </div>
 
       {selectedUser && <PortfolioViewer user={selectedUser} onClose={() => setSelectedUser(null)} />}
@@ -181,12 +182,12 @@ export default function RankingPage() {
 
             return <button key={item.id} type="button" onClick={() => setSelectedUser(item)} style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0, 1fr) auto", alignItems: "center", gap: "12px", background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)", border: `1px solid ${isMe ? "rgba(0,168,120,0.25)" : "var(--border)"}`, borderRadius: "12px", padding: "14px 16px", cursor: "pointer", color: "inherit", textAlign: "left" }}>
               <div style={{ width: "34px", height: "34px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)", color: rank <= 3 ? "var(--coin)" : "var(--text-muted)", fontFamily: "var(--font-ui)", fontSize: "13px", fontWeight: 900 }}>{rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : rank}</div>
-              <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px" }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "10px", color: "var(--text-muted)" }}>클릭하여 투자 현황 보기 · 보유 종목 {holdingCount}개</div></div>
+              <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", color: "var(--text)", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px", fontWeight: 800 }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "11px", color: "var(--text-muted)" }}>클릭하여 투자 현황 보기 · 보유 종목 {holdingCount}개</div></div>
               <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                <div style={{ fontFamily: "var(--font-ui)", fontSize: "13px", fontWeight: 900, color: "var(--coin)" }}>₩{learningInvestmentScore.toLocaleString()}</div><div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "3px" }}>학습투자 점수</div>
-                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산 ₩{totalAccountAssets.toLocaleString()}</div>
-                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>보유 현금 ₩{currentCoins.toLocaleString()}</div>
-                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>총 획득 ₩{totalEarned.toLocaleString()}</div>
+                <div style={{ fontFamily: "var(--font-ui)", fontSize: "14px", fontWeight: 900, color: "var(--accent2)" }}>₩{learningInvestmentScore.toLocaleString()}</div><div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "3px" }}>학습투자 점수</div>
+                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산 ₩{totalAccountAssets.toLocaleString()}</div>
+                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>보유 현금 ₩{currentCoins.toLocaleString()}</div>
+                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 획득 ₩{totalEarned.toLocaleString()}</div>
                 <div style={{ fontFamily: "var(--font-ui)", fontSize: "11px", fontWeight: 800, color: returnColor, marginTop: "5px" }} title={realizedCostBasis > 0 ? `실현손익 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()}` : "아직 매도 내역이 없습니다."}>실현 수익률 {realizedReturnRate > 0 ? "+" : ""}{realizedReturnRate.toFixed(2)}%</div>
               </div>
             </button>;

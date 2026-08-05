@@ -55,8 +55,8 @@ export default async function StatsPage() {
           padding: "18px",
         }}
       >
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>📈 ANALYSIS</div>
-        <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>🧠 뉴스 퀴즈 정답률</h1>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "6px" }}>QUIZ SCORE</div>
+        <h1 style={{ fontSize: "21px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>뉴스 퀴즈 정답률</h1>
       </section>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
@@ -74,7 +74,7 @@ export default async function StatsPage() {
           padding: "16px",
         }}
       >
-        <div style={{ fontSize: "14px", fontWeight: 800, marginBottom: "10px" }}>🎯 많이 틀린 종목</div>
+        <div style={{ fontSize: "15px", fontWeight: 800, color: "var(--text)", marginBottom: "10px" }}>많이 틀린 종목</div>
         {weakest.length === 0 ? (
           <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
             아직 오답 데이터가 없습니다. 퀴즈를 풀면 취약 종목이 표시됩니다.
