@@ -123,6 +123,7 @@ export default function RankingPage() {
       <div style={{ marginBottom: "4px" }}>
         <div style={{ fontSize: "22px", fontWeight: 900, color: "var(--accent2)", marginBottom: "6px" }}>🏆 랭킹</div>
         <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>총 획득 모의투자금 순 · 동률이면 실현 수익률 순</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>퀴즈를 맞혀 받은 모의투자금으로만 거래할 수 있습니다.</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>💡 수익률은 주식을 매도한 뒤에만 반영됩니다. 사용자를 누르면 현재 투자 현황을 볼 수 있어요.</div>
       </div>
 
