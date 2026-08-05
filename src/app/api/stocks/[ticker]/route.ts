@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStock } from "@/lib/stocks";
-import { getQuote } from "@/lib/yahoo";
+import { getDashboardQuote } from "@/lib/yahoo";
 
 const SHARED_RESPONSE_CACHE = "public, s-maxage=25, stale-while-revalidate=5";
 
@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: { ticker: str
   }
 
   try {
-    const quote = await getQuote(stock.ticker);
+    const quote = await getDashboardQuote(stock.ticker);
 
     return NextResponse.json(
       {

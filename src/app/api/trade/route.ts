@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getMarketScheduleStatus } from '@/lib/marketSchedule';
 import { getStock } from '@/lib/stocks';
-import { getQuote } from '@/lib/yahoo';
+import { getTradingQuote } from '@/lib/yahoo';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -44,14 +44,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 현재가 조회
+  // 모의투자 세션별 체결가 조회
   let price: number;
+  let executionPriceBasis: string;
   try {
-    const quote = await getQuote(stock.ticker);
-    price = quote.regularMarketPrice ?? 0;
+    const quote = await getTradingQuote(stock.ticker, marketStatus);
+    price = quote.executionPrice ?? 0;
+    executionPriceBasis = quote.executionPriceBasis;
     if (!price) throw new Error('가격 없음');
   } catch {
-    return NextResponse.json({ error: '현재 주가를 가져올 수 없습니다.' }, { status: 502 });
+    return NextResponse.json({ error: '모의투자 기준가를 가져올 수 없습니다.' }, { status: 502 });
   }
 
   // users 행 방어
@@ -78,5 +80,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: result?.error ?? '거래에 실패했습니다.' }, { status: 400 });
   }
 
-  return NextResponse.json(result);
+  return NextResponse.json({
+    ...result,
+    execution_price: price,
+    execution_price_basis: executionPriceBasis,
+    marketStatus,
+  });
 }

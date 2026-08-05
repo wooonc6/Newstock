@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { STOCKS } from "@/lib/stocks";
-import { getQuote } from "@/lib/yahoo";
+import { getDashboardQuote } from "@/lib/yahoo";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +44,7 @@ export async function GET() {
     Promise.all(
       STOCKS.map(async (stock) => {
         try {
-          const quote = await getQuote(stock.ticker);
+          const quote = await getDashboardQuote(stock.ticker);
           return {
             ticker: stock.ticker,
             name: stock.name,
@@ -67,7 +67,7 @@ export async function GET() {
         }
       })
     ),
-    getQuote("^KS11")
+    getDashboardQuote("^KS11")
       .then((quote) => ({
         value: quote.regularMarketPrice ?? null,
         changePercent: quote.regularMarketChangePercent ?? null,

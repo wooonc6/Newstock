@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useMarketStatus } from "@/hooks/useMarketStatus";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
-import { useStockPrice } from "@/hooks/useStockPrice";
+import { useTradingPrice } from "@/hooks/useTradingPrice";
 import { STOCKS, getStock } from "@/lib/stocks";
 import { createClient } from "@/lib/supabase/client";
 import type { PortfolioHolding } from "@/types";
@@ -27,7 +27,7 @@ interface HoldingRowProps {
 }
 
 function HoldingRow({ holding, onTrade }: HoldingRowProps) {
-  const { data: priceData, loading } = useStockPrice(holding.ticker);
+  const { data: priceData, loading } = useTradingPrice(holding.ticker);
   const stock = getStock(holding.ticker);
   const price = priceData?.price ?? 0;
   const pnl = price ? (price - holding.avg_cost) * holding.quantity : 0;
@@ -94,7 +94,7 @@ interface StockListRowProps {
 }
 
 function StockListRow({ ticker, selected, unlocked, holding, onSelect }: StockListRowProps) {
-  const { data: priceData, loading } = useStockPrice(ticker);
+  const { data: priceData, loading } = useTradingPrice(ticker);
   const stock = getStock(ticker);
   const changePercent = priceData?.changePercent;
   const isUp = (changePercent ?? 0) >= 0;
@@ -156,7 +156,7 @@ interface OrderPanelProps {
 }
 
 function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }: OrderPanelProps) {
-  const { data: priceData, loading } = useStockPrice(ticker);
+  const { data: priceData, loading } = useTradingPrice(ticker);
   const stock = getStock(ticker);
   const changePercent = priceData?.changePercent;
   const isUp = (changePercent ?? 0) >= 0;
@@ -188,7 +188,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
       </div>
 
       <div style={{ padding: "22px 0 18px", borderBottom: "1px solid var(--border)" }}>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "6px" }}>현재가</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "6px" }}>모의투자 기준가</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
           <span style={{ fontSize: "26px", fontWeight: 800, letterSpacing: "-0.03em" }}>
             {loading ? "시세 조회 중..." : priceData?.price ? `₩${priceData.price.toLocaleString()}` : "시세 없음"}
@@ -201,7 +201,7 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
         </div>
         {!loading && (
           <div style={{ marginTop: "7px", fontSize: "10px", color: "var(--text-muted)" }}>
-            Yahoo Finance 기준 · 30초 자동 갱신 · 갱신 {formatUpdatedAt(priceData?.updatedAt)}
+            {priceData?.priceBasis ?? "Newstock 체결가"} · 대시보드 시세와 다를 수 있음 · 갱신 {formatUpdatedAt(priceData?.updatedAt)}
           </div>
         )}
       </div>
@@ -304,7 +304,7 @@ function MarketStatusBanner({ status, onOpenRules }: { status: MarketStatus; onO
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "8px" }}>
           <StatusMini label="현실 시장" value={status.realMarket.label} detail={status.realMarket.priceBasis} />
-          <StatusMini label="Newstock 체결" value={isOpen ? "즉시 거래·조건 체결 가능" : "조건 주문 등록만 가능"} detail={status.newstock.priceBasis} />
+          <StatusMini label="Newstock 체결" value={isOpen ? "즉시 거래·조건 체결 가능" : "조건 주문 등록만 가능"} detail={`${status.newstock.priceBasis} · 대시보드와 다를 수 있음`} />
           <StatusMini label="다음 기준" value={status.nextOpenText} detail={status.closedReason ?? status.realMarket.description} />
         </div>
       </div>
@@ -369,16 +369,16 @@ function MarketRuleModal({ status, onClose }: { status: MarketStatus; onClose: (
         </div>
 
         <div style={{ display: "grid", gap: "10px", marginBottom: "14px" }}>
-          <RuleRow time="08:30~08:40" title="장전 시간외종가" desc="현실에서는 전일 종가 기준 구간입니다. Newstock은 최근 확인가를 보여주되, 이 구간이라는 사실을 표시합니다." />
-          <RuleRow time="09:00~15:30" title="정규장" desc="현실의 핵심 거래 시간입니다. Newstock 즉시 거래와 조건 주문 체결이 모두 가능합니다." />
-          <RuleRow time="15:40~16:00" title="장후 시간외종가" desc="현실에서는 당일 종가 기준 구간입니다. Newstock은 Yahoo Finance의 최근 가격을 체결 기준으로 사용합니다." />
-          <RuleRow time="16:00~18:00" title="시간외단일가" desc="현실에서는 10분 단위로 주문을 모아 체결합니다. Newstock은 복잡한 단일가 계산 대신 최근 확인가로 교육용 체결합니다." />
-          <RuleRow time="18:00~24:00" title="Newstock 애프터 세션" desc="현실장은 닫혔지만, 저녁 학습을 위해 당일 마지막 확인가에 가까운 가격으로 즉시 거래와 조건 주문 체결을 허용합니다." />
+          <RuleRow time="08:30~08:40" title="장전 시간외종가" desc="전일 종가를 Newstock 체결가로 사용합니다." />
+          <RuleRow time="09:00~15:30" title="정규장" desc="정규장 최근 현재가를 Newstock 체결가로 사용합니다." />
+          <RuleRow time="15:40~16:00" title="장후 시간외종가" desc="당일 종가에 가까운 마지막 확인가를 Newstock 체결가로 사용합니다." />
+          <RuleRow time="16:00~18:00" title="시간외단일가" desc="실제 10분 단일가 계산 대신 Newstock 단일가 기준가로 체결합니다." />
+          <RuleRow time="18:00~24:00" title="Newstock 애프터 세션" desc="현실장은 닫혔지만 Newstock 애프터 기준가로 즉시 거래와 조건 주문 체결을 허용합니다." />
           <RuleRow time="24:00~다음 08:30" title="세션 마감" desc="즉시 거래와 조건 주문 체결은 멈춥니다. 조건 주문 등록은 가능하고, 다음 세션이 열릴 때 다시 확인합니다." />
         </div>
 
         <div style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.16)", borderRadius: "12px", padding: "13px", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.65 }}>
-          주말, 공휴일, 근로자의 날, 연말 휴장일에는 현실장과 Newstock 세션이 모두 휴장입니다. 2026년 첫 거래일처럼 개장 시간이 임시 변경되는 날도 따로 반영합니다.
+          모의투자탭의 기준가는 거래 연습을 위한 체결가입니다. 대시보드탭은 시장 관찰용 시세를 보여주므로 두 가격이 다를 수 있습니다.
         </div>
       </div>
     </div>
@@ -471,7 +471,7 @@ export default function PortfolioPage() {
         <div style={{ marginBottom: "8px" }}>
           <div style={{ fontSize: "13px", fontWeight: 800, color: "var(--text-dim)" }}>📋 지원 종목</div>
           <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
-            종목을 선택해 현재가와 투자 가능 여부를 확인하세요.
+            종목을 선택해 모의투자 기준가와 투자 가능 여부를 확인하세요.
           </div>
         </div>
 
@@ -500,7 +500,7 @@ export default function PortfolioPage() {
               }}
             >
               <span>종목</span>
-              <span style={{ minWidth: "80px", textAlign: "right" }}>현재가</span>
+              <span style={{ minWidth: "80px", textAlign: "right" }}>기준가</span>
               <span style={{ minWidth: "58px", textAlign: "right" }}>등락률</span>
             </div>
             <div style={{ height: "320px", overflowY: "auto", scrollbarWidth: "thin" }}>

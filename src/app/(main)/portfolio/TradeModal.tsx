@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useStockPrice } from "@/hooks/useStockPrice";
+import { useTradingPrice } from "@/hooks/useTradingPrice";
 import { useAuth } from "@/context/AuthContext";
 import { useMarketStatus } from "@/hooks/useMarketStatus";
 import type { PortfolioHolding } from "@/types";
@@ -20,7 +20,7 @@ type ConditionType = "at_or_below" | "at_or_above";
 
 export default function TradeModal({ ticker, stockName, currentHolding, onClose, onSuccess }: Props) {
   const { coins, refreshUser } = useAuth();
-  const { data: priceData, loading: priceLoading } = useStockPrice(ticker);
+  const { data: priceData, loading: priceLoading } = useTradingPrice(ticker);
   const marketStatus = useMarketStatus();
   const [tradeType, setTradeType] = useState<TradeType>("buy");
   const [orderMode, setOrderMode] = useState<OrderMode>("market");
@@ -116,7 +116,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div>
             <div style={{ fontSize: "16px", fontWeight: 700 }}>{stockName} 거래</div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>현재 시장 구간과 Newstock 세션 규칙을 함께 반영합니다.</div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>시장 구간별 Newstock 기준가로 체결합니다.</div>
           </div>
           <button aria-label="거래 창 닫기" onClick={onClose} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "var(--text-muted)" }}>×</button>
         </div>
@@ -131,7 +131,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
             </span>
           </div>
           <div style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: 1.55 }}>
-            {marketStatus.newstock.description} 가격 기준: {marketStatus.newstock.priceBasis}
+            {marketStatus.newstock.description} 가격 기준: {priceData?.priceBasis ?? marketStatus.newstock.priceBasis}
           </div>
           {!marketStatus.newstock.canTradeNow && (
             <div style={{ fontSize: "11px", color: "#b45309", lineHeight: 1.5 }}>
@@ -157,8 +157,13 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
         </div>
 
         <div style={{ marginBottom: "16px" }}>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>현재가</div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>모의투자 기준가</div>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "18px", fontWeight: 700 }}>{priceLoading ? "로딩 중..." : `₩${price.toLocaleString()}`}</div>
+          {!priceLoading && (
+            <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "5px", lineHeight: 1.45 }}>
+              {priceData?.priceLabel ?? "Newstock 기준가"} · 대시보드 시세와 다를 수 있음
+            </div>
+          )}
         </div>
 
         {orderMode === "conditional" && (
@@ -173,14 +178,14 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
               {tradeType === "buy" ? "이 가격 이하가 되면 매수" : conditionType === "at_or_above" ? "이 가격 이상이 되면 매도" : "이 가격 이하가 되면 매도"}
             </label>
             <input id="target-price" type="number" min={1} step={1} value={targetPrice || ""} onChange={(event) => setTargetPrice(Math.max(0, Number(event.target.value)))} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: "15px", fontWeight: 700, boxSizing: "border-box" }} />
-            <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "7px" }}>조건 충족 후 Newstock 세션이 열려 있을 때 확인된 기준가로 체결됩니다.</div>
+            <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "7px" }}>조건 충족 후 Newstock 세션이 열려 있을 때 모의투자 기준가로 체결됩니다.</div>
           </div>
         )}
 
         <div style={{ marginBottom: "16px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
             <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>수량</div>
-            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{tradeType === "buy" ? `현재가 기준 최대 ${maxBuy}주` : `보유 ${maxSell}주`}</div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{tradeType === "buy" ? `기준가 기준 최대 ${maxBuy}주` : `보유 ${maxSell}주`}</div>
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
             <button onClick={() => setQuantity((value) => Math.max(1, value - 1))} style={{ width: "36px", height: "36px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", fontSize: "18px", cursor: "pointer", color: "var(--text)" }}>−</button>
@@ -210,7 +215,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
           <div style={{ border: "1px solid var(--border)", background: "var(--surface2)", borderRadius: "12px", padding: "14px", marginBottom: "12px" }}>
             <div style={{ fontSize: "14px", fontWeight: 800, marginBottom: "6px" }}>정말 {tradeType === "buy" ? "매수" : "매도"}하시겠습니까?</div>
             <div style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.6 }}>
-              {stockName} {quantity}주 · {orderMode === "market" ? `예상 체결가 ₩${price.toLocaleString()}` : `조건가 ₩${targetPrice.toLocaleString()}`}
+              {stockName} {quantity}주 · {orderMode === "market" ? `예상 체결가 ₩${price.toLocaleString()} (${priceData?.priceLabel ?? "Newstock 기준가"})` : `조건가 ₩${targetPrice.toLocaleString()}`}
               {tradeType === "sell" && <><br />{orderMode === "market" ? "이번 매도" : "목표가 기준 예상"} 수익률 <strong style={{ color: isProfit ? "#ef4444" : "#2563eb" }}>{isProfit ? "+" : ""}{expectedReturn.toFixed(2)}%</strong></>}
             </div>
           </div>

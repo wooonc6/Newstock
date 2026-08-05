@@ -249,14 +249,26 @@ function getNewstockSession(parts: KstParts, closedReason: string | null, realKi
     };
   }
 
+  const realSessionPriceBasis: Record<SessionKind, string> = {
+    closed: "마지막 거래일 종가 또는 최근 확인가",
+    pre_close_price: "전일 종가 기준",
+    opening_call: "시가 결정 전 최근 확인가 기준",
+    regular: "정규장 최근 현재가 기준",
+    closing_call: "종가 결정 전 최근 확인가 기준",
+    closing_gap: "당일 종가 확인 대기 기준가",
+    after_close_price: "당일 종가에 가까운 마지막 확인가 기준",
+    after_single_price: "Newstock 단일가 기준가",
+    learning_after_class: "Newstock 애프터 기준가",
+  };
+
   if (minute >= NEWSTOCK_MARKET.open && minute < NEWSTOCK_MARKET.afterClassStart) {
     return {
       kind: realKind,
       label: special ? `Newstock 현실 반영장 · ${special.note}` : "Newstock 현실 반영장",
-      description: "현실의 정규장·시간외장 구간을 구분해 현재가 기준으로 체결합니다.",
+      description: "현실의 정규장·시간외장 구간을 구분해 Newstock 체결가를 정합니다.",
       canTradeNow: true,
       canExecuteOrders: true,
-      priceBasis: "Yahoo Finance 최근 현재가",
+      priceBasis: realSessionPriceBasis[realKind],
     };
   }
 

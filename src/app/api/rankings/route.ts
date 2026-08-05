@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getQuote } from "@/lib/yahoo";
+import { getDashboardQuote } from "@/lib/yahoo";
 import { NextRequest, NextResponse } from "next/server";
 
 type RankingHolding = {
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
   const priceEntries = await Promise.all(
     tickers.map(async (ticker) => {
       try {
-        const quote = await getQuote(ticker);
+        const quote = await getDashboardQuote(ticker);
         const price = quote.regularMarketPrice ?? 0;
         return [ticker, price > 0 ? price : null] as const;
       } catch (error) {

@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { getMarketScheduleStatus, type MarketScheduleStatus } from "@/lib/marketSchedule";
 
 type YahooQuote = {
   regularMarketPrice?: number;
@@ -9,6 +10,16 @@ type YahooQuote = {
   marketCap?: number;
   shortName?: string;
   currency?: string;
+};
+
+export type TradingQuote = YahooQuote & {
+  executionPrice: number | null;
+  dashboardPrice: number | null;
+  executionPriceBasis: string;
+  executionPriceLabel: string;
+  sessionLabel: string;
+  sessionKind: MarketScheduleStatus["newstock"]["kind"];
+  mayDifferFromDashboard: boolean;
 };
 
 let yahooClient: any;
@@ -56,17 +67,114 @@ async function fetchQuoteFromYahoo(ticker: string): Promise<YahooQuote> {
 }
 
 // Next's Data Cache is shared by Vercel server instances, unlike a module-level
-// Map. The ticker argument is part of the cache key, so each supported symbol
-// has one shared 25-second Yahoo snapshot across dashboard, portfolio, detail,
-// trade, and conditional-order requests.
+// Map. Public quote helpers below stay separated by use case, while this low
+// level Yahoo snapshot can still be reused safely for rate-limit control.
 const getCachedQuote = unstable_cache(
   async (ticker: string) => fetchQuoteFromYahoo(ticker),
   ["yahoo-quote-v1"],
   { revalidate: QUOTE_CACHE_SECONDS }
 );
 
-export async function getQuote(ticker: string): Promise<YahooQuote> {
+export async function getDashboardQuote(ticker: string): Promise<YahooQuote> {
   return getCachedQuote(ticker);
+}
+
+function positivePrice(...values: Array<number | null | undefined>) {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
+  }
+  return null;
+}
+
+function resolveTradingExecutionPrice(
+  quote: YahooQuote,
+  marketStatus: MarketScheduleStatus
+): Pick<TradingQuote, "executionPrice" | "executionPriceBasis" | "executionPriceLabel" | "mayDifferFromDashboard"> {
+  const dashboardPrice = positivePrice(quote.regularMarketPrice);
+  const previousClose = positivePrice(quote.regularMarketPreviousClose);
+  const latestPrice = positivePrice(quote.regularMarketPrice, quote.regularMarketPreviousClose);
+
+  switch (marketStatus.newstock.kind) {
+    case "pre_close_price":
+      return {
+        executionPrice: previousClose ?? latestPrice,
+        executionPriceBasis: "전일 종가 기준",
+        executionPriceLabel: "장전 시간외종가",
+        mayDifferFromDashboard: Boolean(previousClose && dashboardPrice && previousClose !== dashboardPrice),
+      };
+    case "regular":
+      return {
+        executionPrice: latestPrice,
+        executionPriceBasis: "정규장 최근 현재가 기준",
+        executionPriceLabel: "정규장 현재가",
+        mayDifferFromDashboard: false,
+      };
+    case "after_close_price":
+      return {
+        executionPrice: latestPrice,
+        executionPriceBasis: "당일 종가에 가까운 마지막 확인가 기준",
+        executionPriceLabel: "장후 시간외종가",
+        mayDifferFromDashboard: false,
+      };
+    case "after_single_price":
+      return {
+        executionPrice: latestPrice,
+        executionPriceBasis: "Newstock 단일가 기준가",
+        executionPriceLabel: "시간외단일가",
+        mayDifferFromDashboard: true,
+      };
+    case "learning_after_class":
+      return {
+        executionPrice: latestPrice,
+        executionPriceBasis: "Newstock 애프터 기준가",
+        executionPriceLabel: "Newstock 애프터 세션 기준가",
+        mayDifferFromDashboard: true,
+      };
+    case "opening_call":
+      return {
+        executionPrice: latestPrice,
+        executionPriceBasis: "시가 결정 전 최근 확인가 기준",
+        executionPriceLabel: "시가 준비 기준가",
+        mayDifferFromDashboard: true,
+      };
+    case "closing_call":
+      return {
+        executionPrice: latestPrice,
+        executionPriceBasis: "종가 결정 전 최근 확인가 기준",
+        executionPriceLabel: "종가 준비 기준가",
+        mayDifferFromDashboard: true,
+      };
+    case "closing_gap":
+      return {
+        executionPrice: latestPrice,
+        executionPriceBasis: "당일 종가 확인 대기 기준가",
+        executionPriceLabel: "장후 접수 대기 기준가",
+        mayDifferFromDashboard: true,
+      };
+    default:
+      return {
+        executionPrice: latestPrice,
+        executionPriceBasis: "마지막 거래일 종가 또는 최근 확인가 기준",
+        executionPriceLabel: "Newstock 참고 기준가",
+        mayDifferFromDashboard: true,
+      };
+  }
+}
+
+export async function getTradingQuote(
+  ticker: string,
+  marketStatus: MarketScheduleStatus = getMarketScheduleStatus()
+): Promise<TradingQuote> {
+  const quote = await getCachedQuote(ticker);
+  const resolved = resolveTradingExecutionPrice(quote, marketStatus);
+
+  return {
+    ...quote,
+    ...resolved,
+    dashboardPrice: positivePrice(quote.regularMarketPrice),
+    sessionLabel: marketStatus.newstock.label,
+    sessionKind: marketStatus.newstock.kind,
+  };
 }
 
 async function getChartQuote(ticker: string): Promise<YahooQuote> {

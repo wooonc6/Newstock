@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getMarketScheduleStatus } from '@/lib/marketSchedule';
 import { getStock } from '@/lib/stocks';
-import { getQuote } from '@/lib/yahoo';
+import { getTradingQuote } from '@/lib/yahoo';
 import { NextRequest, NextResponse } from 'next/server';
 
 const QUIZZES_TO_UNLOCK = 3;
@@ -32,8 +32,8 @@ export async function GET() {
     return NextResponse.json({ error: '조건 주문을 불러오지 못했습니다.' }, { status: 500 });
   }
 
-  // 모의투자 탭이 열려 있는 동안 현재가를 확인해 충족된 주문을 체결한다.
-  // 동일 종목의 시세는 요청당 한 번만 조회한다.
+  // 모의투자 탭이 열려 있는 동안 세션별 기준가를 확인해 충족된 주문을 체결한다.
+  // 동일 종목의 기준가는 요청당 한 번만 조회한다.
   const marketStatus = getMarketScheduleStatus();
   const priceByTicker = new Map<string, number>();
   let changed = false;
@@ -42,11 +42,11 @@ export async function GET() {
       let price = priceByTicker.get(order.ticker);
       if (price == null) {
         try {
-          const quote = await getQuote(order.ticker);
-          price = quote.regularMarketPrice ?? 0;
+          const quote = await getTradingQuote(order.ticker, marketStatus);
+          price = quote.executionPrice ?? 0;
           if (price > 0) priceByTicker.set(order.ticker, price);
         } catch (error) {
-          console.error(`[GET /api/orders] quote error (${order.ticker}):`, error);
+          console.error(`[GET /api/orders] trading quote error (${order.ticker}):`, error);
           continue;
         }
       }
