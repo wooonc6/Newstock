@@ -1,5 +1,6 @@
-import AnalysisTabs from "./AnalysisTabs";
-import GrowthReport from "./GrowthReport";
+import AnalysisTabs from "@/components/analysis/AnalysisTabs";
+import GrowthReport from "@/components/analysis/GrowthReport";
+import QuizAnalysis from "@/components/analysis/QuizAnalysis";
 
 import StatsPage from "../stats/page";
 import HistoryPage from "../history/page";
@@ -17,75 +18,13 @@ export default async function AnalysisPage({
     <AnalysisTabs
       growth={<GrowthReport />}
       quiz={
-        <section
-          style={{
-            border: "1px solid var(--border)",
-            borderRadius: "14px",
-            padding: "18px",
-            background: "var(--surface)",
-          }}
-        >
-          <div style={{ marginBottom: "16px" }}>
-            <div
-              style={{
-                fontSize: "11px",
-                fontWeight: 800,
-                color: "var(--text-muted)",
-                marginBottom: "5px",
-              }}
-            >
-              ANALYSIS
-            </div>
-
-            <h2
-              style={{
-                fontSize: "18px",
-                fontWeight: 800,
-                color: "var(--text)",
-              }}
-            >
-              📊 퀴즈 분석
-            </h2>
-          </div>
-
-          <StatsPage />
-        </section>
+        <QuizAnalysis
+          totalQuiz={24}
+          correctQuiz={18}
+          unlockedCompanies={8}
+        />
       }
-      history={
-        <section
-          style={{
-            border: "1px solid var(--border)",
-            borderRadius: "14px",
-            padding: "18px",
-            background: "var(--surface)",
-          }}
-        >
-          <div style={{ marginBottom: "16px" }}>
-            <div
-              style={{
-                fontSize: "11px",
-                fontWeight: 800,
-                color: "var(--text-muted)",
-                marginBottom: "5px",
-              }}
-            >
-              HISTORY
-            </div>
-
-            <h2
-              style={{
-                fontSize: "18px",
-                fontWeight: 800,
-                color: "var(--text)",
-              }}
-            >
-              🗂️ 학습 기록
-            </h2>
-          </div>
-
-          <HistoryPage selectedTicker={recordTicker} />
-        </section>
-      }
+      history={<HistoryPage selectedTicker={recordTicker} />}
     />
   );
 }
