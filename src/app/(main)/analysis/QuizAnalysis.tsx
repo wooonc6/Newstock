@@ -5,6 +5,7 @@ import CompanyQuizStats from "./CompanyQuizStats";
 import RecentQuizHistory from "./RecentQuizHistory";
 import LearningInsight from "./LearningInsight";
 import AchievementCards from "./AchievementCards";
+import WeeklyProgress from "./WeeklyProgress";
 
 interface QuizAnalysisProps {
   totalQuiz: number;
@@ -54,7 +55,6 @@ export default function QuizAnalysis({
         gap: 24,
       }}
     >
-      {/* 헤더 */}
       <section
         style={{
           border: "1px solid var(--border)",
@@ -83,7 +83,6 @@ export default function QuizAnalysis({
         </p>
       </section>
 
-      {/* 통계 */}
       <div
         style={{
           display: "grid",
@@ -123,20 +122,17 @@ export default function QuizAnalysis({
         ))}
       </div>
 
-      {/* 정답률 */}
       <QuizAccuracyChart
         correct={correctQuiz}
         total={totalQuiz}
       />
 
-      {/* 업적 */}
       <AchievementCards
         totalQuiz={totalQuiz}
         unlockedCompanies={unlockedCompanies}
         accuracy={accuracy}
       />
 
-      {/* 기업별 진행도 */}
       <CompanyQuizStats
         companies={[
           {
@@ -167,7 +163,6 @@ export default function QuizAnalysis({
         ]}
       />
 
-      {/* 최근 기록 */}
       <RecentQuizHistory
         history={[
           {
@@ -203,11 +198,20 @@ export default function QuizAnalysis({
         ]}
       />
 
-      {/* AI 없이 규칙 기반 인사이트 */}
       <LearningInsight
         totalQuiz={totalQuiz}
         correctQuiz={correctQuiz}
         unlockedCompanies={unlockedCompanies}
+      />
+
+      <WeeklyProgress
+        monday={4}
+        tuesday={2}
+        wednesday={6}
+        thursday={5}
+        friday={7}
+        saturday={3}
+        sunday={4}
       />
     </div>
   );
