@@ -1,18 +1,43 @@
 "use client";
 
-interface Achievement {
-  title: string;
-  description: string;
-  achieved: boolean;
-}
-
 interface Props {
-  achievements: Achievement[];
+  totalQuiz: number;
+  unlockedCompanies: number;
+  streak: number;
 }
 
 export default function LearningAchievement({
-  achievements,
+  totalQuiz,
+  unlockedCompanies,
+  streak,
 }: Props) {
+  const achievements = [
+    {
+      title: "첫 퀴즈",
+      unlocked: totalQuiz >= 1,
+    },
+    {
+      title: "퀴즈 10개",
+      unlocked: totalQuiz >= 10,
+    },
+    {
+      title: "기업 5개 해제",
+      unlocked: unlockedCompanies >= 5,
+    },
+    {
+      title: "기업 10개 해제",
+      unlocked: unlockedCompanies >= 10,
+    },
+    {
+      title: "7일 연속 학습",
+      unlocked: streak >= 7,
+    },
+    {
+      title: "30일 연속 학습",
+      unlocked: streak >= 30,
+    },
+  ];
+
   return (
     <section
       style={{
@@ -24,60 +49,48 @@ export default function LearningAchievement({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
-          marginBottom: 20,
+          marginBottom: 24,
         }}
       >
-        🏅 학습 업적
+        🏆 학습 업적
       </h3>
 
       <div
         style={{
           display: "grid",
-          gap: 16,
+          gridTemplateColumns:
+            "repeat(auto-fit,minmax(180px,1fr))",
+          gap: 18,
         }}
       >
         {achievements.map((achievement) => (
           <div
             key={achievement.title}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
               border: "1px solid var(--border)",
               borderRadius: 14,
-              padding: 18,
-              opacity: achievement.achieved ? 1 : 0.45,
+              padding: 20,
+              textAlign: "center",
+              opacity: achievement.unlocked ? 1 : 0.45,
             }}
           >
             <div
               style={{
-                fontSize: 28,
+                fontSize: 36,
+                marginBottom: 12,
               }}
             >
-              {achievement.achieved ? "🏆" : "🔒"}
+              {achievement.unlocked ? "🏅" : "🔒"}
             </div>
 
-            <div>
-              <div
-                style={{
-                  fontWeight: 700,
-                  marginBottom: 6,
-                }}
-              >
-                {achievement.title}
-              </div>
-
-              <div
-                style={{
-                  color: "var(--text-muted)",
-                  fontSize: 14,
-                  lineHeight: 1.7,
-                }}
-              >
-                {achievement.description}
-              </div>
+            <div
+              style={{
+                fontWeight: 700,
+              }}
+            >
+              {achievement.title}
             </div>
           </div>
         ))}
