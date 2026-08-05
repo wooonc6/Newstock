@@ -1,18 +1,12 @@
-type GrowthCardsProps = {
+"use client";
+
+interface Props {
   totalAsset: number;
   totalProfit: number;
   totalReturn: number;
   realizedReturn: number;
-  unlockedCompanies: number;
   solvedNews: number;
-};
-
-function formatMoney(value: number) {
-  return `${new Intl.NumberFormat("ko-KR").format(value)}원`;
-}
-
-function formatPercent(value: number) {
-  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+  unlockedCompanies: number;
 }
 
 export default function GrowthCards({
@@ -20,47 +14,41 @@ export default function GrowthCards({
   totalProfit,
   totalReturn,
   realizedReturn,
-  unlockedCompanies,
   solvedNews,
-}: GrowthCardsProps) {
+  unlockedCompanies,
+}: Props) {
   const cards = [
     {
-      title: "총자산",
-      value: formatMoney(totalAsset),
-      color: "#2563eb",
+      title: "총 자산",
+      value: `${totalAsset.toLocaleString()}원`,
     },
     {
-      title: "누적 손익",
-      value: `${totalProfit >= 0 ? "+" : ""}${formatMoney(Math.abs(totalProfit))}`,
-      color: totalProfit >= 0 ? "#16a34a" : "#dc2626",
+      title: "총 수익",
+      value: `${totalProfit.toLocaleString()}원`,
     },
     {
-      title: "총수익률",
-      value: formatPercent(totalReturn),
-      color: totalReturn >= 0 ? "#16a34a" : "#dc2626",
+      title: "총 수익률",
+      value: `${totalReturn.toFixed(1)}%`,
     },
     {
       title: "실현 수익률",
-      value: formatPercent(realizedReturn),
-      color: realizedReturn >= 0 ? "#16a34a" : "#dc2626",
+      value: `${realizedReturn.toFixed(1)}%`,
     },
     {
-      title: "완료한 뉴스 퀴즈",
+      title: "학습한 뉴스",
       value: `${solvedNews}개`,
-      color: "#7c3aed",
     },
     {
-      title: "기업 잠금 해제",
+      title: "잠금 해제 기업",
       value: `${unlockedCompanies}개`,
-      color: "#f59e0b",
     },
   ];
 
   return (
-    <div
+    <section
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
         gap: 18,
       }}
     >
@@ -69,16 +57,15 @@ export default function GrowthCards({
           key={card.title}
           style={{
             border: "1px solid var(--border)",
-            borderRadius: 16,
-            padding: 22,
+            borderRadius: 18,
             background: "var(--surface)",
+            padding: 22,
           }}
         >
           <div
             style={{
               fontSize: 13,
               color: "var(--text-muted)",
-              marginBottom: 10,
             }}
           >
             {card.title}
@@ -86,15 +73,16 @@ export default function GrowthCards({
 
           <div
             style={{
+              marginTop: 10,
               fontSize: 28,
               fontWeight: 800,
-              color: card.color,
+              color: "var(--text)",
             }}
           >
             {card.value}
           </div>
         </div>
       ))}
-    </div>
+    </section>
   );
 }
