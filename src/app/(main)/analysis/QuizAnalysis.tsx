@@ -1,5 +1,7 @@
 "use client";
 
+import QuizAccuracyChart from "./QuizAccuracyChart";
+
 interface QuizAnalysisProps {
   totalQuiz: number;
   correctQuiz: number;
@@ -72,8 +74,7 @@ export default function QuizAnalysis({
             lineHeight: 1.7,
           }}
         >
-          뉴스 퀴즈 학습 결과를 확인하고
-          기업 잠금 해제 진행 상황을 살펴보세요.
+          뉴스 퀴즈 학습 결과와 기업 잠금 해제 진행 상황을 확인하세요.
         </p>
       </section>
 
@@ -116,6 +117,11 @@ export default function QuizAnalysis({
         ))}
       </div>
 
+      <QuizAccuracyChart
+        correct={correctQuiz}
+        total={totalQuiz}
+      />
+
       <section
         style={{
           border: "1px solid var(--border)",
@@ -142,11 +148,13 @@ export default function QuizAnalysis({
         >
           • 완료한 뉴스 퀴즈 {totalQuiz}개
           <br />
+          • 정답 {correctQuiz}개 / 오답 {incorrectQuiz}개
+          <br />
           • 정답률 {accuracy}%
           <br />
           • 기업 잠금 해제 {unlockedCompanies}개
           <br />
-          • 꾸준히 퀴즈를 풀어 더 많은 기업을 잠금 해제해 보세요.
+          • 꾸준히 뉴스 퀴즈를 풀어 더 많은 기업의 잠금을 해제해 보세요.
         </div>
       </section>
     </div>
