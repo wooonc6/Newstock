@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Footer from "@/components/layout/Footer";
 
 const s = {
   wrap: {
     minHeight: "100vh",
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    gap: "18px",
     padding: "24px",
     background:
       "radial-gradient(circle at 18% 12%, rgba(0, 168, 120, 0.10), transparent 32%), linear-gradient(135deg, #f4fbf8 0%, #f5f7fa 52%, #eef3f8 100%)",
@@ -142,6 +145,9 @@ export default function ResetPasswordPage() {
         <button style={s.btn} onClick={handleReset} disabled={loading}>
           {loading ? "변경 중..." : "비밀번호 변경 →"}
         </button>
+      </div>
+      <div style={{ width: "100%", maxWidth: "440px" }}>
+        <Footer />
       </div>
     </div>
   );
