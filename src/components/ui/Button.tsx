@@ -56,7 +56,6 @@ export default function Button({
         ...SIZE_STYLES[size],
         width: fullWidth ? "100%" : undefined,
         fontWeight: 700,
-        fontFamily: "'Noto Sans KR', sans-serif",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.4 : 1,
         transition: "transform 0.12s ease, opacity 0.12s ease",

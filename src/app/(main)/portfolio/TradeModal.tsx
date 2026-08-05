@@ -126,7 +126,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
             <strong style={{ fontSize: "13px", color: marketStatus.newstock.canTradeNow ? "#057c68" : "var(--text-dim)" }}>
               {marketStatus.newstock.label}
             </strong>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", color: "var(--text-muted)" }}>
+            <span style={{ fontFamily: "var(--font-ui)", fontSize: "11px", color: "var(--text-muted)" }}>
               KST {marketStatus.timeText}
             </span>
           </div>
@@ -158,7 +158,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
 
         <div style={{ marginBottom: "16px" }}>
           <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>모의투자 기준가</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "18px", fontWeight: 700 }}>{priceLoading ? "로딩 중..." : `₩${price.toLocaleString()}`}</div>
+          <div style={{ fontFamily: "var(--font-ui)", fontSize: "18px", fontWeight: 700 }}>{priceLoading ? "로딩 중..." : `₩${price.toLocaleString()}`}</div>
           {!priceLoading && (
             <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "5px", lineHeight: 1.45 }}>
               {priceData?.priceLabel ?? "Newstock 기준가"} · 대시보드 시세와 다를 수 있음
@@ -189,14 +189,14 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
             <button onClick={() => setQuantity((value) => Math.max(1, value - 1))} style={{ width: "36px", height: "36px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", fontSize: "18px", cursor: "pointer", color: "var(--text)" }}>−</button>
-            <input type="number" min={1} max={maxQuantity} value={quantity} onChange={(event) => { const next = Math.max(1, Number(event.target.value)); setQuantity(maxQuantity > 0 ? Math.min(next, maxQuantity) : 1); }} style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", fontSize: "16px", fontFamily: "'Space Mono', monospace", fontWeight: 700, color: "var(--text)" }} />
+            <input type="number" min={1} max={maxQuantity} value={quantity} onChange={(event) => { const next = Math.max(1, Number(event.target.value)); setQuantity(maxQuantity > 0 ? Math.min(next, maxQuantity) : 1); }} style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", fontSize: "16px", fontFamily: "var(--font-ui)", fontWeight: 700, color: "var(--text)" }} />
             <button onClick={() => setQuantity((value) => (maxQuantity > 0 ? Math.min(maxQuantity, value + 1) : value))} style={{ width: "36px", height: "36px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", fontSize: "18px", cursor: "pointer", color: "var(--text)" }}>+</button>
           </div>
         </div>
 
         <div style={{ background: "var(--surface)", borderRadius: "10px", padding: "12px 16px", marginBottom: "10px", display: "flex", justifyContent: "space-between" }}>
           <div style={{ fontSize: "13px", color: "var(--text-dim)" }}>{orderMode === "conditional" ? "목표가 기준 예상 금액" : `총 ${tradeType === "buy" ? "매수" : "매도"}금액`}</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "14px", fontWeight: 700 }}>₩{totalAmount.toLocaleString()}</div>
+          <div style={{ fontFamily: "var(--font-ui)", fontSize: "14px", fontWeight: 700 }}>₩{totalAmount.toLocaleString()}</div>
         </div>
 
         {tradeType === "sell" && referencePrice > 0 && (

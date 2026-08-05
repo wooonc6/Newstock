@@ -298,7 +298,7 @@ function MarketStatusBanner({ status, onOpenRules }: { status: MarketStatus; onO
             {isOpen ? "거래 가능" : "즉시 거래 마감"}
           </span>
           <strong style={{ fontSize: "14px" }}>{status.newstock.label}</strong>
-          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+          <span style={{ fontFamily: "var(--font-ui)", fontSize: "12px", color: "var(--text-muted)" }}>
             KST {status.dateKey}({status.weekday}) {status.timeText}
           </span>
         </div>
@@ -388,7 +388,7 @@ function MarketRuleModal({ status, onClose }: { status: MarketStatus; onClose: (
 function RuleRow({ time, title, desc }: { time: string; title: string; desc: string }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "116px minmax(0,1fr)", gap: "10px", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface)" }}>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", color: "var(--text-muted)", fontWeight: 800 }}>{time}</div>
+      <div style={{ fontFamily: "var(--font-ui)", fontSize: "11px", color: "var(--text-muted)", fontWeight: 800 }}>{time}</div>
       <div>
         <div style={{ fontSize: "12px", fontWeight: 800, marginBottom: "3px" }}>{title}</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.55 }}>{desc}</div>

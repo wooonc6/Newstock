@@ -260,7 +260,6 @@ export default function QuizClient({ ticker, stockName }: Props) {
                 <div style={{ textAlign: "right", flex: "0 0 auto" }}>
                   <div
                     style={{
-                      fontFamily: "'Space Mono', monospace",
                       fontSize: "13px",
                       fontWeight: 800,
                       color: record.item.direction === "up" ? "var(--danger)" : "#2563eb",
@@ -355,7 +354,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
             <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
               기사 발표 직전 종가 · {currentItem.baseDate}
             </div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "18px", fontWeight: 800 }}>
+            <div style={{ fontFamily: "var(--font-ui)", fontSize: "18px", fontWeight: 800 }}>
               {formatQuizPrice(currentItem.priceBase)}
             </div>
           </div>
@@ -363,7 +362,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
             <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>
               전체 진행
             </div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "14px", fontWeight: 800 }}>
+            <div style={{ fontFamily: "var(--font-ui)", fontSize: "14px", fontWeight: 800 }}>
               {progressLabel}
             </div>
           </div>

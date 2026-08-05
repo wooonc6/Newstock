@@ -33,12 +33,11 @@ function PriceSummary({ ticker }: { ticker: string }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "14px", fontWeight: 700 }}>
+      <span style={{ fontFamily: "var(--font-ui)", fontSize: "14px", fontWeight: 700 }}>
         {formatPrice(data.price)}
       </span>
       <span
         style={{
-          fontFamily: "'Space Mono', monospace",
           fontSize: "12px",
           fontWeight: 700,
           color: isUp ? "var(--danger)" : "#2563eb",
@@ -101,7 +100,7 @@ export default function StockQuizCard({ stock, status, newsCount = 0 }: Props) {
                 {stock.sector}
               </span>
             </div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+            <div style={{ fontFamily: "var(--font-ui)", fontSize: "12px", color: "var(--text-muted)" }}>
               {stock.ticker}
             </div>
           </div>
@@ -121,7 +120,7 @@ export default function StockQuizCard({ stock, status, newsCount = 0 }: Props) {
       <div style={{ display: "grid", gap: "8px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-muted)" }}>
           <span>학습 진행</span>
-          <span style={{ fontFamily: "'Space Mono', monospace" }}>
+          <span style={{ fontFamily: "var(--font-ui)" }}>
             {quizzes_completed} / {quizzes_required}
           </span>
         </div>

@@ -20,7 +20,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", color: "var(--text-muted)" }}>
+        <div style={{ fontFamily: "var(--font-ui)", fontSize: "13px", color: "var(--text-muted)" }}>
           Loading...
         </div>
       </div>

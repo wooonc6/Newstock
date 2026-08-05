@@ -30,7 +30,6 @@ export default function Badge({ children, variant = "sector", color, background,
           borderRadius: "999px",
           fontSize: "12px",
           fontWeight: 800,
-          fontFamily: "'Space Mono', monospace",
           background: medal?.background ?? "var(--surface2)",
           color: medal?.color ?? "var(--text-dim)",
         }}

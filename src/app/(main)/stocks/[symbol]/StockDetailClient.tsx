@@ -69,7 +69,7 @@ export default function StockDetailClient({ stock }: Props) {
           <div>
             <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>{stock.sector}</div>
             <h1 style={{ fontSize: "24px", lineHeight: 1.25 }}>{stock.name}</h1>
-            <div style={{ marginTop: "6px", fontFamily: "'Space Mono', monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+            <div style={{ marginTop: "6px", fontFamily: "var(--font-ui)", fontSize: "12px", color: "var(--text-muted)" }}>
               {stock.ticker}
             </div>
           </div>

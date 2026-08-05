@@ -180,14 +180,14 @@ export default function RankingPage() {
             const displayName = item.nickname || "아이디 미설정 사용자";
 
             return <button key={item.id} type="button" onClick={() => setSelectedUser(item)} style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0, 1fr) auto", alignItems: "center", gap: "12px", background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)", border: `1px solid ${isMe ? "rgba(0,168,120,0.25)" : "var(--border)"}`, borderRadius: "12px", padding: "14px 16px", cursor: "pointer", color: "inherit", textAlign: "left" }}>
-              <div style={{ width: "34px", height: "34px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)", color: rank <= 3 ? "var(--coin)" : "var(--text-muted)", fontFamily: "'Space Mono', monospace", fontSize: "13px", fontWeight: 900 }}>{rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : rank}</div>
+              <div style={{ width: "34px", height: "34px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)", color: rank <= 3 ? "var(--coin)" : "var(--text-muted)", fontFamily: "var(--font-ui)", fontSize: "13px", fontWeight: 900 }}>{rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : rank}</div>
               <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px" }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "10px", color: "var(--text-muted)" }}>클릭하여 투자 현황 보기 · 보유 종목 {holdingCount}개</div></div>
               <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", fontWeight: 900, color: "var(--coin)" }}>₩{learningInvestmentScore.toLocaleString()}</div><div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "3px" }}>학습투자 점수</div>
+                <div style={{ fontFamily: "var(--font-ui)", fontSize: "13px", fontWeight: 900, color: "var(--coin)" }}>₩{learningInvestmentScore.toLocaleString()}</div><div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "3px" }}>학습투자 점수</div>
                 <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산 ₩{totalAccountAssets.toLocaleString()}</div>
                 <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>보유 현금 ₩{currentCoins.toLocaleString()}</div>
                 <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>총 획득 ₩{totalEarned.toLocaleString()}</div>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", fontWeight: 800, color: returnColor, marginTop: "5px" }} title={realizedCostBasis > 0 ? `실현손익 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()}` : "아직 매도 내역이 없습니다."}>실현 수익률 {realizedReturnRate > 0 ? "+" : ""}{realizedReturnRate.toFixed(2)}%</div>
+                <div style={{ fontFamily: "var(--font-ui)", fontSize: "11px", fontWeight: 800, color: returnColor, marginTop: "5px" }} title={realizedCostBasis > 0 ? `실현손익 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()}` : "아직 매도 내역이 없습니다."}>실현 수익률 {realizedReturnRate > 0 ? "+" : ""}{realizedReturnRate.toFixed(2)}%</div>
               </div>
             </button>;
           })}

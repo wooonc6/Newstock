@@ -102,7 +102,7 @@ export default async function StatsPage() {
                   <span style={{ display: "block", fontSize: "13px", fontWeight: 800 }}>{getStock(ticker)?.name ?? ticker}</span>
                   <span style={{ display: "block", marginTop: "3px", fontSize: "11px", color: "var(--text-muted)" }}>클릭하면 이 종목의 퀴즈 기록으로 이동</span>
                 </span>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", color: "var(--danger)", whiteSpace: "nowrap" }}>
+                <span style={{ fontFamily: "var(--font-ui)", fontSize: "13px", color: "var(--danger)", whiteSpace: "nowrap" }}>
                   {count}개 오답 ↘
                 </span>
               </Link>
@@ -118,7 +118,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "14px" }}>
       <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "6px" }}>{label}</div>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "18px", fontWeight: 800 }}>{value}</div>
+      <div style={{ fontFamily: "var(--font-ui)", fontSize: "18px", fontWeight: 800 }}>{value}</div>
     </div>
   );
 }

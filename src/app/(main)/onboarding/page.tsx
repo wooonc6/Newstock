@@ -61,7 +61,6 @@ export default function OnboardingPage() {
                     fontSize: "11px",
                     fontWeight: 700,
                     color: "var(--accent2)",
-                    fontFamily: "'Space Mono', monospace",
                     marginBottom: "2px",
                   }}
                 >
