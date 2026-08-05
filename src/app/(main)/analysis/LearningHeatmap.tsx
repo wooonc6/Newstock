@@ -18,12 +18,12 @@ export default function LearningHeatmap({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
-          marginBottom: 20,
+          marginBottom: 24,
         }}
       >
-        🗓️ 학습 히트맵
+        🔥 학습 히트맵
       </h3>
 
       <div
@@ -37,7 +37,7 @@ export default function LearningHeatmap({
           const opacity =
             value === 0
               ? 0.15
-              : Math.min(0.25 + value * 0.15, 1);
+              : Math.min(1, value / 5);
 
           return (
             <div
@@ -47,28 +47,31 @@ export default function LearningHeatmap({
                 borderRadius: 8,
                 background: `rgba(37,99,235,${opacity})`,
                 display: "flex",
-                alignItems: "center",
                 justifyContent: "center",
-                color: opacity > 0.55 ? "#fff" : "#333",
+                alignItems: "center",
+                color:
+                  opacity > 0.5
+                    ? "#fff"
+                    : "var(--text)",
                 fontSize: 12,
                 fontWeight: 700,
               }}
             >
-              {index + 1}
+              {value}
             </div>
           );
         })}
       </div>
 
-      <div
+      <p
         style={{
           marginTop: 18,
-          fontSize: 13,
           color: "var(--text-muted)",
+          lineHeight: 1.7,
         }}
       >
-        색이 진할수록 해당 날짜의 학습량이 많습니다.
-      </div>
+        최근 학습량을 한눈에 확인할 수 있습니다.
+      </p>
     </section>
   );
 }
