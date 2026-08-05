@@ -23,68 +23,70 @@ export default function LearningTimeline({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
           marginBottom: 24,
         }}
       >
-        🕒 학습 타임라인
+        📅 학습 타임라인
       </h3>
 
       <div
         style={{
           display: "grid",
-          gap: 18,
+          gap: 20,
         }}
       >
-        {items.map((item, index) => (
+        {items.length === 0 ? (
           <div
-            key={index}
             style={{
-              display: "flex",
-              gap: 16,
-              alignItems: "flex-start",
+              color: "var(--text-muted)",
             }}
           >
+            아직 학습 기록이 없습니다.
+          </div>
+        ) : (
+          items.map((item, index) => (
             <div
+              key={`${item.title}-${index}`}
               style={{
-                width: 14,
-                height: 14,
-                borderRadius: "50%",
-                background: "var(--primary)",
-                marginTop: 6,
-                flexShrink: 0,
-              }}
-            />
-
-            <div
-              style={{
-                flex: 1,
-                borderLeft: "2px solid var(--border)",
-                paddingLeft: 18,
-                paddingBottom: 20,
+                display: "flex",
+                gap: 18,
               }}
             >
               <div
                 style={{
-                  fontWeight: 700,
-                }}
-              >
-                {item.title}
-              </div>
-
-              <div
-                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: "50%",
+                  background: "var(--primary)",
                   marginTop: 6,
-                  fontSize: 13,
-                  color: "var(--text-muted)",
+                  flexShrink: 0,
                 }}
-              >
-                {item.date}
+              />
+
+              <div>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    marginBottom: 4,
+                  }}
+                >
+                  {item.title}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {item.date}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </section>
   );
