@@ -1,13 +1,13 @@
 "use client";
 
 interface Props {
-  values: number[];
+  scores: number[];
 }
 
 export default function LearningGrowthChart({
-  values,
+  scores,
 }: Props) {
-  const max = Math.max(...values, 1);
+  const max = Math.max(...scores, 1);
 
   return (
     <section
@@ -20,12 +20,12 @@ export default function LearningGrowthChart({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
-          marginBottom: 20,
+          marginBottom: 24,
         }}
       >
-        📈 학습 성장 추이
+        📈 성장 추이
       </h3>
 
       <div
@@ -36,7 +36,7 @@ export default function LearningGrowthChart({
           height: 220,
         }}
       >
-        {values.map((value, index) => (
+        {scores.map((score, index) => (
           <div
             key={index}
             style={{
@@ -52,16 +52,16 @@ export default function LearningGrowthChart({
                 marginBottom: 6,
               }}
             >
-              {value}
+              {score}
             </div>
 
             <div
               style={{
                 width: "100%",
-                height: `${(value / max) * 160}px`,
+                height: `${(score / max) * 160}px`,
+                minHeight: 8,
                 borderRadius: 10,
                 background: "var(--primary)",
-                minHeight: 6,
               }}
             />
 
@@ -72,11 +72,21 @@ export default function LearningGrowthChart({
                 color: "var(--text-muted)",
               }}
             >
-              {index + 1}주
+              {index + 1}
             </div>
           </div>
         ))}
       </div>
+
+      <p
+        style={{
+          marginTop: 18,
+          color: "var(--text-muted)",
+          lineHeight: 1.7,
+        }}
+      >
+        학습 성과가 시간에 따라 어떻게 성장했는지 보여줍니다.
+      </p>
     </section>
   );
 }
