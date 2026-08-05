@@ -73,19 +73,20 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
 
   const currentCoins = Number(holdings[0]?.current_coins ?? user.current_coins ?? 0);
   const activeHoldings = holdings.filter((holding) => holding.ticker && Number(holding.quantity ?? 0) > 0);
+  const displayName = user.nickname || "아이디 미설정 사용자";
 
   return (
     <section style={{ border: "1px solid rgba(0,168,120,0.32)", borderRadius: "14px", padding: "16px", background: "rgba(0,168,120,0.045)", display: "grid", gap: "13px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start" }}>
         <div>
           <div style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 800 }}>🔎 선택한 사용자 투자 현황</div>
-          <div style={{ marginTop: "4px", fontSize: "17px", fontWeight: 900 }}>{user.nickname || "이름 없는 사용자"}</div>
+          <div style={{ marginTop: "4px", fontSize: "17px", fontWeight: 900 }}>{displayName}</div>
         </div>
         <button type="button" onClick={onClose} style={{ border: "1px solid var(--border)", background: "var(--surface)", borderRadius: "7px", padding: "6px 9px", fontSize: "11px", fontWeight: 700, cursor: "pointer", color: "var(--text-dim)" }}>닫기</button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
-        <Metric label="보유 모의투자금" value={`₩${currentCoins.toLocaleString()}`} />
+        <Metric label="보유 모의현금" value={`₩${currentCoins.toLocaleString()}`} />
         <Metric label="보유 종목" value={`${activeHoldings.length}개`} />
       </div>
 
@@ -122,8 +123,8 @@ export default function RankingPage() {
     <div style={{ display: "grid", gap: "14px" }}>
       <div style={{ marginBottom: "4px" }}>
         <div style={{ fontSize: "22px", fontWeight: 900, color: "var(--accent2)", marginBottom: "6px" }}>🏆 랭킹</div>
-        <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>총 획득 모의투자금 순 · 동률이면 실현 수익률 순</div>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>퀴즈를 맞혀 받은 모의투자금으로만 거래할 수 있습니다.</div>
+        <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>퀴즈 보상 또는 거래 이력이 있는 사용자만 표시 · 총 획득 모의투자금 순</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>퀴즈를 맞혀 받은 모의투자금으로만 거래할 수 있고, 현금 잔액은 보유 모의현금으로 표시됩니다.</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>💡 수익률은 주식을 매도한 뒤에만 반영됩니다. 사용자를 누르면 현재 투자 현황을 볼 수 있어요.</div>
       </div>
 
@@ -140,12 +141,13 @@ export default function RankingPage() {
             const realizedCostBasis = Number(item.realized_cost_basis ?? 0);
             const realizedReturnRate = Number(item.realized_return_rate ?? 0);
             const returnColor = realizedReturnRate > 0 ? "#ef4444" : realizedReturnRate < 0 ? "#2563eb" : "var(--text-muted)";
+            const displayName = item.nickname || "아이디 미설정 사용자";
 
             return <button key={item.id} type="button" onClick={() => setSelectedUser(item)} style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0, 1fr) auto", alignItems: "center", gap: "12px", background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)", border: `1px solid ${isMe ? "rgba(0,168,120,0.25)" : "var(--border)"}`, borderRadius: "12px", padding: "14px 16px", cursor: "pointer", color: "inherit", textAlign: "left" }}>
               <div style={{ width: "34px", height: "34px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)", color: rank <= 3 ? "var(--coin)" : "var(--text-muted)", fontFamily: "'Space Mono', monospace", fontSize: "13px", fontWeight: 900 }}>{rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : rank}</div>
-              <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{item.nickname || "이름 없는 사용자"}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px" }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "10px", color: "var(--text-muted)" }}>클릭하여 투자 현황 보기</div></div>
+              <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px" }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "10px", color: "var(--text-muted)" }}>클릭하여 투자 현황 보기</div></div>
               <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", fontWeight: 900, color: "var(--coin)" }}>₩{currentCoins.toLocaleString()}</div><div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "3px" }}>보유 모의투자금</div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", fontWeight: 900, color: "var(--coin)" }}>₩{currentCoins.toLocaleString()}</div><div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "3px" }}>보유 모의현금</div>
                 <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>총 획득 ₩{totalEarned.toLocaleString()}</div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", fontWeight: 800, color: returnColor, marginTop: "5px" }} title={realizedCostBasis > 0 ? `실현손익 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()}` : "아직 매도 내역이 없습니다."}>실현 수익률 {realizedReturnRate > 0 ? "+" : ""}{realizedReturnRate.toFixed(2)}%</div>
               </div>

@@ -62,7 +62,7 @@ export default function AssetsPage() {
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>💼 자산</div>
         <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>내 모의투자 자산 💰</h1>
         <div style={{ marginTop: "16px", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
-          <Metric label="보유 현금" value={`₩${coins.toLocaleString()}`} />
+          <Metric label="보유 모의현금" value={`₩${coins.toLocaleString()}`} />
           <Metric label="매수 금액" value={`₩${investedCost.toLocaleString()}`} />
           <Metric label="보유 종목" value={`${holdings.length}개`} />
         </div>

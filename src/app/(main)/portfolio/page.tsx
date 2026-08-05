@@ -319,7 +319,7 @@ export default function PortfolioPage() {
         }}
       >
         <div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>💰 보유 현금</div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>💰 보유 모의현금</div>
           <div style={{ fontSize: "20px", fontWeight: 700 }}>₩{coins.toLocaleString()}</div>
         </div>
         <div style={{ textAlign: "right" }}>

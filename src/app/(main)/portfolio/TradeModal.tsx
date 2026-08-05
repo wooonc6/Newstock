@@ -178,7 +178,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
         )}
 
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px", textAlign: "right" }}>
-          보유 현금: ₩{coins.toLocaleString()}
+          보유 모의현금: ₩{coins.toLocaleString()}
           {orderMode === "market" && tradeType === "buy" && totalAmount > 0 && <span> → 매수 후 {(coins - totalAmount).toLocaleString()}원</span>}
         </div>
 

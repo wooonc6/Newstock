@@ -58,17 +58,21 @@ const s = {
   link: { color: "var(--accent)", cursor: "pointer" },
 };
 
+function getEmailId(value: string) {
+  return value.trim().split("@")[0]?.trim() ?? "";
+}
+
 export default function AuthForm() {
   const [mode, setMode] = useState<Mode>("login");
   const [loginId, setLoginId] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ? createClient() : null as any;
+  const emailId = getEmailId(email);
 
   function reset(nextMode: Mode) {
     setMode(nextMode);
@@ -123,15 +127,15 @@ export default function AuthForm() {
       return;
     }
 
-    const cleanNickname = nickname.trim();
-    const cleanEmail = email.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanNickname = getEmailId(cleanEmail);
 
-    if (cleanNickname.length < 2) {
-      setError("아이디는 2자 이상이어야 합니다.");
-      return;
-    }
     if (!cleanEmail.includes("@")) {
       setError("이메일을 올바르게 입력해주세요.");
+      return;
+    }
+    if (cleanNickname.length < 2) {
+      setError("이메일 @ 앞부분이 2자 이상이어야 아이디로 사용할 수 있습니다.");
       return;
     }
     if (password.length < 6) {
@@ -147,7 +151,7 @@ export default function AuthForm() {
     });
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(error.message.includes("duplicate") ? "이미 같은 아이디가 있습니다. 다른 이메일을 사용해주세요." : error.message);
       return;
     }
 
@@ -231,27 +235,21 @@ export default function AuthForm() {
 
       {mode === "signup" && (
         <>
-          <label style={s.label}>아이디</label>
-          <input
-            style={s.input}
-            type="text"
-            placeholder="아이디 (2~12자)"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            maxLength={12}
-            onKeyDown={onKey}
-            autoComplete="username"
-          />
           <label style={s.label}>이메일</label>
           <input
             style={s.input}
             type="email"
-            placeholder="이메일"
+            placeholder="예: wonjun@school.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={onKey}
             autoComplete="email"
           />
+          <div style={{ marginTop: "-6px", marginBottom: "14px", padding: "10px 12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface2)", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.55 }}>
+            가입 아이디는 이메일의 <b style={{ color: "var(--text)" }}>@ 앞부분</b>으로 자동 생성됩니다.
+            <br />
+            현재 아이디: <b style={{ color: "var(--accent)" }}>{emailId || "이메일을 입력하면 표시됩니다"}</b>
+          </div>
           <label style={s.label}>비밀번호</label>
           <input
             style={s.input}
