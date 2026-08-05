@@ -59,8 +59,8 @@ export default function AssetsPage() {
   return (
     <div style={{ display: "grid", gap: "16px" }}>
       <section style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px" }}>
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>자산</div>
-        <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>내 모의투자 자산</h1>
+        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>💼 자산</div>
+        <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>내 모의투자 자산 💰</h1>
         <div style={{ marginTop: "16px", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
           <Metric label="보유 현금" value={`₩${coins.toLocaleString()}`} />
           <Metric label="매수 금액" value={`₩${investedCost.toLocaleString()}`} />
@@ -70,7 +70,7 @@ export default function AssetsPage() {
 
       <section>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", marginBottom: "10px" }}>
-          <div style={{ fontSize: "14px", fontWeight: 800 }}>보유 종목</div>
+          <div style={{ fontSize: "14px", fontWeight: 800 }}>📊 보유 종목</div>
           <Link href="/portfolio" style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 700, textDecoration: "none" }}>모의투자하기 →</Link>
         </div>
         {loading ? <Panel>자산을 불러오는 중입니다.</Panel> : holdings.length === 0 ? <Panel>아직 보유한 종목이 없습니다. 모의투자 탭에서 첫 거래를 시작해 보세요.</Panel> : <div style={{ display: "grid", gap: "8px" }}>{holdings.map((holding) => <HoldingCard key={holding.ticker} holding={holding} />)}</div>}

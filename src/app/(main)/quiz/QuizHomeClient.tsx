@@ -133,7 +133,16 @@ export default function QuizHomeClient() {
         onRetry={() => setReloadVersion((version) => version + 1)}
       />
 
-      <section style={{ display: "grid", gap: "9px" }}>
+      <section
+        style={{
+          display: "grid",
+          gap: "9px",
+          border: "1px solid var(--border)",
+          borderRadius: "14px",
+          padding: "16px",
+          background: "color-mix(in srgb, var(--surface) 72%, transparent)",
+        }}
+      >
         <SectionTitle title="🏢 종목 선택" sub="산업군을 열고 퀴즈를 풀 종목을 골라보세요" />
         {!loading && quizNewsError && (
           <ErrorText>
@@ -293,7 +302,14 @@ function LatestNewsSection({
   onRetry: () => void;
 }) {
   return (
-    <section>
+    <section
+      style={{
+        border: "1px solid var(--border)",
+        borderRadius: "14px",
+        padding: "16px",
+        background: "color-mix(in srgb, var(--surface) 72%, transparent)",
+      }}
+    >
       <SectionTitle title="📰 지금 읽을 주요 뉴스" sub="화제 종목·시장 흐름을 함께 볼 수 있는 기사 6개입니다" />
 
       {loading && <EmptyText>뉴스를 불러오는 중...</EmptyText>}
