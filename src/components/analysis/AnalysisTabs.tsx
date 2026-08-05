@@ -17,18 +17,21 @@ export default function AnalysisTabs({
 }: Props) {
   const [tab, setTab] = useState<Tab>("growth");
 
-  const tabs: { id: Tab; label: string }[] = [
+  const tabs: { id: Tab; label: string; emoji: string }[] = [
     {
       id: "growth",
       label: "성장 리포트",
+      emoji: "🌱",
     },
     {
       id: "quiz",
       label: "퀴즈 분석",
+      emoji: "📊",
     },
     {
       id: "history",
       label: "학습 기록",
+      emoji: "🗂️",
     },
   ];
 
@@ -37,29 +40,32 @@ export default function AnalysisTabs({
       <div
         style={{
           display: "flex",
-          gap: 8,
+          gap: 10,
           marginBottom: 24,
           borderBottom: "1px solid var(--border)",
+          overflowX: "auto",
         }}
       >
-        {tabs.map((t) => (
+        {tabs.map((tabItem) => (
           <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
+            key={tabItem.id}
+            onClick={() => setTab(tabItem.id)}
             style={{
-              padding: "12px 18px",
+              padding: "14px 18px",
               border: "none",
-              cursor: "pointer",
               background: "transparent",
-              fontWeight: tab === t.id ? 800 : 500,
+              cursor: "pointer",
+              fontSize: 15,
+              fontWeight: tab === tabItem.id ? 800 : 600,
               color: "var(--text)",
               borderBottom:
-                tab === t.id
+                tab === tabItem.id
                   ? "3px solid var(--primary)"
                   : "3px solid transparent",
+              whiteSpace: "nowrap",
             }}
           >
-            {t.label}
+            {tabItem.emoji} {tabItem.label}
           </button>
         ))}
       </div>
