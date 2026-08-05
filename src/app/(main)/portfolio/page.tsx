@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { useMarketStatus } from "@/hooks/useMarketStatus";
 import { useQuizUnlock } from "@/hooks/useQuizUnlock";
 import { useStockPrice } from "@/hooks/useStockPrice";
 import { STOCKS, getStock } from "@/lib/stocks";
@@ -10,6 +11,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { PortfolioHolding } from "@/types";
 import TradeModal from "./TradeModal";
 import ConditionalOrders from "./ConditionalOrders";
+
+type MarketStatus = ReturnType<typeof useMarketStatus>;
 
 function formatUpdatedAt(value: string | null | undefined) {
   if (!value) return "-";
@@ -262,14 +265,148 @@ function OrderPanel({ ticker, holding, unlocked, completed, required, onTrade }:
   );
 }
 
+function MarketStatusBanner({ status, onOpenRules }: { status: MarketStatus; onOpenRules: () => void }) {
+  const isOpen = status.newstock.canTradeNow;
+
+  return (
+    <section
+      style={{
+        border: "1px solid var(--border)",
+        borderRadius: "10px",
+        background: "var(--surface)",
+        padding: "14px 16px",
+        marginBottom: "14px",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto",
+        gap: "14px",
+        alignItems: "center",
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+          <span
+            style={{
+              padding: "4px 8px",
+              borderRadius: "999px",
+              background: isOpen ? "rgba(5,124,104,0.08)" : "var(--surface2)",
+              color: isOpen ? "#057c68" : "var(--text-dim)",
+              fontSize: "10px",
+              fontWeight: 800,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {isOpen ? "거래 가능" : "즉시 거래 마감"}
+          </span>
+          <strong style={{ fontSize: "14px" }}>{status.newstock.label}</strong>
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "12px", color: "var(--text-muted)" }}>
+            KST {status.dateKey}({status.weekday}) {status.timeText}
+          </span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "8px" }}>
+          <StatusMini label="현실 시장" value={status.realMarket.label} detail={status.realMarket.priceBasis} />
+          <StatusMini label="Newstock 체결" value={isOpen ? "즉시 거래·조건 체결 가능" : "조건 주문 등록만 가능"} detail={status.newstock.priceBasis} />
+          <StatusMini label="다음 기준" value={status.nextOpenText} detail={status.closedReason ?? status.realMarket.description} />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onOpenRules}
+        style={{
+          border: "1px solid var(--border)",
+          borderRadius: "9px",
+          background: "var(--surface)",
+          color: "var(--text-dim)",
+          padding: "10px 12px",
+          fontSize: "12px",
+          fontWeight: 700,
+          cursor: "pointer",
+          whiteSpace: "nowrap",
+        }}
+      >
+        시장 규칙 보기
+      </button>
+    </section>
+  );
+}
+
+function StatusMini({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "9px 10px", minWidth: 0 }}>
+      <div style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "4px" }}>{label}</div>
+      <div style={{ fontSize: "12px", fontWeight: 800, color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</div>
+      <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px", lineHeight: 1.45 }}>{detail}</div>
+    </div>
+  );
+}
+
+function MarketRuleModal({ status, onClose }: { status: MarketStatus; onClose: () => void }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Newstock 시장 규칙"
+      onClick={(event) => event.target === event.currentTarget && onClose()}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.48)", zIndex: 120, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+    >
+      <div style={{ width: "100%", maxWidth: "720px", maxHeight: "88vh", overflowY: "auto", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px 14px 0 0", padding: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", marginBottom: "16px" }}>
+          <div>
+            <div style={{ fontSize: "16px", fontWeight: 800 }}>시장 시간과 Newstock 세션 규칙</div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "5px", lineHeight: 1.55 }}>
+              현실 시장을 배우되, 저녁에도 연습할 수 있도록 Newstock 전용 체결 시간을 별도로 둡니다.
+            </div>
+          </div>
+          <button aria-label="시장 규칙 닫기" onClick={onClose} style={{ border: "none", background: "transparent", color: "var(--text-muted)", fontSize: "20px", cursor: "pointer" }}>×</button>
+        </div>
+
+        <div style={{ border: "1px solid var(--border)", borderRadius: "12px", background: "var(--surface)", padding: "13px", marginBottom: "12px" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "5px", fontWeight: 800 }}>지금 상태</div>
+          <div style={{ fontSize: "14px", fontWeight: 900 }}>{status.newstock.label}</div>
+          <div style={{ fontSize: "12px", color: "var(--text-dim)", marginTop: "5px", lineHeight: 1.55 }}>
+            현실 시장: {status.realMarket.label} · Newstock 가격 기준: {status.newstock.priceBasis}
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gap: "10px", marginBottom: "14px" }}>
+          <RuleRow time="08:30~08:40" title="장전 시간외종가" desc="현실에서는 전일 종가 기준 구간입니다. Newstock은 최근 확인가를 보여주되, 이 구간이라는 사실을 표시합니다." />
+          <RuleRow time="09:00~15:30" title="정규장" desc="현실의 핵심 거래 시간입니다. Newstock 즉시 거래와 조건 주문 체결이 모두 가능합니다." />
+          <RuleRow time="15:40~16:00" title="장후 시간외종가" desc="현실에서는 당일 종가 기준 구간입니다. Newstock은 Yahoo Finance의 최근 가격을 체결 기준으로 사용합니다." />
+          <RuleRow time="16:00~18:00" title="시간외단일가" desc="현실에서는 10분 단위로 주문을 모아 체결합니다. Newstock은 복잡한 단일가 계산 대신 최근 확인가로 교육용 체결합니다." />
+          <RuleRow time="18:00~24:00" title="Newstock 애프터 세션" desc="현실장은 닫혔지만, 저녁 학습을 위해 당일 마지막 확인가에 가까운 가격으로 즉시 거래와 조건 주문 체결을 허용합니다." />
+          <RuleRow time="24:00~다음 08:30" title="세션 마감" desc="즉시 거래와 조건 주문 체결은 멈춥니다. 조건 주문 등록은 가능하고, 다음 세션이 열릴 때 다시 확인합니다." />
+        </div>
+
+        <div style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.16)", borderRadius: "12px", padding: "13px", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.65 }}>
+          주말, 공휴일, 근로자의 날, 연말 휴장일에는 현실장과 Newstock 세션이 모두 휴장입니다. 2026년 첫 거래일처럼 개장 시간이 임시 변경되는 날도 따로 반영합니다.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RuleRow({ time, title, desc }: { time: string; title: string; desc: string }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "116px minmax(0,1fr)", gap: "10px", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface)" }}>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", color: "var(--text-muted)", fontWeight: 800 }}>{time}</div>
+      <div>
+        <div style={{ fontSize: "12px", fontWeight: 800, marginBottom: "3px" }}>{title}</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.55 }}>{desc}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function PortfolioPage() {
   const { user, coins, refreshUser } = useAuth();
+  const marketStatus = useMarketStatus();
   const { unlockMap, loading: unlockLoading, error: unlockError } = useQuizUnlock(user?.id);
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
   const [loading, setLoading] = useState(true);
   const [tradeTarget, setTradeTarget] = useState<string | null>(null);
   const [selectedTicker, setSelectedTicker] = useState(STOCKS[0]?.ticker ?? "");
   const [ordersRefreshKey, setOrdersRefreshKey] = useState(0);
+  const [showMarketRules, setShowMarketRules] = useState(false);
 
   const fetchHoldings = useCallback(async () => {
     if (!user?.id) {
@@ -305,6 +442,8 @@ export default function PortfolioPage() {
 
   return (
     <div>
+      <MarketStatusBanner status={marketStatus} onOpenRules={() => setShowMarketRules(true)} />
+
       <div
         style={{
           background: "var(--surface)",
@@ -463,6 +602,10 @@ export default function PortfolioPage() {
             setTradeTarget(null);
           }}
         />
+      )}
+
+      {showMarketRules && (
+        <MarketRuleModal status={marketStatus} onClose={() => setShowMarketRules(false)} />
       )}
     </div>
   );

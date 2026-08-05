@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useStockPrice } from "@/hooks/useStockPrice";
 import { useAuth } from "@/context/AuthContext";
+import { useMarketStatus } from "@/hooks/useMarketStatus";
 import type { PortfolioHolding } from "@/types";
 
 interface Props {
@@ -20,6 +21,7 @@ type ConditionType = "at_or_below" | "at_or_above";
 export default function TradeModal({ ticker, stockName, currentHolding, onClose, onSuccess }: Props) {
   const { coins, refreshUser } = useAuth();
   const { data: priceData, loading: priceLoading } = useStockPrice(ticker);
+  const marketStatus = useMarketStatus();
   const [tradeType, setTradeType] = useState<TradeType>("buy");
   const [orderMode, setOrderMode] = useState<OrderMode>("market");
   const [conditionType, setConditionType] = useState<ConditionType>("at_or_below");
@@ -41,6 +43,8 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
     ? ((referencePrice - avgCost) / avgCost) * 100
     : 0;
   const isProfit = expectedProfit >= 0;
+  const isMarketOrder = orderMode === "market";
+  const canSubmitInCurrentSession = !isMarketOrder || marketStatus.newstock.canTradeNow;
 
   useEffect(() => {
     if (price > 0 && targetPrice <= 0) setTargetPrice(Math.round(price));
@@ -53,6 +57,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
     quantity > 0 &&
     quantity <= maxQuantity &&
     referencePrice > 0 &&
+    canSubmitInCurrentSession &&
     (tradeType === "buy" ? totalAmount <= coins : maxSell > 0);
 
   function selectTradeType(type: TradeType) {
@@ -111,9 +116,28 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div>
             <div style={{ fontSize: "16px", fontWeight: 700 }}>{stockName} 거래</div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>실제 현재가를 기준으로 하는 교육용 모의거래입니다.</div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>현재 시장 구간과 Newstock 세션 규칙을 함께 반영합니다.</div>
           </div>
           <button aria-label="거래 창 닫기" onClick={onClose} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "var(--text-muted)" }}>×</button>
+        </div>
+
+        <div style={{ border: "1px solid var(--border)", borderRadius: "12px", background: marketStatus.newstock.canTradeNow ? "rgba(5,124,104,0.07)" : "var(--surface2)", padding: "12px 14px", marginBottom: "14px", display: "grid", gap: "6px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+            <strong style={{ fontSize: "13px", color: marketStatus.newstock.canTradeNow ? "#057c68" : "var(--text-dim)" }}>
+              {marketStatus.newstock.label}
+            </strong>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "11px", color: "var(--text-muted)" }}>
+              KST {marketStatus.timeText}
+            </span>
+          </div>
+          <div style={{ fontSize: "11px", color: "var(--text-dim)", lineHeight: 1.55 }}>
+            {marketStatus.newstock.description} 가격 기준: {marketStatus.newstock.priceBasis}
+          </div>
+          {!marketStatus.newstock.canTradeNow && (
+            <div style={{ fontSize: "11px", color: "#b45309", lineHeight: 1.5 }}>
+              즉시 거래는 {marketStatus.nextOpenText}부터 가능하고, 조건 주문 등록은 지금도 가능합니다.
+            </div>
+          )}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "12px" }}>
@@ -149,7 +173,7 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
               {tradeType === "buy" ? "이 가격 이하가 되면 매수" : conditionType === "at_or_above" ? "이 가격 이상이 되면 매도" : "이 가격 이하가 되면 매도"}
             </label>
             <input id="target-price" type="number" min={1} step={1} value={targetPrice || ""} onChange={(event) => setTargetPrice(Math.max(0, Number(event.target.value)))} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: "15px", fontWeight: 700, boxSizing: "border-box" }} />
-            <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "7px" }}>조건 충족 후 확인된 실제 현재가로 체결됩니다.</div>
+            <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "7px" }}>조건 충족 후 Newstock 세션이 열려 있을 때 확인된 기준가로 체결됩니다.</div>
           </div>
         )}
 
@@ -193,11 +217,16 @@ export default function TradeModal({ ticker, stockName, currentHolding, onClose,
         )}
 
         {error && <div role="alert" style={{ color: "#ef4444", fontSize: "13px", marginBottom: "12px" }}>{error}</div>}
+        {isMarketOrder && !marketStatus.newstock.canTradeNow && (
+          <div role="status" style={{ color: "#b45309", fontSize: "12px", marginBottom: "12px", lineHeight: 1.55 }}>
+            지금은 즉시 거래 시간이 아닙니다. 조건 거래로 바꾸면 주문을 등록할 수 있습니다.
+          </div>
+        )}
 
         <div style={{ display: "grid", gridTemplateColumns: confirming ? "1fr 2fr" : "1fr", gap: "8px" }}>
           {confirming && <button onClick={() => setConfirming(false)} disabled={loading} style={{ padding: "15px", borderRadius: "12px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-dim)", fontWeight: 700, cursor: "pointer" }}>다시 확인</button>}
           <button onClick={() => confirming ? handleSubmit() : setConfirming(true)} disabled={!canTrade} style={{ width: "100%", padding: "16px", borderRadius: "12px", border: "none", background: tradeType === "buy" ? "var(--accent)" : "#ef4444", color: "#fff", fontSize: "15px", fontWeight: 700, cursor: "pointer", opacity: canTrade ? 1 : 0.55 }}>
-            {loading ? "처리 중..." : maxQuantity <= 0 ? "거래 가능 수량 없음" : confirming ? `${orderMode === "market" ? "거래" : "조건 주문"} 확정` : buttonLabel}
+            {loading ? "처리 중..." : !canSubmitInCurrentSession ? "즉시 거래 시간 아님" : maxQuantity <= 0 ? "거래 가능 수량 없음" : confirming ? `${orderMode === "market" ? "거래" : "조건 주문"} 확정` : buttonLabel}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getMarketScheduleStatus } from '@/lib/marketSchedule';
 import { getStock } from '@/lib/stocks';
 import { getQuote } from '@/lib/yahoo';
 import { NextRequest, NextResponse } from 'next/server';
@@ -33,38 +34,41 @@ export async function GET() {
 
   // 모의투자 탭이 열려 있는 동안 현재가를 확인해 충족된 주문을 체결한다.
   // 동일 종목의 시세는 요청당 한 번만 조회한다.
+  const marketStatus = getMarketScheduleStatus();
   const priceByTicker = new Map<string, number>();
   let changed = false;
-  for (const order of pending ?? []) {
-    let price = priceByTicker.get(order.ticker);
-    if (price == null) {
-      try {
-        const quote = await getQuote(order.ticker);
-        price = quote.regularMarketPrice ?? 0;
-        if (price > 0) priceByTicker.set(order.ticker, price);
-      } catch (error) {
-        console.error(`[GET /api/orders] quote error (${order.ticker}):`, error);
-        continue;
+  if (marketStatus.newstock.canExecuteOrders) {
+    for (const order of pending ?? []) {
+      let price = priceByTicker.get(order.ticker);
+      if (price == null) {
+        try {
+          const quote = await getQuote(order.ticker);
+          price = quote.regularMarketPrice ?? 0;
+          if (price > 0) priceByTicker.set(order.ticker, price);
+        } catch (error) {
+          console.error(`[GET /api/orders] quote error (${order.ticker}):`, error);
+          continue;
+        }
       }
-    }
 
-    const triggered = order.condition_type === 'at_or_below'
-      ? price <= Number(order.target_price)
-      : price >= Number(order.target_price);
-    if (!triggered) continue;
+      const triggered = order.condition_type === 'at_or_below'
+        ? price <= Number(order.target_price)
+        : price >= Number(order.target_price);
+      if (!triggered) continue;
 
-    const { data: executionResult, error: executionError } = await supabase.rpc('execute_simulated_trade', {
-      p_ticker: order.ticker,
-      p_trade_type: order.trade_type,
-      p_quantity: Number(order.quantity),
-      p_execution_price: price,
-      p_conditional_order_id: order.id,
-    });
+      const { data: executionResult, error: executionError } = await supabase.rpc('execute_simulated_trade', {
+        p_ticker: order.ticker,
+        p_trade_type: order.trade_type,
+        p_quantity: Number(order.quantity),
+        p_execution_price: price,
+        p_conditional_order_id: order.id,
+      });
 
-    if (executionError) {
-      console.error(`[GET /api/orders] execution error (${order.id}):`, executionError);
-    } else if (executionResult?.success || executionResult?.error === '모의투자금이 부족합니다.' || executionResult?.error === '보유 수량이 부족합니다.') {
-      changed = true;
+      if (executionError) {
+        console.error(`[GET /api/orders] execution error (${order.id}):`, executionError);
+      } else if (executionResult?.success || executionResult?.error === '모의투자금이 부족합니다.' || executionResult?.error === '보유 수량이 부족합니다.') {
+        changed = true;
+      }
     }
   }
 
@@ -80,7 +84,7 @@ export async function GET() {
     return NextResponse.json({ error: '조건 주문 내역을 불러오지 못했습니다.' }, { status: 500 });
   }
 
-  return NextResponse.json({ orders: orders ?? [], changed });
+  return NextResponse.json({ orders: orders ?? [], changed, marketStatus });
 }
 
 export async function POST(req: NextRequest) {

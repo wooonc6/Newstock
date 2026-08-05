@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getMarketScheduleStatus } from '@/lib/marketSchedule';
 import { getStock } from '@/lib/stocks';
 import { getQuote } from '@/lib/yahoo';
 import { NextRequest, NextResponse } from 'next/server';
@@ -30,6 +31,17 @@ export async function POST(req: NextRequest) {
   const stock = getStock(ticker);
   if (!stock) {
     return NextResponse.json({ error: 'Newstock에서 지원하지 않는 종목입니다.' }, { status: 400 });
+  }
+
+  const marketStatus = getMarketScheduleStatus();
+  if (!marketStatus.newstock.canTradeNow) {
+    return NextResponse.json(
+      {
+        error: `지금은 ${marketStatus.newstock.label} 상태라 즉시 거래할 수 없습니다. 조건 주문은 등록할 수 있습니다.`,
+        marketStatus,
+      },
+      { status: 409 }
+    );
   }
 
   // 현재가 조회
