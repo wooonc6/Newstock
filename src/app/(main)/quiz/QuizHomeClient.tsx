@@ -119,7 +119,7 @@ export default function QuizHomeClient() {
           QUIZ
         </div>
         <h1 style={{ fontSize: "20px", lineHeight: 1.35 }}>
-          뉴스를 읽고 종목 퀴즈를 풀어보세요
+          🧠 뉴스를 읽고 종목 퀴즈를 풀어보세요
         </h1>
         <p style={{ fontSize: "12px", lineHeight: 1.6, color: "var(--text-dim)" }}>
           관심 산업군을 열어 기업을 비교하고, 관련 뉴스 퀴즈로 주가 흐름을 학습해보세요. 답안은 문제마다 저장되어 언제든 이어 풀 수 있습니다.

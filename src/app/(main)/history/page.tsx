@@ -135,7 +135,7 @@ export default async function HistoryPage({ selectedTicker }: { selectedTicker?:
           <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "5px" }}>
             HISTORY
           </div>
-          <h1 style={{ fontSize: "21px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>내 퀴즈 기록</h1>
+          <h1 style={{ fontSize: "21px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>📚 내 퀴즈 기록</h1>
           <p style={{ marginTop: "5px", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.6 }}>
             완료한 문제는 퀴즈에 다시 나오지 않습니다. 내가 고른 답과 당시 주가 결과, AI 분석 프롬프트를 여기서 확인하세요.
           </p>

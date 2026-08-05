@@ -10,14 +10,14 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
       <section style={{ border: "1px solid var(--border)", borderRadius: "14px", padding: "18px", background: "var(--surface)" }}>
         <div style={{ marginBottom: "16px" }}>
           <div style={{ fontSize: "11px", fontWeight: 800, color: "var(--text-muted)", marginBottom: "5px" }}>ANALYSIS</div>
-          <h2 style={{ fontSize: "18px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>퀴즈 분석</h2>
+          <h2 style={{ fontSize: "18px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>📊 퀴즈 분석</h2>
         </div>
         <StatsPage />
       </section>
       <section style={{ border: "1px solid var(--border)", borderRadius: "14px", padding: "18px", background: "var(--surface)" }}>
         <div style={{ marginBottom: "16px" }}>
           <div style={{ fontSize: "11px", fontWeight: 800, color: "var(--text-muted)", marginBottom: "5px" }}>HISTORY</div>
-          <h2 style={{ fontSize: "18px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>학습 기록</h2>
+          <h2 style={{ fontSize: "18px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>🗂️ 학습 기록</h2>
         </div>
         <HistoryPage selectedTicker={recordTicker} />
       </section>

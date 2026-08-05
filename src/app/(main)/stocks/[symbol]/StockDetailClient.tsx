@@ -25,15 +25,12 @@ function formatUpdatedAt(value: string | null | undefined) {
 export default function StockDetailClient({ stock }: Props) {
   const { data: quote, loading: quoteLoading } = useStockPrice(stock.ticker);
   const [news, setNews] = useState<NewsItem[]>([]);
-  const [newsLoading, setNewsLoading] = useState(true);
 
   useEffect(() => {
-    setNewsLoading(true);
     fetch(`/api/learning/news?ticker=${encodeURIComponent(stock.ticker)}&limit=15`)
       .then((r) => (r.ok ? r.json() : []))
       .then((items: NewsItem[]) => setNews(Array.isArray(items) ? items : []))
-      .catch(() => setNews([]))
-      .finally(() => setNewsLoading(false));
+      .catch(() => setNews([]));
   }, [stock.ticker]);
 
   const firstNewsId = news[0]?.id;
@@ -174,56 +171,6 @@ export default function StockDetailClient({ stock }: Props) {
         <RecentStockNews ticker={stock.ticker} stockName={stock.name} />
       </div>
 
-      <section>
-        <div style={{ marginBottom: "10px" }}>
-          <h2 style={{ fontSize: "16px" }}>📚 과거 뉴스 퀴즈 자료</h2>
-          <div style={{ marginTop: "3px", fontSize: "12px", color: "var(--text-muted)" }}>
-            퀴즈에 사용되는 과거 기사입니다. 퀴즈는 위 버튼에서 시작할 수 있습니다.
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gap: "8px" }}>
-          {newsLoading ? (
-            <NewsShell>뉴스를 불러오는 중입니다.</NewsShell>
-          ) : news.length === 0 ? (
-            <NewsShell>아직 이 종목에 연결된 뉴스가 없습니다.</NewsShell>
-          ) : (
-            news.map((item) => (
-              <article
-                key={item.id}
-                style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "8px",
-                  padding: "14px",
-                }}
-              >
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>
-                  {item.news_date} · {item.category} · {item.difficulty}
-                </div>
-                <div style={{ fontSize: "14px", fontWeight: 800, lineHeight: 1.5 }}>{item.title}</div>
-                {item.source_url ? (
-                  <a
-                    href={item.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "inline-flex",
-                      marginTop: "9px",
-                      color: "var(--accent2)",
-                      fontSize: "12px",
-                      fontWeight: 800,
-                      textDecoration: "none",
-                    }}
-                  >
-                    기사 원문 읽기 ↗
-                  </a>
-                ) : null}
-              </article>
-            ))
-          )}
-        </div>
-      </section>
     </div>
   );
 }
@@ -233,23 +180,6 @@ function MiniMetric({ label, value }: { label: string; value: string }) {
     <div style={{ background: "var(--surface2)", borderRadius: "8px", padding: "12px", minWidth: 0 }}>
       <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "5px" }}>{label}</div>
       <div style={{ fontSize: "12px", fontWeight: 800, lineHeight: 1.35 }}>{value}</div>
-    </div>
-  );
-}
-
-function NewsShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        borderRadius: "8px",
-        padding: "16px",
-        fontSize: "13px",
-        color: "var(--text-muted)",
-      }}
-    >
-      {children}
     </div>
   );
 }

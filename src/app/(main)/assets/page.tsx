@@ -75,7 +75,7 @@ export default function AssetsPage() {
     <div style={{ display: "grid", gap: "16px" }}>
       <section className="mobile-section" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px" }}>
         <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>💼 자산</div>
-        <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>내 모의투자 자산 💰</h1>
+        <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>💰 내 모의투자 자산</h1>
         <div className="mobile-grid-3" style={{ marginTop: "16px", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" }}>
           <Metric label="보유 모의현금" value={`₩${coins.toLocaleString()}`} />
           <Metric label="매수 금액" value={`₩${investedCost.toLocaleString()}`} />

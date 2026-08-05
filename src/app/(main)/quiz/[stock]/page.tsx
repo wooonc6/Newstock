@@ -42,7 +42,7 @@ export default function QuizPage({ params }: Props) {
         <div style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 800, marginBottom: "7px" }}>
           {stock.sector}
         </div>
-        <h1 style={{ fontSize: "22px", marginBottom: "6px" }}>{stock.name} 뉴스 퀴즈</h1>
+        <h1 style={{ fontSize: "22px", marginBottom: "6px" }}>🧠 {stock.name} 뉴스 퀴즈</h1>
         <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>
           과거 뉴스를 읽고 기사 발표 후 3거래일 동안의 주가 상승·하락을 예측해보세요.
         </div>

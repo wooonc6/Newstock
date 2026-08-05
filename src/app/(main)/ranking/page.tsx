@@ -156,7 +156,7 @@ export default function RankingPage() {
     <div style={{ display: "grid", gap: "14px" }}>
       <div style={{ marginBottom: "4px" }}>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "6px" }}>RANKING</div>
-        <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35, marginBottom: "7px" }}>랭킹</h1>
+        <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35, marginBottom: "7px" }}>🏆 랭킹</h1>
         <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>총 계좌 자산, 총 획득 모의투자금, 실현 수익률을 함께 반영한 학습투자 점수 순</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산은 보유 모의현금과 보유 주식의 최신 평가금액을 더해 계산합니다.</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>실현 수익률은 주식을 매도한 뒤에만 반영되고, 과도한 수익률 쏠림을 막기 위해 보너스 범위를 제한합니다.</div>

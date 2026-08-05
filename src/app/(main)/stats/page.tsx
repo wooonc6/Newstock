@@ -57,7 +57,7 @@ export default async function StatsPage() {
         }}
       >
         <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "6px" }}>QUIZ SCORE</div>
-        <h1 style={{ fontSize: "21px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>뉴스 퀴즈 정답률</h1>
+        <h1 style={{ fontSize: "21px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35 }}>📈 뉴스 퀴즈 정답률</h1>
       </section>
 
       <div className="mobile-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
