@@ -60,7 +60,7 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
     const supabase = createClient();
     const [portfolioResult, tradeResult] = await Promise.all([
       supabase.rpc("get_public_portfolio_snapshot", { p_user_id: user.id }),
-      supabase.rpc("get_public_trade_history", { p_user_id: user.id, p_limit: 30 }),
+      supabase.rpc("get_public_trade_history", { p_user_id: user.id, p_limit: null }),
     ]);
 
     if (portfolioResult.error || tradeResult.error) {
@@ -104,9 +104,11 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
         <div style={{ display: "grid", gap: "8px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
             <div style={{ fontSize: "13px", fontWeight: 900 }}>🧾 매수·매도 기록</div>
-            <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>최근 30건</div>
+            <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>전체 {trades.length.toLocaleString()}건</div>
           </div>
-          <TradeHistoryList trades={trades} emptyText="아직 공개할 매수·매도 기록이 없습니다." />
+          <div style={{ maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
+            <TradeHistoryList trades={trades} emptyText="아직 공개할 매수·매도 기록이 없습니다." />
+          </div>
         </div>
       )}
       <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>보유 내역은 30초마다 갱신되고, 평가금액은 최신 시세에 따라 함께 바뀝니다.</div>
