@@ -27,6 +27,9 @@ type AnswerRecord = {
   correct: boolean;
 };
 
+const DAILY_REFRESH_NOTICE =
+  "과거 뉴스 퀴즈는 매일 오전 6:10~6:35(KST)에 자동 갱신됩니다. 새 조건에 맞는 기사가 수집되면 다음 날 다시 풀 수 있습니다.";
+
 export default function QuizClient({ ticker, stockName }: Props) {
   const searchParams = useSearchParams();
   const initialNewsId = searchParams.get("newsId") ?? undefined;
@@ -77,7 +80,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
         if (nextItems.length === 0) {
           throw new Error(
             completed > 0
-              ? "이 종목에서 풀 수 있는 퀴즈를 모두 완료했습니다. 완료한 문제는 기록 탭에서 확인할 수 있습니다."
+              ? `이 종목에서 풀 수 있는 퀴즈를 모두 완료했습니다. 완료한 문제는 기록 탭에서 확인할 수 있습니다. ${DAILY_REFRESH_NOTICE}`
               : "이 종목에는 아직 조건에 맞는 퀴즈가 없습니다. 14일 이상 지난 기사와 주가 데이터를 확인해 주세요."
           );
         }
@@ -223,6 +226,9 @@ export default function QuizClient({ ticker, stockName }: Props) {
           </div>
           <div style={{ marginTop: "8px", fontSize: "11px", color: "var(--text-muted)" }}>
             모든 답안은 문제별로 저장되었습니다. 기록 탭에서 언제든 다시 확인할 수 있습니다.
+          </div>
+          <div style={{ marginTop: "6px", fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+            {DAILY_REFRESH_NOTICE}
           </div>
         </section>
 
