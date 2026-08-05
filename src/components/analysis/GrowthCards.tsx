@@ -1,5 +1,3 @@
-"use client";
-
 type GrowthCardsProps = {
   totalAsset: number;
   totalProfit: number;
@@ -9,11 +7,11 @@ type GrowthCardsProps = {
   solvedNews: number;
 };
 
-function money(value: number) {
-  return new Intl.NumberFormat("ko-KR").format(value);
+function formatMoney(value: number) {
+  return `${new Intl.NumberFormat("ko-KR").format(value)}원`;
 }
 
-function percent(value: number) {
+function formatPercent(value: number) {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
@@ -28,26 +26,26 @@ export default function GrowthCards({
   const cards = [
     {
       title: "총자산",
-      value: `${money(totalAsset)}원`,
+      value: formatMoney(totalAsset),
       color: "#2563eb",
     },
     {
       title: "누적 손익",
-      value: `${totalProfit >= 0 ? "+" : ""}${money(totalProfit)}원`,
+      value: `${totalProfit >= 0 ? "+" : ""}${formatMoney(Math.abs(totalProfit))}`,
       color: totalProfit >= 0 ? "#16a34a" : "#dc2626",
     },
     {
       title: "총수익률",
-      value: percent(totalReturn),
+      value: formatPercent(totalReturn),
       color: totalReturn >= 0 ? "#16a34a" : "#dc2626",
     },
     {
       title: "실현 수익률",
-      value: percent(realizedReturn),
+      value: formatPercent(realizedReturn),
       color: realizedReturn >= 0 ? "#16a34a" : "#dc2626",
     },
     {
-      title: "학습 뉴스",
+      title: "완료한 뉴스 퀴즈",
       value: `${solvedNews}개`,
       color: "#7c3aed",
     },
@@ -62,7 +60,7 @@ export default function GrowthCards({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
         gap: 18,
       }}
     >
@@ -71,15 +69,15 @@ export default function GrowthCards({
           key={card.title}
           style={{
             border: "1px solid var(--border)",
-            borderRadius: 18,
-            background: "var(--surface)",
+            borderRadius: 16,
             padding: 22,
+            background: "var(--surface)",
           }}
         >
           <div
             style={{
-              color: "var(--text-muted)",
               fontSize: 13,
+              color: "var(--text-muted)",
               marginBottom: 10,
             }}
           >
