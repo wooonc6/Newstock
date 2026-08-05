@@ -1,29 +1,18 @@
 "use client";
 
 interface Props {
-  score: number;
+  rank: number;
+  totalUsers: number;
 }
 
 export default function LearningRank({
-  score,
+  rank,
+  totalUsers,
 }: Props) {
-  let rank = "Bronze";
-  let color = "#b45309";
-
-  if (score >= 40) {
-    rank = "Silver";
-    color = "#6b7280";
-  }
-
-  if (score >= 70) {
-    rank = "Gold";
-    color = "#f59e0b";
-  }
-
-  if (score >= 90) {
-    rank = "Diamond";
-    color = "#2563eb";
-  }
+  const percentile =
+    totalUsers === 0
+      ? 0
+      : Math.round(((totalUsers - rank) / totalUsers) * 100);
 
   return (
     <section
@@ -36,50 +25,67 @@ export default function LearningRank({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
-          marginBottom: 20,
+          marginBottom: 24,
         }}
       >
-        🏅 학습 등급
+        🏅 학습 랭킹
       </h3>
 
       <div
         style={{
-          textAlign: "center",
+          display: "grid",
+          gridTemplateColumns: "1fr auto",
+          alignItems: "center",
+          gap: 24,
         }}
       >
+        <div>
+          <div
+            style={{
+              fontSize: 14,
+              color: "var(--text-muted)",
+            }}
+          >
+            현재 순위
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 46,
+              fontWeight: 800,
+            }}
+          >
+            {rank.toLocaleString()}위
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              color: "var(--text-muted)",
+            }}
+          >
+            상위 {percentile}% 학습자
+          </div>
+        </div>
+
         <div
           style={{
-            fontSize: 44,
+            width: 120,
+            height: 120,
+            borderRadius: "50%",
+            border: "8px solid var(--primary)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            fontSize: 28,
             fontWeight: 800,
-            color,
           }}
         >
-          {rank}
+          {percentile}%
         </div>
-
-        <div
-          style={{
-            marginTop: 12,
-            fontSize: 18,
-            fontWeight: 700,
-          }}
-        >
-          {score}점
-        </div>
-
-        <p
-          style={{
-            marginTop: 16,
-            color: "var(--text-muted)",
-            lineHeight: 1.8,
-          }}
-        >
-          뉴스 학습, 퀴즈 정답률,
-          <br />
-          기업 잠금 해제 등을 종합한 등급입니다.
-        </p>
       </div>
     </section>
   );
