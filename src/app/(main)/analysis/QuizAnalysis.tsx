@@ -1,6 +1,7 @@
 "use client";
 
 import QuizAccuracyChart from "./QuizAccuracyChart";
+import CompanyQuizStats from "./CompanyQuizStats";
 
 interface QuizAnalysisProps {
   totalQuiz: number;
@@ -50,6 +51,7 @@ export default function QuizAnalysis({
         gap: 24,
       }}
     >
+      {/* 헤더 */}
       <section
         style={{
           border: "1px solid var(--border)",
@@ -78,6 +80,7 @@ export default function QuizAnalysis({
         </p>
       </section>
 
+      {/* 통계 카드 */}
       <div
         style={{
           display: "grid",
@@ -117,11 +120,44 @@ export default function QuizAnalysis({
         ))}
       </div>
 
+      {/* 정답률 */}
       <QuizAccuracyChart
         correct={correctQuiz}
         total={totalQuiz}
       />
 
+      {/* 기업별 진행도 */}
+      <CompanyQuizStats
+        companies={[
+          {
+            company: "삼성전자",
+            completed: 3,
+            required: 3,
+          },
+          {
+            company: "SK하이닉스",
+            completed: 2,
+            required: 3,
+          },
+          {
+            company: "NAVER",
+            completed: 1,
+            required: 3,
+          },
+          {
+            company: "카카오",
+            completed: 0,
+            required: 3,
+          },
+          {
+            company: "현대차",
+            completed: 3,
+            required: 3,
+          },
+        ]}
+      />
+
+      {/* 학습 요약 */}
       <section
         style={{
           border: "1px solid var(--border)",
