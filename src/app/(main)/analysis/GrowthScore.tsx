@@ -1,6 +1,6 @@
 "use client";
 
-interface GrowthScoreProps {
+interface Props {
   solvedNews: number;
   unlockedCompanies: number;
   totalTrades: number;
@@ -14,199 +14,114 @@ export default function GrowthScore({
   totalTrades,
   profitableTrades,
   totalReturn,
-}: GrowthScoreProps) {
-  const quizScore = Math.min(solvedNews * 2, 30);
-
-  const unlockedCompanyScore = Math.min(
-    unlockedCompanies * 2,
-    20
-  );
-
+}: Props) {
   const winRate =
     totalTrades === 0
       ? 0
-      : (profitableTrades / totalTrades) * 100;
+      : Math.round((profitableTrades / totalTrades) * 100);
 
-  const tradeScore = Math.min(winRate * 0.3, 30);
-
-  const returnScore = Math.max(
-    0,
-    Math.min(totalReturn * 2, 20)
+  const score = Math.min(
+    100,
+    Math.round(
+      solvedNews * 1.5 +
+        unlockedCompanies * 3 +
+        winRate * 0.3 +
+        Math.max(totalReturn, 0)
+    )
   );
 
-  const score = Math.round(
-    quizScore +
-      unlockedCompanyScore +
-      tradeScore +
-      returnScore
-  );
+  let grade = "C";
 
-  let grade = "🌱 뉴스 입문자";
-  let comment =
-    "뉴스를 읽고 기업을 하나씩 알아가는 단계입니다.";
-
-  if (score >= 90) {
-    grade = "🏆 시장 통찰자";
-    comment =
-      "뉴스를 깊이 이해하고 투자까지 연결하는 뛰어난 성장 단계입니다.";
-  } else if (score >= 75) {
-    grade = "🔍 기업 분석가";
-    comment =
-      "기업을 분석하며 꾸준한 투자 습관을 만들어가고 있습니다.";
-  } else if (score >= 60) {
-    grade = "📰 뉴스 투자자";
-    comment =
-      "뉴스를 투자 판단에 적극적으로 활용하고 있습니다.";
-  } else if (score >= 40) {
-    grade = "📚 학습 투자자";
-    comment =
-      "뉴스 퀴즈와 투자를 함께 경험하며 성장하고 있습니다.";
-  }
+  if (score >= 60) grade = "B";
+  if (score >= 80) grade = "A";
+  if (score >= 95) grade = "S";
 
   return (
     <section
       style={{
         border: "1px solid var(--border)",
         borderRadius: 18,
-        padding: 24,
         background: "var(--surface)",
+        padding: 28,
       }}
     >
+      <h3
+        style={{
+          fontSize: 24,
+          fontWeight: 800,
+          marginBottom: 24,
+        }}
+      >
+        🌱 성장 지수
+      </h3>
+
       <div
         style={{
           display: "flex",
+          alignItems: "center",
           justifyContent: "space-between",
-          alignItems: "flex-start",
           flexWrap: "wrap",
-          gap: 16,
+          gap: 24,
         }}
       >
         <div>
           <div
             style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: "var(--text-muted)",
+              fontSize: 56,
+              fontWeight: 800,
+              color: "var(--primary)",
             }}
           >
-            성장 지수
+            {score}
           </div>
 
           <div
             style={{
-              fontSize: 36,
-              fontWeight: 800,
-              marginTop: 6,
+              marginTop: 8,
+              fontSize: 24,
+              fontWeight: 700,
             }}
           >
-            {score}점
+            {grade} 등급
           </div>
         </div>
 
         <div
           style={{
-            fontSize: 22,
-            fontWeight: 800,
+            flex: 1,
+            minWidth: 240,
           }}
         >
-          {grade}
+          <div
+            style={{
+              width: "100%",
+              height: 14,
+              background: "#ececec",
+              borderRadius: 999,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${score}%`,
+                height: "100%",
+                background: "var(--primary)",
+              }}
+            />
+          </div>
+
+          <p
+            style={{
+              marginTop: 16,
+              color: "var(--text-muted)",
+              lineHeight: 1.8,
+            }}
+          >
+            뉴스 학습, 기업 잠금 해제, 투자 성과를 종합하여 계산한
+            성장 지수입니다.
+          </p>
         </div>
       </div>
-
-      <div
-        style={{
-          marginTop: 20,
-          width: "100%",
-          height: 12,
-          borderRadius: 999,
-          background: "#ececec",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${score}%`,
-            height: "100%",
-            background: "var(--primary)",
-          }}
-        />
-      </div>
-
-      <p
-        style={{
-          marginTop: 16,
-          color: "var(--text-muted)",
-          lineHeight: 1.7,
-        }}
-      >
-        {comment}
-      </p>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))",
-          gap: 16,
-          marginTop: 24,
-        }}
-      >
-        <Metric
-          title="뉴스 퀴즈"
-          value={`${quizScore.toFixed(0)} / 30`}
-        />
-
-        <Metric
-          title="기업 잠금 해제"
-          value={`${unlockedCompanyScore.toFixed(0)} / 20`}
-        />
-
-        <Metric
-          title="투자 습관"
-          value={`${tradeScore.toFixed(0)} / 30`}
-        />
-
-        <Metric
-          title="투자 성과"
-          value={`${returnScore.toFixed(0)} / 20`}
-        />
-      </div>
     </section>
-  );
-}
-
-function Metric({
-  title,
-  value,
-}: {
-  title: string;
-  value: string;
-}) {
-  return (
-    <div
-      style={{
-        border: "1px solid var(--border)",
-        borderRadius: 14,
-        padding: 18,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 13,
-          color: "var(--text-muted)",
-          marginBottom: 8,
-        }}
-      >
-        {title}
-      </div>
-
-      <div
-        style={{
-          fontSize: 22,
-          fontWeight: 800,
-        }}
-      >
-        {value}
-      </div>
-    </div>
   );
 }
