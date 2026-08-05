@@ -177,7 +177,7 @@ export default function AuthForm() {
       setError("이메일 전송에 실패했습니다. 다시 시도해주세요.");
       return;
     }
-    setMessage("비밀번호 재설정 링크를 이메일로 보냈습니다. 이메일을 확인해주세요.");
+    setMessage("가입된 이메일이라면 비밀번호 재설정 링크가 전송됩니다. 받은편지함과 스팸함을 함께 확인해주세요.");
   }
 
   function onKey(e: React.KeyboardEvent) {
@@ -274,8 +274,10 @@ export default function AuthForm() {
 
       {mode === "forgot" && (
         <>
-          <div style={{ fontSize: "13px", color: "var(--text-dim)", marginBottom: "20px" }}>
+          <div style={{ fontSize: "13px", color: "var(--text-dim)", marginBottom: "20px", lineHeight: 1.6 }}>
             가입한 이메일을 입력하면 비밀번호 재설정 링크를 보내드립니다.
+            <br />
+            메일이 보이지 않으면 스팸함도 확인해주세요.
           </div>
           <label style={s.label}>이메일</label>
           <input
