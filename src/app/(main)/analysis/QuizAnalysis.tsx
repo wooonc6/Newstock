@@ -6,9 +6,9 @@ import QuizLevel from "./QuizLevel";
 import QuizAccuracyChart from "./QuizAccuracyChart";
 import NewsUnderstandingScore from "./NewsUnderstandingScore";
 import InvestmentReadiness from "./InvestmentReadiness";
-import CompanyQuizStats from "./CompanyQuizStats";
 import QuizCompletionRate from "./QuizCompletionRate";
 import StudyConsistency from "./StudyConsistency";
+import CompanyQuizStats from "./CompanyQuizStats";
 import RecentQuizHistory from "./RecentQuizHistory";
 import StudyRecommendation from "./StudyRecommendation";
 
@@ -35,6 +35,7 @@ export default function QuizAnalysis({
         gap: 24,
       }}
     >
+      {/* 헤더 */}
       <section
         style={{
           border: "1px solid var(--border)",
@@ -47,7 +48,7 @@ export default function QuizAnalysis({
           style={{
             fontSize: 28,
             fontWeight: 800,
-            marginBottom: 10,
+            marginBottom: 8,
           }}
         >
           📊 퀴즈 분석
@@ -154,6 +155,12 @@ export default function QuizAnalysis({
             title: "클라우드 실적 발표",
             result: "오답",
             date: "2일 전",
+          },
+          {
+            company: "현대차",
+            title: "전기차 판매 증가",
+            result: "정답",
+            date: "3일 전",
           },
         ]}
       />
