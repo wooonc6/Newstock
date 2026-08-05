@@ -114,14 +114,13 @@ export async function GET(
     );
   }
 
-  const completedNewsIds = new Set(
+  const allCompletedNewsIds = new Set(
     (completedResult.data ?? [])
       .map((row: { news_id: string | null }) => row.news_id)
       .filter((newsId): newsId is string => typeof newsId === "string")
   );
 
   const eligibleNews = ((data ?? []) as CuratedNewsRow[])
-    .filter((news) => !completedNewsIds.has(news.id))
     .map((news) => ({ news, bracket: getQuizAgeBracket(news.news_date) }))
     .filter(
       (item): item is { news: CuratedNewsRow; bracket: NonNullable<typeof item.bracket> } =>
@@ -170,13 +169,20 @@ export async function GET(
     }
   });
 
-  const items = evaluated.filter((item): item is NonNullable<typeof item> => item !== null).slice(0, limit);
+  const quizSet = evaluated
+    .filter((item): item is NonNullable<typeof item> => item !== null)
+    .slice(0, limit);
+  const quizSetNewsIds = new Set(quizSet.map((item) => item.newsId));
+  const completedInQuizSet = Array.from(allCompletedNewsIds).filter((newsId) =>
+    quizSetNewsIds.has(newsId)
+  ).length;
+  const items = quizSet.filter((item) => !allCompletedNewsIds.has(item.newsId));
 
   return NextResponse.json({
     items,
     progress: {
-      completed: completedNewsIds.size,
-      total: completedNewsIds.size + items.length,
+      completed: completedInQuizSet,
+      total: quizSet.length,
     },
     rule: {
       base: "기사 발표 직전 거래일 종가",
