@@ -10,24 +10,33 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "20px",
+    padding: "24px",
+    background:
+      "radial-gradient(circle at 18% 12%, rgba(0, 168, 120, 0.10), transparent 32%), linear-gradient(135deg, #f4fbf8 0%, #f5f7fa 52%, #eef3f8 100%)",
   } as React.CSSProperties,
   card: {
     background: "var(--surface)",
     border: "1px solid var(--border)",
-    borderRadius: "24px",
-    padding: "40px 36px",
+    borderRadius: "22px",
+    padding: "42px 36px",
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "440px",
+    boxShadow: "0 22px 60px rgba(26, 58, 92, 0.10)",
+    animation: "fadeUp 0.35s ease",
+  } as React.CSSProperties,
+  brand: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "18px",
   } as React.CSSProperties,
   logo: {
-    fontFamily: "'Space Mono', monospace",
-    fontSize: "22px",
-    fontWeight: 700,
+    fontSize: "24px",
+    fontWeight: 900,
     color: "var(--accent)",
-    marginBottom: "4px",
+    letterSpacing: "-0.02em",
   } as React.CSSProperties,
-  sub: { fontSize: "13px", color: "var(--text-muted)", marginBottom: "28px" } as React.CSSProperties,
+  sub: { fontSize: "14px", color: "var(--text-dim)", lineHeight: 1.65, marginBottom: "28px" } as React.CSSProperties,
   label: {
     fontSize: "10px",
     fontWeight: 700,
@@ -39,7 +48,7 @@ const s = {
   } as React.CSSProperties,
   input: {
     width: "100%",
-    padding: "11px 15px",
+    padding: "13px 15px",
     borderRadius: "10px",
     background: "var(--surface2)",
     border: "1px solid var(--border)",
@@ -52,7 +61,7 @@ const s = {
   } as React.CSSProperties,
   btn: {
     width: "100%",
-    padding: "12px",
+    padding: "13px",
     borderRadius: "100px",
     border: "none",
     background: "var(--accent)",
@@ -64,6 +73,16 @@ const s = {
     marginTop: "4px",
   } as React.CSSProperties,
   err: { fontSize: "12px", color: "var(--danger)", minHeight: "16px", marginBottom: "10px" } as React.CSSProperties,
+  helper: {
+    border: "1px solid rgba(0, 168, 120, 0.16)",
+    background: "rgba(0, 168, 120, 0.06)",
+    borderRadius: "12px",
+    padding: "12px 14px",
+    color: "var(--text-dim)",
+    fontSize: "12px",
+    lineHeight: 1.6,
+    marginBottom: "20px",
+  } as React.CSSProperties,
 };
 
 export default function ResetPasswordPage() {
@@ -98,8 +117,12 @@ export default function ResetPasswordPage() {
   return (
     <div style={s.wrap}>
       <div style={s.card}>
-        <div style={s.logo}>Newstock</div>
-        <div style={s.sub}>새 비밀번호를 설정해 주세요</div>
+        <div style={s.brand}>
+          <img src="/logo.svg" alt="Newstock" style={{ height: "52px", width: "auto" }} />
+          <div style={s.logo}>Newstock</div>
+        </div>
+        <div style={s.sub}>새 비밀번호를 설정해 주세요. 변경 후에는 로그인 화면으로 이동합니다.</div>
+        <div style={s.helper}>재설정 메일을 다시 찾는 중이라면 받은편지함과 스팸함을 함께 확인해주세요.</div>
 
         <label style={s.label}>새 비밀번호</label>
         <input
