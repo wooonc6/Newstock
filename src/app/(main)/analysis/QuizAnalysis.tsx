@@ -3,6 +3,7 @@
 import QuizAccuracyChart from "./QuizAccuracyChart";
 import CompanyQuizStats from "./CompanyQuizStats";
 import RecentQuizHistory from "./RecentQuizHistory";
+import LearningInsight from "./LearningInsight";
 
 interface QuizAnalysisProps {
   totalQuiz: number;
@@ -194,42 +195,12 @@ export default function QuizAnalysis({
         ]}
       />
 
-      {/* 학습 요약 */}
-      <section
-        style={{
-          border: "1px solid var(--border)",
-          borderRadius: 18,
-          background: "var(--surface)",
-          padding: 24,
-        }}
-      >
-        <h3
-          style={{
-            fontSize: 20,
-            fontWeight: 800,
-            marginBottom: 18,
-          }}
-        >
-          📚 학습 요약
-        </h3>
-
-        <div
-          style={{
-            lineHeight: 1.9,
-            color: "var(--text-muted)",
-          }}
-        >
-          • 완료한 뉴스 퀴즈 {totalQuiz}개
-          <br />
-          • 정답 {correctQuiz}개 / 오답 {incorrectQuiz}개
-          <br />
-          • 정답률 {accuracy}%
-          <br />
-          • 기업 잠금 해제 {unlockedCompanies}개
-          <br />
-          • 꾸준히 뉴스 퀴즈를 풀어 더 많은 기업의 잠금을 해제해 보세요.
-        </div>
-      </section>
+      {/* 학습 인사이트 */}
+      <LearningInsight
+        totalQuiz={totalQuiz}
+        correctQuiz={correctQuiz}
+        unlockedCompanies={unlockedCompanies}
+      />
     </div>
   );
 }
