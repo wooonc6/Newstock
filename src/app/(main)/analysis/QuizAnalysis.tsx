@@ -6,6 +6,7 @@ import RecentQuizHistory from "./RecentQuizHistory";
 import LearningInsight from "./LearningInsight";
 import AchievementCards from "./AchievementCards";
 import WeeklyProgress from "./WeeklyProgress";
+import QuizLevel from "./QuizLevel";
 
 interface QuizAnalysisProps {
   totalQuiz: number;
@@ -55,6 +56,7 @@ export default function QuizAnalysis({
         gap: 24,
       }}
     >
+      {/* 헤더 */}
       <section
         style={{
           border: "1px solid var(--border)",
@@ -83,6 +85,7 @@ export default function QuizAnalysis({
         </p>
       </section>
 
+      {/* 통계 */}
       <div
         style={{
           display: "grid",
@@ -121,6 +124,11 @@ export default function QuizAnalysis({
           </div>
         ))}
       </div>
+
+      <QuizLevel
+        totalQuiz={totalQuiz}
+        accuracy={accuracy}
+      />
 
       <QuizAccuracyChart
         correct={correctQuiz}
