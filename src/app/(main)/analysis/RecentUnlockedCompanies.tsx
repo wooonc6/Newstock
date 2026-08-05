@@ -2,7 +2,7 @@
 
 interface Company {
   name: string;
-  unlockedAt: string;
+  date: string;
 }
 
 interface Props {
@@ -23,12 +23,12 @@ export default function RecentUnlockedCompanies({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
-          marginBottom: 20,
+          marginBottom: 22,
         }}
       >
-        🎉 최근 잠금 해제한 기업
+        🔓 최근 잠금 해제 기업
       </h3>
 
       <div
@@ -37,48 +37,40 @@ export default function RecentUnlockedCompanies({
           gap: 14,
         }}
       >
-        {companies.map((company) => (
+        {companies.length === 0 ? (
           <div
-            key={company.name}
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              border: "1px solid var(--border)",
-              borderRadius: 14,
-              padding: 16,
+              color: "var(--text-muted)",
             }}
           >
-            <div>
-              <div
-                style={{
-                  fontWeight: 700,
-                }}
-              >
-                🔓 {company.name}
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                }}
-              >
-                기업 잠금 해제 완료
-              </div>
-            </div>
-
+            아직 잠금 해제한 기업이 없습니다.
+          </div>
+        ) : (
+          companies.map((company) => (
             <div
+              key={`${company.name}-${company.date}`}
               style={{
-                fontSize: 13,
-                color: "var(--text-muted)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                padding: 16,
               }}
             >
-              {company.unlockedAt}
+              <strong>{company.name}</strong>
+
+              <span
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: 13,
+                }}
+              >
+                {company.date}
+              </span>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </section>
   );
