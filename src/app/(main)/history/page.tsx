@@ -57,7 +57,7 @@ type SectorHistoryGroup = {
 
 export const dynamic = "force-dynamic";
 
-export default async function HistoryPage() {
+export default async function HistoryPage({ selectedTicker }: { selectedTicker?: string }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -134,7 +134,7 @@ export default async function HistoryPage() {
           <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "5px" }}>
             HISTORY
           </div>
-          <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>내 퀴즈 기록</h1>
+          <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>📝 내 퀴즈 기록</h1>
           <p style={{ marginTop: "5px", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.6 }}>
             완료한 문제는 퀴즈에 다시 나오지 않습니다. 내가 고른 답과 당시 주가 결과, AI 분석 프롬프트를 여기서 확인하세요.
           </p>
@@ -151,7 +151,7 @@ export default async function HistoryPage() {
         {groupedRecords.map((sectorGroup) => (
           <details
             key={sectorGroup.sector}
-            open
+            open={sectorGroup.stocks.some((stock) => stock.ticker === selectedTicker)}
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border)",
@@ -172,7 +172,12 @@ export default async function HistoryPage() {
 
             <div style={{ display: "grid", gap: "10px", padding: "10px", borderTop: "1px solid var(--border)" }}>
               {sectorGroup.stocks.map((stockGroup) => (
-                <details key={stockGroup.ticker} style={{ background: "var(--surface2)", borderRadius: "9px", overflow: "hidden" }}>
+                <details
+                  key={stockGroup.ticker}
+                  id={`quiz-history-${stockGroup.ticker}`}
+                  open={stockGroup.ticker === selectedTicker}
+                  style={{ background: "var(--surface2)", border: `1px solid ${stockGroup.ticker === selectedTicker ? "rgba(0,168,120,0.42)" : "var(--border)"}`, borderRadius: "9px", overflow: "hidden" }}
+                >
                   <summary style={{ padding: "14px", cursor: "pointer", display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                     <div>
                       <h3 style={{ fontSize: "14px", lineHeight: 1.35 }}>{stockGroup.company}</h3>
@@ -180,7 +185,7 @@ export default async function HistoryPage() {
                     </div>
                     <div style={{ textAlign: "right", fontSize: "11px", color: "var(--text-dim)", lineHeight: 1.6 }}>
                       <div>{stockGroup.records.length}문제 · 정답 {stockGroup.records.filter(({ session }) => session.score === 1).length}개</div>
-                      <strong style={{ color: "var(--accent)", fontSize: "12px" }}>₩{stockGroup.records.reduce((sum, { session }) => sum + (session.coins_earned ?? 0), 0).toLocaleString()}</strong>
+                      <strong style={{ color: "var(--accent)", fontSize: "12px" }}>⌄ 퀴즈 내역 보기</strong>
                     </div>
                   </summary>
 
@@ -236,7 +241,7 @@ function HistoryQuizCard({ record }: { record: HistoryRecord }) {
   const { session, news, item, correctDirection } = record;
 
   return (
-    <article style={{ background: "var(--surface2)", borderRadius: "9px", padding: "14px", display: "grid", gap: "12px" }}>
+    <article style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "9px", padding: "14px", display: "grid", gap: "12px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", alignItems: "flex-start" }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{formatCompletedAt(session.created_at)}</div>
