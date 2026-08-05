@@ -3,8 +3,6 @@ import { getStock } from '@/lib/stocks';
 import { getQuote } from '@/lib/yahoo';
 import { NextRequest, NextResponse } from 'next/server';
 
-const QUIZZES_TO_UNLOCK = 3;
-
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
 
@@ -34,28 +32,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Newstock에서 지원하지 않는 종목입니다.' }, { status: 400 });
   }
 
-  const { count: completedQuizzes, error: unlockError } = await supabase
-    .from('quiz_sessions')
-    .select('news_id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('stock_ticker', ticker)
-    .not('news_id', 'is', null);
-
-  if (unlockError) {
-    console.error('[POST /api/trade] unlock check error:', unlockError);
-    return NextResponse.json(
-      { error: '모의투자 권한을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.' },
-      { status: 500 }
-    );
-  }
-
-  if ((completedQuizzes ?? 0) < QUIZZES_TO_UNLOCK) {
-    return NextResponse.json(
-      { error: `${stock.name} 퀴즈를 ${QUIZZES_TO_UNLOCK}개 완료해야 거래할 수 있습니다.` },
-      { status: 403 }
-    );
-  }
-
   // 현재가 조회
   let price: number;
   try {
@@ -68,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   // users 행 방어
   await supabase.from('users').upsert(
-    { id: user.id, coins: 1000000, streak: 0, sessions: 0 },
+    { id: user.id, coins: 0, streak: 0, sessions: 0 },
     { onConflict: 'id', ignoreDuplicates: true }
   );
 
