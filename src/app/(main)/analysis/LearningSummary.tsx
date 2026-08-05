@@ -13,6 +13,19 @@ export default function LearningSummary({
   unlockedCompanies,
   streak,
 }: Props) {
+  let message = "";
+
+  if (accuracy >= 90) {
+    message =
+      "매우 뛰어난 학습 성과입니다. 다양한 산업으로 학습 범위를 넓혀보세요.";
+  } else if (accuracy >= 70) {
+    message =
+      "꾸준한 학습을 이어가고 있습니다. 조금만 더 노력하면 상위권입니다.";
+  } else {
+    message =
+      "뉴스를 조금 더 꼼꼼히 읽고 퀴즈를 반복 학습해보세요.";
+  }
+
   return (
     <section
       style={{
@@ -24,7 +37,7 @@ export default function LearningSummary({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
           marginBottom: 20,
         }}
@@ -35,29 +48,106 @@ export default function LearningSummary({
       <div
         style={{
           display: "grid",
-          gap: 12,
-          lineHeight: 1.8,
-          color: "var(--text-muted)",
+          gridTemplateColumns:
+            "repeat(auto-fit,minmax(180px,1fr))",
+          gap: 18,
+          marginBottom: 24,
         }}
       >
-        <div>✅ 완료한 뉴스 퀴즈 : {totalQuiz}개</div>
+        <div>
+          <div
+            style={{
+              fontSize: 13,
+              color: "var(--text-muted)",
+            }}
+          >
+            완료한 퀴즈
+          </div>
 
-        <div>🎯 평균 정답률 : {accuracy}%</div>
-
-        <div>🏢 기업 잠금 해제 : {unlockedCompanies}개</div>
-
-        <div>🔥 연속 학습 : {streak}일</div>
-
-        <div
-          style={{
-            marginTop: 8,
-            paddingTop: 16,
-            borderTop: "1px solid var(--border)",
-          }}
-        >
-          꾸준한 뉴스 학습은 투자 판단력 향상에 큰 도움이 됩니다.
-          앞으로도 매일 뉴스를 읽고 퀴즈를 풀며 성장해보세요.
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 32,
+              fontWeight: 800,
+            }}
+          >
+            {totalQuiz}개
+          </div>
         </div>
+
+        <div>
+          <div
+            style={{
+              fontSize: 13,
+              color: "var(--text-muted)",
+            }}
+          >
+            정답률
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 32,
+              fontWeight: 800,
+            }}
+          >
+            {accuracy}%
+          </div>
+        </div>
+
+        <div>
+          <div
+            style={{
+              fontSize: 13,
+              color: "var(--text-muted)",
+            }}
+          >
+            잠금 해제 기업
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 32,
+              fontWeight: 800,
+            }}
+          >
+            {unlockedCompanies}개
+          </div>
+        </div>
+
+        <div>
+          <div
+            style={{
+              fontSize: 13,
+              color: "var(--text-muted)",
+            }}
+          >
+            연속 학습
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 32,
+              fontWeight: 800,
+            }}
+          >
+            {streak}일
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          borderTop: "1px solid var(--border)",
+          paddingTop: 20,
+          color: "var(--text-muted)",
+          lineHeight: 1.8,
+        }}
+      >
+        {message}
       </div>
     </section>
   );
