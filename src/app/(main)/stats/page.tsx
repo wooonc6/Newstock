@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { STOCKS, getStock } from "@/lib/stocks";
+import Link from "next/link";
+import { getStock } from "@/lib/stocks";
 
 type QuizSessionRow = {
   stock_ticker: string;
@@ -34,8 +35,6 @@ export default async function StatsPage() {
   const correct = rows.reduce((sum, row) => sum + (row.score ?? 0), 0);
   const wrong = Math.max(total - correct, 0);
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
-  const coins = rows.reduce((sum, row) => sum + (row.coins_earned ?? 0), 0);
-
   const wrongByTicker = rows.reduce<Record<string, number>>((map, row) => {
     const rowWrong = Math.max((row.total ?? 0) - (row.score ?? 0), 0);
     if (rowWrong > 0) map[row.stock_ticker] = (map[row.stock_ticker] ?? 0) + rowWrong;
@@ -44,7 +43,7 @@ export default async function StatsPage() {
 
   const weakest = Object.entries(wrongByTicker)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
+    .slice(0, 1);
 
   return (
     <div style={{ display: "grid", gap: "16px" }}>
@@ -56,8 +55,8 @@ export default async function StatsPage() {
           padding: "18px",
         }}
       >
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>분석</div>
-        <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>뉴스 퀴즈 정답률</h1>
+        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "6px" }}>📈 ANALYSIS</div>
+        <h1 style={{ fontSize: "22px", lineHeight: 1.35 }}>🧠 뉴스 퀴즈 정답률</h1>
       </section>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
@@ -75,7 +74,7 @@ export default async function StatsPage() {
           padding: "16px",
         }}
       >
-        <div style={{ fontSize: "14px", fontWeight: 800, marginBottom: "10px" }}>많이 틀린 종목</div>
+        <div style={{ fontSize: "14px", fontWeight: 800, marginBottom: "10px" }}>🎯 많이 틀린 종목</div>
         {weakest.length === 0 ? (
           <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
             아직 오답 데이터가 없습니다. 퀴즈를 풀면 취약 종목이 표시됩니다.
@@ -83,61 +82,33 @@ export default async function StatsPage() {
         ) : (
           <div style={{ display: "grid", gap: "8px" }}>
             {weakest.map(([ticker, count]) => (
-              <div
+              <Link
                 key={ticker}
+                href={`/analysis?recordTicker=${encodeURIComponent(ticker)}#quiz-history-${ticker}`}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   gap: "12px",
-                  padding: "10px 0",
-                  borderBottom: "1px solid var(--border)",
+                  alignItems: "center",
+                  padding: "12px",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                  borderRadius: "9px",
+                  background: "rgba(239,68,68,0.035)",
+                  color: "inherit",
+                  textDecoration: "none",
                 }}
               >
-                <span style={{ fontSize: "13px", fontWeight: 700 }}>{getStock(ticker)?.name ?? ticker}</span>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", color: "var(--danger)" }}>
-                  {count}개 오답
+                <span>
+                  <span style={{ display: "block", fontSize: "13px", fontWeight: 800 }}>{getStock(ticker)?.name ?? ticker}</span>
+                  <span style={{ display: "block", marginTop: "3px", fontSize: "11px", color: "var(--text-muted)" }}>클릭하면 이 종목의 퀴즈 기록으로 이동</span>
                 </span>
-              </div>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "13px", color: "var(--danger)", whiteSpace: "nowrap" }}>
+                  {count}개 오답 ↘
+                </span>
+              </Link>
             ))}
           </div>
         )}
-      </section>
-
-      <section
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "8px",
-          padding: "16px",
-        }}
-      >
-        <div style={{ fontSize: "14px", fontWeight: 800, marginBottom: "10px" }}>많이 틀린 기간</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
-          {["1개월", "3개월", "6개월"].map((label) => (
-            <div key={label} style={{ background: "var(--surface2)", borderRadius: "8px", padding: "12px" }}>
-              <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>{label}</div>
-              <div style={{ fontSize: "12px", fontWeight: 800 }}>기간별 저장 필요</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: "10px", fontSize: "12px", lineHeight: 1.6, color: "var(--text-muted)" }}>
-          현재 DB에는 기간 컬럼이 없어 종목별/전체 정답률까지만 정확히 계산합니다.
-        </div>
-      </section>
-
-      <section
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "8px",
-          padding: "16px",
-        }}
-      >
-        <div style={{ fontSize: "14px", fontWeight: 800, marginBottom: "10px" }}>내 정답률 요약</div>
-        <div style={{ fontSize: "13px", lineHeight: 1.7, color: "var(--text-dim)" }}>
-          지원 종목 {STOCKS.length}개 중 퀴즈 기록이 있는 종목을 기준으로 계산했습니다. 지금까지 획득한 모의투자금은{" "}
-          <strong style={{ color: "var(--accent)" }}>₩{coins.toLocaleString()}</strong>입니다.
-        </div>
       </section>
     </div>
   );
