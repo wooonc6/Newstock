@@ -1,20 +1,18 @@
 "use client";
 
-interface Company {
-  name: string;
-  unlocked: boolean;
-}
-
 interface Props {
-  companies: Company[];
+  unlocked: number;
+  total: number;
 }
 
 export default function CompanyUnlockProgress({
-  companies,
+  unlocked,
+  total,
 }: Props) {
-  const unlockedCount = companies.filter(
-    (company) => company.unlocked
-  ).length;
+  const percent =
+    total === 0
+      ? 0
+      : Math.round((unlocked / total) * 100);
 
   return (
     <section
@@ -27,61 +25,49 @@ export default function CompanyUnlockProgress({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
-          marginBottom: 20,
+          marginBottom: 22,
         }}
       >
-        🏢 기업 잠금 해제 현황
+        🏢 기업 잠금 해제 진행률
       </h3>
 
       <div
         style={{
-          marginBottom: 18,
-          fontWeight: 700,
+          fontSize: 42,
+          fontWeight: 800,
+          marginBottom: 10,
         }}
       >
-        {unlockedCount} / {companies.length}개 해제
+        {unlocked} / {total}
       </div>
 
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
-          gap: 14,
+          width: "100%",
+          height: 14,
+          background: "#ececec",
+          borderRadius: 999,
+          overflow: "hidden",
         }}
       >
-        {companies.map((company) => (
-          <div
-            key={company.name}
-            style={{
-              border: "1px solid var(--border)",
-              borderRadius: 12,
-              padding: 16,
-              textAlign: "center",
-              background: company.unlocked
-                ? "rgba(34,197,94,0.08)"
-                : "transparent",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 24,
-                marginBottom: 8,
-              }}
-            >
-              {company.unlocked ? "🔓" : "🔒"}
-            </div>
+        <div
+          style={{
+            width: `${percent}%`,
+            height: "100%",
+            background: "var(--primary)",
+          }}
+        />
+      </div>
 
-            <div
-              style={{
-                fontWeight: 700,
-              }}
-            >
-              {company.name}
-            </div>
-          </div>
-        ))}
+      <div
+        style={{
+          marginTop: 12,
+          color: "var(--text-muted)",
+        }}
+      >
+        전체 기업의 {percent}%를 학습했습니다.
       </div>
     </section>
   );
