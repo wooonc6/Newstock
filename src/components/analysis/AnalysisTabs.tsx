@@ -20,15 +20,15 @@ export default function AnalysisTabs({
   const tabs: { id: Tab; label: string }[] = [
     {
       id: "growth",
-      label: "MY GROWTH",
+      label: "🌱 성장 리포트",
     },
     {
       id: "quiz",
-      label: "퀴즈 분석",
+      label: "📊 퀴즈 분석",
     },
     {
       id: "history",
-      label: "학습 기록",
+      label: "🗂️ 학습 기록",
     },
   ];
 
