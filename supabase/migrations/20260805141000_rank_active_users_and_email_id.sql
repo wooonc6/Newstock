@@ -1,5 +1,22 @@
 -- 2026-08-05: use the email prefix as the learner id and hide inactive users from rankings.
 
+alter table public.users
+  add column if not exists email text;
+
+create index if not exists users_nickname_lookup_idx
+  on public.users (lower(nickname))
+  where nickname is not null;
+
+create unique index if not exists users_email_unique
+  on public.users (lower(email))
+  where email is not null;
+
+update public.users as u
+set email = au.email
+from auth.users as au
+where u.id = au.id
+  and u.email is null;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
