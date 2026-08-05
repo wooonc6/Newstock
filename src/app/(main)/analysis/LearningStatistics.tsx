@@ -13,6 +13,8 @@ export default function LearningStatistics({
   unlockedCompanies,
   totalCompanies,
 }: Props) {
+  const wrongQuiz = totalQuiz - correctQuiz;
+
   const accuracy =
     totalQuiz === 0
       ? 0
@@ -29,84 +31,68 @@ export default function LearningStatistics({
     >
       <h3
         style={{
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 800,
-          marginBottom: 20,
+          marginBottom: 24,
         }}
       >
-        📈 학습 통계
+        📊 학습 통계
       </h3>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit,minmax(180px,1fr))",
           gap: 18,
         }}
       >
-        <div>
-          <div
-            style={{
-              color: "var(--text-muted)",
-              fontSize: 13,
-            }}
-          >
-            완료한 퀴즈
-          </div>
-
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 28,
-              fontWeight: 800,
-            }}
-          >
-            {totalQuiz}
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              color: "var(--text-muted)",
-              fontSize: 13,
-            }}
-          >
-            평균 정답률
-          </div>
-
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 28,
-              fontWeight: 800,
-            }}
-          >
-            {accuracy}%
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              color: "var(--text-muted)",
-              fontSize: 13,
-            }}
-          >
-            기업 잠금 해제
-          </div>
-
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 28,
-              fontWeight: 800,
-            }}
-          >
-            {unlockedCompanies}/{totalCompanies}
-          </div>
-        </div>
+        <StatCard title="완료한 퀴즈" value={`${totalQuiz}개`} />
+        <StatCard title="정답" value={`${correctQuiz}개`} />
+        <StatCard title="오답" value={`${wrongQuiz}개`} />
+        <StatCard title="정답률" value={`${accuracy}%`} />
+        <StatCard
+          title="잠금 해제"
+          value={`${unlockedCompanies}/${totalCompanies}`}
+        />
       </div>
     </section>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+}: {
+  title: string;
+  value: string;
+}) {
+  return (
+    <div
+      style={{
+        border: "1px solid var(--border)",
+        borderRadius: 14,
+        padding: 20,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 13,
+          color: "var(--text-muted)",
+        }}
+      >
+        {title}
+      </div>
+
+      <div
+        style={{
+          marginTop: 10,
+          fontSize: 30,
+          fontWeight: 800,
+        }}
+      >
+        {value}
+      </div>
+    </div>
   );
 }
