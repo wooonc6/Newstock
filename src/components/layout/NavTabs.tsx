@@ -7,8 +7,8 @@ const TABS = [
   { href: "/dashboard", label: "대시보드" },
   { href: "/quiz", label: "퀴즈" },
   { href: "/portfolio", label: "모의투자" },
+  { href: "/assets", label: "자산" },
   { href: "/ranking", label: "랭킹" },
-  { href: "/history", label: "기록" },
   { href: "/analysis", label: "분석" },
 ] as const;
 
@@ -32,7 +32,7 @@ export default function NavTabs() {
         const active =
           pathname === href ||
           (href !== "/dashboard" && pathname.startsWith(href + "/")) ||
-          (href === "/analysis" && pathname.startsWith("/stats"));
+          (href === "/analysis" && (pathname.startsWith("/stats") || pathname.startsWith("/history")));
         return (
           <Link
             key={href}

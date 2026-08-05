@@ -192,7 +192,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
         <PanelText>{error}</PanelText>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
           <Link href="/quiz" style={secondaryButtonStyle}>퀴즈 탭으로</Link>
-          <Link href="/history" style={primaryButtonStyle}>완료 기록 보기</Link>
+          <Link href="/analysis" style={primaryButtonStyle}>완료 기록 보기</Link>
         </div>
       </div>
     );
@@ -279,7 +279,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
         </section>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-          <Link href="/history" style={secondaryButtonStyle}>
+          <Link href="/analysis" style={secondaryButtonStyle}>
             완료 기록 보기
           </Link>
           <Link href="/portfolio" style={primaryButtonStyle}>
@@ -297,7 +297,7 @@ export default function QuizClient({ ticker, stockName }: Props) {
           답을 선택하면 즉시 저장되어 언제든 이어 풀 수 있습니다.
         </div>
         <div style={{ display: "flex", gap: "8px", flex: "0 0 auto" }}>
-          <Link href="/history" style={smallLinkStyle}>기록</Link>
+          <Link href="/analysis" style={smallLinkStyle}>분석</Link>
           <Link href="/quiz" style={smallLinkStyle}>나가기</Link>
         </div>
       </nav>
