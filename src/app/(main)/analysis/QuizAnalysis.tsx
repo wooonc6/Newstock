@@ -1,12 +1,16 @@
 "use client";
 
-import QuizAccuracyChart from "./QuizAccuracyChart";
-import CompanyQuizStats from "./CompanyQuizStats";
-import RecentQuizHistory from "./RecentQuizHistory";
-import LearningInsight from "./LearningInsight";
-import AchievementCards from "./AchievementCards";
-import WeeklyProgress from "./WeeklyProgress";
+import LearningStatistics from "./LearningStatistics";
+import LearningSummary from "./LearningSummary";
 import QuizLevel from "./QuizLevel";
+import QuizAccuracyChart from "./QuizAccuracyChart";
+import NewsUnderstandingScore from "./NewsUnderstandingScore";
+import InvestmentReadiness from "./InvestmentReadiness";
+import CompanyQuizStats from "./CompanyQuizStats";
+import QuizCompletionRate from "./QuizCompletionRate";
+import StudyConsistency from "./StudyConsistency";
+import RecentQuizHistory from "./RecentQuizHistory";
+import StudyRecommendation from "./StudyRecommendation";
 
 interface QuizAnalysisProps {
   totalQuiz: number;
@@ -24,31 +28,6 @@ export default function QuizAnalysis({
       ? 0
       : Math.round((correctQuiz / totalQuiz) * 100);
 
-  const incorrectQuiz = totalQuiz - correctQuiz;
-
-  const cards = [
-    {
-      title: "완료한 뉴스 퀴즈",
-      value: `${totalQuiz}개`,
-    },
-    {
-      title: "정답",
-      value: `${correctQuiz}개`,
-    },
-    {
-      title: "오답",
-      value: `${incorrectQuiz}개`,
-    },
-    {
-      title: "정답률",
-      value: `${accuracy}%`,
-    },
-    {
-      title: "기업 잠금 해제",
-      value: `${unlockedCompanies}개`,
-    },
-  ];
-
   return (
     <div
       style={{
@@ -56,7 +35,6 @@ export default function QuizAnalysis({
         gap: 24,
       }}
     >
-      {/* 헤더 */}
       <section
         style={{
           border: "1px solid var(--border)",
@@ -67,9 +45,9 @@ export default function QuizAnalysis({
       >
         <h2
           style={{
-            fontSize: 24,
+            fontSize: 28,
             fontWeight: 800,
-            marginBottom: 8,
+            marginBottom: 10,
           }}
         >
           📊 퀴즈 분석
@@ -78,52 +56,26 @@ export default function QuizAnalysis({
         <p
           style={{
             color: "var(--text-muted)",
-            lineHeight: 1.7,
+            lineHeight: 1.8,
           }}
         >
-          뉴스 퀴즈 학습 결과와 기업 잠금 해제 진행 상황을 확인하세요.
+          뉴스 학습 성과와 투자 준비도를 확인해보세요.
         </p>
       </section>
 
-      {/* 통계 */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-          gap: 18,
-        }}
-      >
-        {cards.map((card) => (
-          <div
-            key={card.title}
-            style={{
-              border: "1px solid var(--border)",
-              borderRadius: 16,
-              background: "var(--surface)",
-              padding: 20,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 13,
-                color: "var(--text-muted)",
-              }}
-            >
-              {card.title}
-            </div>
+      <LearningStatistics
+        totalQuiz={totalQuiz}
+        correctQuiz={correctQuiz}
+        unlockedCompanies={unlockedCompanies}
+        totalCompanies={20}
+      />
 
-            <div
-              style={{
-                marginTop: 10,
-                fontSize: 28,
-                fontWeight: 800,
-              }}
-            >
-              {card.value}
-            </div>
-          </div>
-        ))}
-      </div>
+      <LearningSummary
+        totalQuiz={totalQuiz}
+        accuracy={accuracy}
+        unlockedCompanies={unlockedCompanies}
+        streak={12}
+      />
 
       <QuizLevel
         totalQuiz={totalQuiz}
@@ -135,10 +87,22 @@ export default function QuizAnalysis({
         total={totalQuiz}
       />
 
-      <AchievementCards
-        totalQuiz={totalQuiz}
-        unlockedCompanies={unlockedCompanies}
-        accuracy={accuracy}
+      <NewsUnderstandingScore
+        score={accuracy}
+      />
+
+      <InvestmentReadiness
+        score={accuracy}
+      />
+
+      <QuizCompletionRate
+        completed={totalQuiz}
+        total={30}
+      />
+
+      <StudyConsistency
+        currentStreak={12}
+        bestStreak={27}
       />
 
       <CompanyQuizStats
@@ -191,35 +155,13 @@ export default function QuizAnalysis({
             result: "오답",
             date: "2일 전",
           },
-          {
-            company: "현대차",
-            title: "전기차 판매 증가",
-            result: "정답",
-            date: "3일 전",
-          },
-          {
-            company: "카카오",
-            title: "광고 매출 발표",
-            result: "오답",
-            date: "5일 전",
-          },
         ]}
       />
 
-      <LearningInsight
-        totalQuiz={totalQuiz}
-        correctQuiz={correctQuiz}
+      <StudyRecommendation
+        accuracy={accuracy}
+        streak={12}
         unlockedCompanies={unlockedCompanies}
-      />
-
-      <WeeklyProgress
-        monday={4}
-        tuesday={2}
-        wednesday={6}
-        thursday={5}
-        friday={7}
-        saturday={3}
-        sunday={4}
       />
     </div>
   );
