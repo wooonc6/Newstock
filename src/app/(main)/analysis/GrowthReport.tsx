@@ -10,7 +10,6 @@ import { useQuizUnlock } from "@/hooks/useQuizUnlock";
 
 export default function GrowthReport() {
   const { user, coins = 0 } = useAuth();
-
   const { unlockMap } = useQuizUnlock(user?.id);
 
   const unlockedCompanies = useMemo(
@@ -19,16 +18,16 @@ export default function GrowthReport() {
     [unlockMap]
   );
 
-  const solvedNews = useMemo(() => {
-    return Object.values(unlockMap).reduce(
-      (sum, item) => sum + item.quizzes_completed,
-      0
-    );
-  }, [unlockMap]);
+  const solvedNews = useMemo(
+    () =>
+      Object.values(unlockMap).reduce(
+        (sum, item) => sum + item.quizzes_completed,
+        0
+      ),
+    [unlockMap]
+  );
 
-  const totalAsset = useMemo(() => {
-    return Math.round(coins);
-  }, [coins]);
+  const totalAsset = Math.round(coins);
 
   return (
     <div
@@ -65,9 +64,8 @@ export default function GrowthReport() {
             lineHeight: 1.7,
           }}
         >
-          뉴스를 학습하고 기업 잠금을 해제하며
-          <br />
-          투자 실력을 키우는 과정을 분석합니다.
+          뉴스 학습과 기업 잠금 해제 현황을 확인하고
+          투자 실력의 성장을 살펴보세요.
         </p>
       </section>
 
@@ -87,77 +85,6 @@ export default function GrowthReport() {
         profitableTrades={0}
         totalReturn={0}
       />
-
-      <section
-        style={{
-          border: "1px solid var(--border)",
-          borderRadius: 18,
-          padding: 24,
-          background: "var(--surface)",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            marginBottom: 24,
-          }}
-        >
-          🌱 성장 과정
-        </h3>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(160px,1fr))",
-            gap: 18,
-          }}
-        >
-          {[
-            "뉴스 학습",
-            "뉴스 퀴즈 완료",
-            "기업 잠금 해제",
-            "첫 투자",
-            "첫 수익",
-          ].map((step, index) => (
-            <div
-              key={step}
-              style={{
-                border: "1px solid var(--border)",
-                borderRadius: 14,
-                padding: 22,
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: "50%",
-                  background: "var(--primary)",
-                  color: "#fff",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  margin: "0 auto 14px",
-                  fontWeight: 800,
-                }}
-              >
-                {index + 1}
-              </div>
-
-              <div
-                style={{
-                  fontWeight: 700,
-                }}
-              >
-                {step}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
