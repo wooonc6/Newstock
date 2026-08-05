@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Header from "./Header";
 import NavTabs from "./NavTabs";
+import Footer from "./Footer";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export default function MainLayoutClient({ children }: { children: React.ReactNode }) {
@@ -34,6 +35,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
         <Header nickname={displayName} coins={coins} streak={streak} onLogout={handleLogout} />
         <NavTabs />
         {children}
+        <Footer />
       </div>
     </ToastProvider>
   );
