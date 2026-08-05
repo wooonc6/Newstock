@@ -58,8 +58,7 @@ export default function AssetsPage() {
         .from("trades")
         .select("id, ticker, trade_type, quantity, price, coins_delta, cost_basis, realized_profit, traded_at")
         .eq("user_id", user.id)
-        .order("traded_at", { ascending: false })
-        .limit(30),
+        .order("traded_at", { ascending: false }),
     ]);
 
     setHoldings(holdingsResult.data ?? []);
@@ -94,9 +93,15 @@ export default function AssetsPage() {
       <section>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", marginBottom: "10px" }}>
           <div style={{ fontSize: "14px", fontWeight: 800 }}>🧾 매수·매도 기록</div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>최근 30건</div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>전체 {trades.length.toLocaleString()}건</div>
         </div>
-        {loading ? <Panel>거래 기록을 불러오는 중입니다.</Panel> : <TradeHistoryList trades={trades} emptyText="아직 매수·매도 기록이 없습니다." />}
+        {loading ? (
+          <Panel>거래 기록을 불러오는 중입니다.</Panel>
+        ) : (
+          <div style={{ maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
+            <TradeHistoryList trades={trades} emptyText="아직 매수·매도 기록이 없습니다." />
+          </div>
+        )}
       </section>
     </div>
   );
