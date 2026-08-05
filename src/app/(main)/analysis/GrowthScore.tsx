@@ -16,25 +16,23 @@ export default function GrowthScore({
   totalReturn,
 }: Props) {
   const winRate =
-    totalTrades === 0
-      ? 0
-      : Math.round((profitableTrades / totalTrades) * 100);
+    totalTrades > 0
+      ? Math.round((profitableTrades / totalTrades) * 100)
+      : 0;
 
   const score = Math.min(
     100,
-    Math.round(
-      solvedNews * 1.5 +
-        unlockedCompanies * 3 +
-        winRate * 0.3 +
-        Math.max(totalReturn, 0)
-    )
+    solvedNews +
+      unlockedCompanies * 5 +
+      Math.round(winRate * 0.2) +
+      Math.max(0, Math.round(totalReturn))
   );
 
   let grade = "C";
 
-  if (score >= 60) grade = "B";
-  if (score >= 80) grade = "A";
-  if (score >= 95) grade = "S";
+  if (score >= 40) grade = "B";
+  if (score >= 70) grade = "A";
+  if (score >= 90) grade = "S";
 
   return (
     <section
@@ -58,13 +56,16 @@ export default function GrowthScore({
       <div
         style={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
           gap: 24,
+          alignItems: "center",
+          flexWrap: "wrap",
         }}
       >
-        <div>
+        <div
+          style={{
+            minWidth: 140,
+          }}
+        >
           <div
             style={{
               fontSize: 56,
@@ -77,8 +78,8 @@ export default function GrowthScore({
 
           <div
             style={{
-              marginTop: 8,
-              fontSize: 24,
+              marginTop: 6,
+              fontSize: 22,
               fontWeight: 700,
             }}
           >
@@ -95,8 +96,8 @@ export default function GrowthScore({
           <div
             style={{
               width: "100%",
-              height: 14,
-              background: "#ececec",
+              height: 12,
+              background: "var(--border)",
               borderRadius: 999,
               overflow: "hidden",
             }}
@@ -112,13 +113,12 @@ export default function GrowthScore({
 
           <p
             style={{
-              marginTop: 16,
+              marginTop: 14,
               color: "var(--text-muted)",
-              lineHeight: 1.8,
+              lineHeight: 1.7,
             }}
           >
-            뉴스 학습, 기업 잠금 해제, 투자 성과를 종합하여 계산한
-            성장 지수입니다.
+            뉴스 학습, 기업 잠금 해제, 투자 성과를 바탕으로 계산한 성장 점수입니다.
           </p>
         </div>
       </div>
