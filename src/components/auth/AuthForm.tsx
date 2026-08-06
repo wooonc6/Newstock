@@ -237,7 +237,7 @@ export default function AuthForm() {
           <input
             style={s.input}
             type="email"
-            placeholder="예: wonjun@school.com"
+            placeholder="예: hanadreamers.newstock@gmail.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={onKey}
