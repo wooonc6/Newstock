@@ -142,7 +142,7 @@ export default function AuthForm() {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: { data: { nickname: cleanNickname, email: cleanEmail } },
@@ -150,6 +150,13 @@ export default function AuthForm() {
     setLoading(false);
     if (error) {
       setError(error.message.includes("duplicate") ? "이미 같은 아이디가 있습니다. 다른 이메일을 사용해주세요." : error.message);
+      return;
+    }
+
+    if (data.session) {
+      alert("회원가입이 완료되었습니다.");
+      router.push("/dashboard");
+      router.refresh();
       return;
     }
 
