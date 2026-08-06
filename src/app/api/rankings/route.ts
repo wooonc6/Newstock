@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
   const requestedLimit = Number(req.nextUrl.searchParams.get("limit") ?? 50);
   const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? requestedLimit : 50, 1), 100);
 
-  const { data, error } = await supabase.rpc("get_learning_rankings", { p_limit: 100 });
+  const { data, error } = await supabase.rpc("get_learning_rankings", { p_limit: 500 });
 
   if (error) {
     console.error("[GET /api/rankings] ranking rpc error:", error);
@@ -88,6 +88,7 @@ export async function GET(req: NextRequest) {
       const realizedCostBasis = toNumber(row.realized_cost_basis);
       const realizedReturnRate = toNumber(row.realized_return_rate);
       const holdings = row.holdings;
+      const activeHoldings = holdings.filter((holding) => holding.ticker && toNumber(holding.quantity) > 0);
       const portfolioMarketValue = holdings.reduce((sum, holding) => {
         const quantity = toNumber(holding.quantity);
         const avgCost = toNumber(holding.avg_cost);
@@ -113,7 +114,7 @@ export async function GET(req: NextRequest) {
         portfolio_market_value: Math.round(portfolioMarketValue),
         total_account_assets: Math.round(totalAccountAssets),
         learning_investment_score: Math.round(learningInvestmentScore),
-        holding_count: holdings.filter((holding) => holding.ticker && toNumber(holding.quantity) > 0).length,
+        holding_count: activeHoldings.length,
       };
     })
     .sort((a, b) =>
