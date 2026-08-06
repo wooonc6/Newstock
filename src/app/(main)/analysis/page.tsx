@@ -1,5 +1,4 @@
 import AnalysisTabs from "@/components/analysis/AnalysisTabs";
-import InvestmentPerformance from "./InvestmentPerformance";
 import QuizAnalysis from "./QuizAnalysis";
 import HistoryPage from "../history/page";
 
@@ -14,7 +13,6 @@ export default async function AnalysisPage({
 
   return (
     <AnalysisTabs
-      growth={<InvestmentPerformance />}
       quiz={<QuizAnalysis />}
       history={<HistoryPage selectedTicker={recordTicker} />}
     />
