@@ -29,8 +29,8 @@ export default function GrowthTimeline({ points }: { points: TimelinePoint[] }) 
   const periodData = useMemo(() => {
     if (points.length === 0) return { points: [] as DisplayPoint[], domainStart: 0, domainEnd: 1 };
 
-    const sorted = points
-      .map((point, sourceIndex) => ({ ...point, sourceIndex }))
+    const sorted: DisplayPoint[] = points
+      .map((point, sourceIndex): DisplayPoint => ({ ...point, sourceIndex }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const days = PERIOD_DAYS[period];
     const now = Date.now();
@@ -48,7 +48,8 @@ export default function GrowthTimeline({ points }: { points: TimelinePoint[] }) 
 
     const cutoff = now - days * 86_400_000;
     const inRange = sorted.filter((point) => new Date(point.date).getTime() >= cutoff);
-    const beforeRange = sorted.filter((point) => new Date(point.date).getTime() < cutoff).at(-1);
+    const beforeRangeCandidates = sorted.filter((point) => new Date(point.date).getTime() < cutoff);
+    const beforeRange = beforeRangeCandidates[beforeRangeCandidates.length - 1];
     const display: DisplayPoint[] = [];
 
     if (beforeRange) {
@@ -62,7 +63,6 @@ export default function GrowthTimeline({ points }: { points: TimelinePoint[] }) 
     }
     display.push(...inRange);
 
-    // 선택 기간에 거래가 없더라도 현재 평가점은 보여주되, 빈 기간이라는 사실은 안내합니다.
     const latest = sorted[sorted.length - 1];
     if (display.length === 0 || display[display.length - 1].sourceIndex !== latest.sourceIndex) {
       display.push(latest);
@@ -95,7 +95,6 @@ export default function GrowthTimeline({ points }: { points: TimelinePoint[] }) 
   const rawXFor = (t: number) => padX + ((Math.max(minT, Math.min(maxT, t)) - minT) / timeRange) * (width - padX * 2);
   const yFor = (value: number) => height - padBottom - ((value - minV) / range) * (height - padTop - padBottom);
 
-  // 같은 날 또는 매우 가까운 시각의 거래는 화면상 좌우로 조금 펼쳐 점과 B/S 표시가 겹치지 않게 합니다.
   const positioned = filtered.map((point, index) => ({
     point,
     index,
