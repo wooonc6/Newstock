@@ -357,7 +357,7 @@ function MarketRuleModal({ status, onClose }: { status: MarketStatus; onClose: (
           <div>
             <div style={{ fontSize: "16px", fontWeight: 800 }}>시장 시간과 Newstock 세션 규칙</div>
             <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "5px", lineHeight: 1.55 }}>
-              현실 시장을 배우되, 저녁에도 연습할 수 있도록 Newstock 전용 체결 시간을 별도로 둡니다.
+              현실 시장의 운영 구간을 보여주면서도, Newstock은 마감 없이 24시간 모의 거래를 이어갑니다.
             </div>
           </div>
           <button aria-label="시장 규칙 닫기" onClick={onClose} style={{ border: "none", background: "transparent", color: "var(--text-muted)", fontSize: "20px", cursor: "pointer" }}>×</button>
@@ -376,8 +376,8 @@ function MarketRuleModal({ status, onClose }: { status: MarketStatus; onClose: (
           <RuleRow time="09:00~15:30" title="정규장" desc="정규장 최근 현재가를 Newstock 체결가로 사용합니다." />
           <RuleRow time="15:40~16:00" title="장후 시간외종가" desc="당일 종가에 가까운 마지막 확인가를 Newstock 체결가로 사용합니다." />
           <RuleRow time="16:00~18:00" title="시간외단일가" desc="실제 10분 단일가 계산 대신 Newstock 단일가 기준가로 체결합니다." />
-          <RuleRow time="18:00~24:00" title="Newstock 애프터 세션" desc="현실장은 닫혔지만 Newstock 애프터 기준가로 즉시 거래와 조건 주문 체결을 허용합니다." />
-          <RuleRow time="24:00~다음 08:30" title="세션 마감" desc="즉시 거래와 조건 주문 체결은 멈춥니다. 조건 주문 등록은 가능하고, 다음 세션이 열릴 때 다시 확인합니다." />
+          <RuleRow time="18:00~다음 거래일 08:30" title="Newstock 애프터 세션" desc="세션 마감 없이 마지막 확인가로 즉시 거래와 조건 주문 체결을 계속합니다." />
+          <RuleRow time="주말·휴장일 종일" title="Newstock 애프터 세션" desc="현실장이 쉬는 날에도 마지막 확인가를 기준으로 모의 거래를 계속합니다." />
         </div>
 
         <div style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.16)", borderRadius: "12px", padding: "13px", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.65 }}>

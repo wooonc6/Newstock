@@ -58,7 +58,6 @@ const REAL_MARKET = {
 const NEWSTOCK_MARKET = {
   open: 8 * 60 + 30,
   afterClassStart: 18 * 60,
-  close: 24 * 60,
 };
 
 const MARKET_CLOSED_DATES: Record<string, string> = {
@@ -238,17 +237,6 @@ function getNewstockSession(parts: KstParts, closedReason: string | null, realKi
   const minute = parts.minuteOfDay;
   const special = SPECIAL_TRADING_DAYS[parts.dateKey];
 
-  if (closedReason) {
-    return {
-      kind: "closed" as const,
-      label: "Newstock 세션 휴장",
-      description: `${closedReason}에는 조건 주문 등록만 가능하고 즉시 체결은 쉬어갑니다.`,
-      canTradeNow: false,
-      canExecuteOrders: false,
-      priceBasis: "마지막 거래일 종가 또는 최근 확인가",
-    };
-  }
-
   const realSessionPriceBasis: Record<SessionKind, string> = {
     closed: "마지막 거래일 종가 또는 최근 확인가",
     pre_close_price: "전일 종가 기준",
@@ -261,7 +249,7 @@ function getNewstockSession(parts: KstParts, closedReason: string | null, realKi
     learning_after_class: "Newstock 애프터 기준가",
   };
 
-  if (minute >= NEWSTOCK_MARKET.open && minute < NEWSTOCK_MARKET.afterClassStart) {
+  if (!closedReason && minute >= NEWSTOCK_MARKET.open && minute < NEWSTOCK_MARKET.afterClassStart) {
     return {
       kind: realKind,
       label: special ? `Newstock 현실 반영장 · ${special.note}` : "Newstock 현실 반영장",
@@ -272,32 +260,23 @@ function getNewstockSession(parts: KstParts, closedReason: string | null, realKi
     };
   }
 
-  if (minute >= NEWSTOCK_MARKET.afterClassStart && minute < NEWSTOCK_MARKET.close) {
-    return {
-      kind: "learning_after_class" as const,
-      label: "Newstock 애프터 세션",
-      description: "저녁 학습 시간에도 연습할 수 있도록 당일 마지막 확인가로 체결합니다.",
-      canTradeNow: true,
-      canExecuteOrders: true,
-      priceBasis: "당일 종가에 가까운 Yahoo Finance 마지막 확인가",
-    };
-  }
-
   return {
-    kind: "closed" as const,
-    label: "Newstock 세션 마감",
-    description: "즉시 거래는 쉬고, 조건 주문 등록만 가능합니다.",
-    canTradeNow: false,
-    canExecuteOrders: false,
-    priceBasis: "마지막 거래일 종가 또는 최근 확인가",
+    kind: "learning_after_class" as const,
+    label: "Newstock 애프터 세션",
+    description: closedReason
+      ? `${closedReason}에도 최근 확인가를 기준으로 모의 거래를 계속합니다.`
+      : "현실장 운영 시간 밖에도 최근 확인가를 기준으로 모의 거래를 계속합니다.",
+    canTradeNow: true,
+    canExecuteOrders: true,
+    priceBasis: "Yahoo Finance 마지막 확인가",
   };
 }
 
 function getNextOpenText(parts: KstParts, closedReason: string | null) {
-  if (!closedReason && parts.minuteOfDay < NEWSTOCK_MARKET.open) return `오늘 08:30 세션 시작`;
-  if (!closedReason && parts.minuteOfDay < NEWSTOCK_MARKET.close) return `오늘 24:00 세션 마감`;
+  if (!closedReason && parts.minuteOfDay < NEWSTOCK_MARKET.open) return `오늘 08:30 현실 반영장 전환`;
+  if (!closedReason && parts.minuteOfDay < NEWSTOCK_MARKET.afterClassStart) return `오늘 18:00 애프터 세션 전환`;
   const nextTradingDate = getNextTradingDate(parts.dateKey);
-  return `${formatDateLabel(nextTradingDate)} 08:30 세션 시작`;
+  return `${formatDateLabel(nextTradingDate)} 08:30 현실 반영장 전환`;
 }
 
 export function getMarketScheduleStatus(now: Date = new Date()): MarketScheduleStatus {
