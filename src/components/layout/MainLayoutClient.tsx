@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "./Header";
 import NavTabs from "./NavTabs";
 import Footer from "./Footer";
+import UpdateTicker from "./UpdateTicker";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export default function MainLayoutClient({ children }: { children: React.ReactNode }) {
@@ -34,6 +35,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
       <div className="app-shell">
         <Header nickname={displayName} coins={coins} streak={streak} onLogout={handleLogout} />
         <NavTabs />
+        <UpdateTicker />
         {children}
         <Footer />
       </div>
