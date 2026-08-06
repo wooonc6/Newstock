@@ -2,38 +2,15 @@
 
 import { useState } from "react";
 
-type Tab = "growth" | "quiz" | "history";
+type Tab = "quiz" | "history";
 
 interface Props {
-  growth: React.ReactNode;
   quiz: React.ReactNode;
   history: React.ReactNode;
 }
 
-export default function AnalysisTabs({
-  growth,
-  quiz,
-  history,
-}: Props) {
+export default function AnalysisTabs({ quiz, history }: Props) {
   const [tab, setTab] = useState<Tab>("quiz");
-
-  const tabs: { id: Tab; label: string; emoji: string }[] = [
-    {
-      id: "growth",
-      label: "투자 성과",
-      emoji: "📈",
-    },
-    {
-      id: "quiz",
-      label: "퀴즈 분석",
-      emoji: "📊",
-    },
-    {
-      id: "history",
-      label: "학습 기록",
-      emoji: "🗂️",
-    },
-  ];
 
   return (
     <div>
@@ -46,33 +23,37 @@ export default function AnalysisTabs({
           overflowX: "auto",
         }}
       >
-        {tabs.map((tabItem) => (
-          <button
-            key={tabItem.id}
-            onClick={() => setTab(tabItem.id)}
-            style={{
-              padding: "14px 18px",
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: 15,
-              fontWeight: tab === tabItem.id ? 800 : 600,
-              color: "var(--text)",
-              borderBottom:
-                tab === tabItem.id
-                  ? "3px solid var(--primary)"
-                  : "3px solid transparent",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {tabItem.emoji} {tabItem.label}
-          </button>
-        ))}
+        <button
+          type="button"
+          onClick={() => setTab("quiz")}
+          style={tabStyle(tab === "quiz")}
+        >
+          📊 퀴즈 분석
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("history")}
+          style={tabStyle(tab === "history")}
+        >
+          🗂️ 학습 기록
+        </button>
       </div>
 
-      {tab === "growth" && growth}
-      {tab === "quiz" && quiz}
-      {tab === "history" && history}
+      {tab === "quiz" ? quiz : history}
     </div>
   );
+}
+
+function tabStyle(active: boolean): React.CSSProperties {
+  return {
+    padding: "14px 18px",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    fontSize: 15,
+    fontWeight: active ? 800 : 600,
+    color: "var(--text)",
+    borderBottom: active ? "3px solid var(--accent)" : "3px solid transparent",
+    whiteSpace: "nowrap",
+  };
 }
