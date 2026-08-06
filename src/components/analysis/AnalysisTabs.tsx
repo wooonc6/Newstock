@@ -15,7 +15,7 @@ export default function AnalysisTabs({
   quiz,
   history,
 }: Props) {
-  const [tab, setTab] = useState<Tab>("growth");
+  const [tab, setTab] = useState<Tab>("quiz");
 
   const tabs: { id: Tab; label: string; emoji: string }[] = [
     {
