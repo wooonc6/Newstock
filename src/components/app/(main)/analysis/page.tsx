@@ -1,13 +1,22 @@
-export default function AnalysisPage() {
+import AnalysisTabs from "@/components/analysis/AnalysisTabs";
+import InvestmentPerformance from "./InvestmentPerformance";
+import QuizAnalysis from "./QuizAnalysis";
+import HistoryPage from "../history/page";
+
+export const dynamic = "force-dynamic";
+
+export default async function AnalysisPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ recordTicker?: string }>;
+}) {
+  const { recordTicker } = await searchParams;
+
   return (
-    <div
-      style={{
-        fontSize: 50,
-        color: "red",
-        fontWeight: 900,
-      }}
-    >
-      TEST123456
-    </div>
+    <AnalysisTabs
+      growth={<InvestmentPerformance />}
+      quiz={<QuizAnalysis />}
+      history={<HistoryPage selectedTicker={recordTicker} />}
+    />
   );
 }
