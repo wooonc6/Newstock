@@ -11,6 +11,27 @@ export const PRODUCT_UPDATES: ProductUpdate[] = [
   {
     date: "08.07",
     label: "NEW",
+    title: "이메일과 공개 닉네임 분리",
+    summary: "이메일은 로그인·계정 복구용으로 유지하고, 랭킹에 표시되는 닉네임은 별도로 설정할 수 있습니다",
+    href: "/dashboard",
+  },
+  {
+    date: "08.07",
+    label: "개선",
+    title: "기존 사용자 닉네임 확인",
+    summary: "기존 사용자도 한 번의 안내창에서 현재 닉네임을 유지하거나 새 공개 닉네임으로 변경할 수 있습니다",
+    href: "/dashboard",
+  },
+  {
+    date: "08.07",
+    label: "안전",
+    title: "공개 닉네임 운영 정책 강화",
+    summary: "운영 정책에 맞지 않는 닉네임은 랭킹에서 보호 처리되고 로그인 후 변경 안내가 표시됩니다",
+    href: "/ranking",
+  },
+  {
+    date: "08.07",
+    label: "NEW",
     title: "순위에서 바로 보는 투자 현황",
     summary: "사용자를 누르면 해당 순위 아래에서 보유 종목과 거래 현황이 펼쳐집니다",
     href: "/ranking",
