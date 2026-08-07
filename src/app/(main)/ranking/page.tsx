@@ -194,8 +194,6 @@ export default function RankingPage() {
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총수익률은 매도한 거래의 실현손익과 현재 보유 종목의 평가손익을 모두 합산하며, 과도한 수익률 쏠림을 막기 위해 보너스 범위를 제한합니다.</div>
       </div>
 
-      {selectedUser && <PortfolioViewer user={selectedUser} onClose={() => setSelectedUser(null)} />}
-
       {loading ? <Panel>랭킹을 불러오는 중...</Panel> : error ? <Panel>{error}</Panel> : rankings.length === 0 ? <Panel>아직 랭킹 데이터가 없습니다.</Panel> : (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {rankings.map((item, index) => {
@@ -213,18 +211,36 @@ export default function RankingPage() {
             const holdingCount = Number(item.holding_count ?? 0);
             const returnColor = totalReturnRate > 0 ? "#ef4444" : totalReturnRate < 0 ? "#2563eb" : "var(--text-muted)";
             const displayName = item.nickname || "아이디 미설정 사용자";
+            const isSelected = selectedUser?.id === item.id;
+            const detailId = `ranking-detail-${item.id}`;
 
-            return <button key={item.id} type="button" onClick={() => setSelectedUser(item)} className="ranking-row" style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0, 1fr) auto", alignItems: "center", gap: "12px", background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)", border: `1px solid ${isMe ? "rgba(0,168,120,0.25)" : "var(--border)"}`, borderRadius: "12px", padding: "14px 16px", cursor: "pointer", color: "inherit", textAlign: "left" }}>
-              <div style={{ width: "34px", height: "34px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)", color: rank <= 3 ? "var(--coin)" : "var(--text-muted)", fontFamily: "var(--font-ui)", fontSize: "13px", fontWeight: 900 }}>{rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : rank}</div>
-              <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", color: "var(--text)", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px", fontWeight: 800 }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "11px", color: "var(--text-muted)" }}>클릭하여 투자 현황 보기 · 보유 종목 {holdingCount}개</div></div>
-              <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                <div style={{ fontFamily: "var(--font-ui)", fontSize: "14px", fontWeight: 900, color: "var(--accent2)" }}>₩{learningInvestmentScore.toLocaleString()}</div><div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "3px" }}>학습투자 점수</div>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산 ₩{totalAccountAssets.toLocaleString()}</div>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>보유 현금 ₩{currentCoins.toLocaleString()}</div>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 획득 ₩{totalEarned.toLocaleString()}</div>
-                <div style={{ fontFamily: "var(--font-ui)", fontSize: "11px", fontWeight: 800, color: returnColor, marginTop: "5px" }} title={totalCostBasis > 0 ? `총손익 ${totalProfit >= 0 ? "+" : ""}₩${totalProfit.toLocaleString()} (실현 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()} · 평가 ${unrealizedProfit >= 0 ? "+" : ""}₩${unrealizedProfit.toLocaleString()})` : "아직 투자 내역이 없습니다."}>총수익률 {totalReturnRate > 0 ? "+" : ""}{totalReturnRate.toFixed(2)}%</div>
+            return (
+              <div key={item.id} style={{ display: "grid", gap: "8px" }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUser((current) => current?.id === item.id ? null : item)}
+                  className="ranking-row"
+                  aria-expanded={isSelected}
+                  aria-controls={detailId}
+                  style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0, 1fr) auto", alignItems: "center", gap: "12px", background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)", border: `1px solid ${isSelected || isMe ? "rgba(0,168,120,0.32)" : "var(--border)"}`, borderRadius: "12px", padding: "14px 16px", cursor: "pointer", color: "inherit", textAlign: "left" }}
+                >
+                  <div style={{ width: "34px", height: "34px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)", color: rank <= 3 ? "var(--coin)" : "var(--text-muted)", fontFamily: "var(--font-ui)", fontSize: "13px", fontWeight: 900 }}>{rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : rank}</div>
+                  <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", color: "var(--text)", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px", fontWeight: 800 }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "11px", color: "var(--text-muted)" }}>{isSelected ? "투자 현황 접기" : "이 순위에서 투자 현황 보기"} · 보유 종목 {holdingCount}개</div></div>
+                  <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    <div style={{ fontFamily: "var(--font-ui)", fontSize: "14px", fontWeight: 900, color: "var(--accent2)" }}>₩{learningInvestmentScore.toLocaleString()}</div><div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "3px" }}>학습투자 점수</div>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산 ₩{totalAccountAssets.toLocaleString()}</div>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>보유 현금 ₩{currentCoins.toLocaleString()}</div>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 획득 ₩{totalEarned.toLocaleString()}</div>
+                    <div style={{ fontFamily: "var(--font-ui)", fontSize: "11px", fontWeight: 800, color: returnColor, marginTop: "5px" }} title={totalCostBasis > 0 ? `총손익 ${totalProfit >= 0 ? "+" : ""}₩${totalProfit.toLocaleString()} (실현 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()} · 평가 ${unrealizedProfit >= 0 ? "+" : ""}₩${unrealizedProfit.toLocaleString()})` : "아직 투자 내역이 없습니다."}>총수익률 {totalReturnRate > 0 ? "+" : ""}{totalReturnRate.toFixed(2)}%</div>
+                  </div>
+                </button>
+                {isSelected && (
+                  <div id={detailId}>
+                    <PortfolioViewer user={item} onClose={() => setSelectedUser(null)} />
+                  </div>
+                )}
               </div>
-            </button>;
+            );
           })}
         </div>
       )}
