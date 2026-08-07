@@ -92,21 +92,34 @@ export async function GET(req: NextRequest) {
       const totalEarned = toNumber(row.total_earned_coins);
       const realizedProfit = toNumber(row.realized_profit);
       const realizedCostBasis = toNumber(row.realized_cost_basis);
-      const realizedReturnRate = toNumber(row.realized_return_rate);
       const holdings = row.holdings;
       const activeHoldings = holdings.filter((holding) => holding.ticker && toNumber(holding.quantity) > 0);
+      const derivedPortfolioCostBasis = activeHoldings.reduce(
+        (sum, holding) => sum + toNumber(holding.quantity) * toNumber(holding.avg_cost),
+        0
+      );
+      const rpcPortfolioCostBasis = toNumber(row.portfolio_cost_basis);
+      const portfolioCostBasis = rpcPortfolioCostBasis > 0
+        ? rpcPortfolioCostBasis
+        : derivedPortfolioCostBasis;
       const portfolioMarketValue = holdings.reduce((sum, holding) => {
         const quantity = toNumber(holding.quantity);
         const avgCost = toNumber(holding.avg_cost);
         const latestPrice = holding.ticker ? priceByTicker.get(holding.ticker) : null;
         return sum + quantity * (latestPrice ?? avgCost);
       }, 0);
+      const unrealizedProfit = portfolioMarketValue - portfolioCostBasis;
+      const totalProfit = realizedProfit + unrealizedProfit;
+      const totalCostBasis = realizedCostBasis + portfolioCostBasis;
+      const totalReturnRate = totalCostBasis > 0
+        ? (totalProfit / totalCostBasis) * 100
+        : 0;
       const totalAccountAssets = currentCoins + portfolioMarketValue;
-      const returnBonus = totalEarned * (clamp(realizedReturnRate, -30, 30) / 100) * 0.2;
+      const returnBonus = totalEarned * (clamp(totalReturnRate, -30, 30) / 100) * 0.2;
       const learningInvestmentScore =
         totalAccountAssets +
         totalEarned * 0.3 +
-        realizedProfit * 0.5 +
+        totalProfit * 0.5 +
         returnBonus;
 
       return {
@@ -116,7 +129,11 @@ export async function GET(req: NextRequest) {
         total_earned_coins: Math.round(totalEarned),
         realized_profit: Math.round(realizedProfit),
         realized_cost_basis: Math.round(realizedCostBasis),
-        realized_return_rate: realizedReturnRate,
+        unrealized_profit: Math.round(unrealizedProfit),
+        total_profit: Math.round(totalProfit),
+        total_cost_basis: Math.round(totalCostBasis),
+        total_return_rate: totalReturnRate,
+        portfolio_cost_basis: Math.round(portfolioCostBasis),
         portfolio_market_value: Math.round(portfolioMarketValue),
         total_account_assets: Math.round(totalAccountAssets),
         learning_investment_score: Math.round(learningInvestmentScore),
@@ -127,7 +144,7 @@ export async function GET(req: NextRequest) {
       b.learning_investment_score - a.learning_investment_score ||
       b.total_account_assets - a.total_account_assets ||
       b.total_earned_coins - a.total_earned_coins ||
-      b.realized_return_rate - a.realized_return_rate
+      b.total_return_rate - a.total_return_rate
     )
     .slice(0, limit);
 

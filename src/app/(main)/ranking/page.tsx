@@ -15,7 +15,11 @@ interface RankingUser {
   total_earned_coins: number | string | null;
   realized_profit: number | string | null;
   realized_cost_basis: number | string | null;
-  realized_return_rate: number | string | null;
+  unrealized_profit: number | string | null;
+  total_profit: number | string | null;
+  total_cost_basis: number | string | null;
+  total_return_rate: number | string | null;
+  portfolio_cost_basis: number | string | null;
   portfolio_market_value: number | string | null;
   total_account_assets: number | string | null;
   learning_investment_score: number | string | null;
@@ -103,6 +107,7 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "8px" }}>
         <Metric label="총 계좌 자산" value={`₩${totalAccountAssets.toLocaleString()}`} />
         <Metric label="보유 모의현금" value={`₩${currentCoins.toLocaleString()}`} />
+        <Metric label="총수익률" value={`${Number(user.total_return_rate ?? 0) > 0 ? "+" : ""}${Number(user.total_return_rate ?? 0).toFixed(2)}%`} />
         <Metric label="보유 종목" value={`${activeHoldings.length}개`} />
       </div>
 
@@ -184,9 +189,9 @@ export default function RankingPage() {
       <div style={{ marginBottom: "4px" }}>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "6px" }}>RANKING</div>
         <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35, marginBottom: "7px" }}>🏆 랭킹</h1>
-        <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>총 계좌 자산, 총 획득 모의투자금, 실현 수익률을 함께 반영한 학습투자 점수 순</div>
+        <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>총 계좌 자산, 총 획득 모의투자금, 총수익률을 함께 반영한 학습투자 점수 순</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산은 보유 모의현금과 보유 주식의 최신 평가금액을 더해 계산합니다.</div>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>실현 수익률은 주식을 매도한 뒤에만 반영되고, 과도한 수익률 쏠림을 막기 위해 보너스 범위를 제한합니다.</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총수익률은 매도한 거래의 실현손익과 현재 보유 종목의 평가손익을 모두 합산하며, 과도한 수익률 쏠림을 막기 위해 보너스 범위를 제한합니다.</div>
       </div>
 
       {selectedUser && <PortfolioViewer user={selectedUser} onClose={() => setSelectedUser(null)} />}
@@ -199,12 +204,14 @@ export default function RankingPage() {
             const currentCoins = Number(item.current_coins ?? 0);
             const totalEarned = Number(item.total_earned_coins ?? 0);
             const realizedProfit = Number(item.realized_profit ?? 0);
-            const realizedCostBasis = Number(item.realized_cost_basis ?? 0);
-            const realizedReturnRate = Number(item.realized_return_rate ?? 0);
+            const unrealizedProfit = Number(item.unrealized_profit ?? 0);
+            const totalProfit = Number(item.total_profit ?? 0);
+            const totalCostBasis = Number(item.total_cost_basis ?? 0);
+            const totalReturnRate = Number(item.total_return_rate ?? 0);
             const totalAccountAssets = Number(item.total_account_assets ?? currentCoins);
             const learningInvestmentScore = Number(item.learning_investment_score ?? totalAccountAssets);
             const holdingCount = Number(item.holding_count ?? 0);
-            const returnColor = realizedReturnRate > 0 ? "#ef4444" : realizedReturnRate < 0 ? "#2563eb" : "var(--text-muted)";
+            const returnColor = totalReturnRate > 0 ? "#ef4444" : totalReturnRate < 0 ? "#2563eb" : "var(--text-muted)";
             const displayName = item.nickname || "아이디 미설정 사용자";
 
             return <button key={item.id} type="button" onClick={() => setSelectedUser(item)} className="ranking-row" style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0, 1fr) auto", alignItems: "center", gap: "12px", background: isMe ? "rgba(0,168,120,0.08)" : "var(--surface)", border: `1px solid ${isMe ? "rgba(0,168,120,0.25)" : "var(--border)"}`, borderRadius: "12px", padding: "14px 16px", cursor: "pointer", color: "inherit", textAlign: "left" }}>
@@ -215,7 +222,7 @@ export default function RankingPage() {
                 <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산 ₩{totalAccountAssets.toLocaleString()}</div>
                 <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>보유 현금 ₩{currentCoins.toLocaleString()}</div>
                 <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 획득 ₩{totalEarned.toLocaleString()}</div>
-                <div style={{ fontFamily: "var(--font-ui)", fontSize: "11px", fontWeight: 800, color: returnColor, marginTop: "5px" }} title={realizedCostBasis > 0 ? `실현손익 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()}` : "아직 매도 내역이 없습니다."}>실현 수익률 {realizedReturnRate > 0 ? "+" : ""}{realizedReturnRate.toFixed(2)}%</div>
+                <div style={{ fontFamily: "var(--font-ui)", fontSize: "11px", fontWeight: 800, color: returnColor, marginTop: "5px" }} title={totalCostBasis > 0 ? `총손익 ${totalProfit >= 0 ? "+" : ""}₩${totalProfit.toLocaleString()} (실현 ${realizedProfit >= 0 ? "+" : ""}₩${realizedProfit.toLocaleString()} · 평가 ${unrealizedProfit >= 0 ? "+" : ""}₩${unrealizedProfit.toLocaleString()})` : "아직 투자 내역이 없습니다."}>총수익률 {totalReturnRate > 0 ? "+" : ""}{totalReturnRate.toFixed(2)}%</div>
               </div>
             </button>;
           })}
