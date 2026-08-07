@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { PRODUCT_UPDATES } from "@/lib/productUpdates";
 
 export default function UpdateTicker() {
-  const duration = Math.max(34, PRODUCT_UPDATES.length * 10);
+  const duration = Math.max(24, PRODUCT_UPDATES.length * 6);
   const trackStyle = { "--update-ticker-duration": `${duration}s` } as CSSProperties;
 
   return (
