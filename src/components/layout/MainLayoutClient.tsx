@@ -37,6 +37,23 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
     router.refresh();
   }
 
+  async function markNicknameReviewed() {
+    if (!user) return;
+    setSavingNickname(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({
+      data: { ...user.user_metadata, nickname_reviewed: true },
+    });
+    setSavingNickname(false);
+
+    if (error) {
+      setNicknameError("설정을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    router.refresh();
+  }
+
   async function handleNicknameReset() {
     if (!user) return;
 
@@ -64,9 +81,12 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
       return;
     }
 
-    // 로그인 아이디와 프로필 표시가 같은 값을 바라보도록 Auth 메타데이터도 동기화합니다.
     const { error: metadataError } = await supabase.auth.updateUser({
-      data: { ...user.user_metadata, nickname: validation.nickname },
+      data: {
+        ...user.user_metadata,
+        nickname: validation.nickname,
+        nickname_reviewed: true,
+      },
     });
     if (metadataError) {
       console.warn("[nickname reset] auth metadata sync failed:", metadataError);
@@ -90,6 +110,12 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
 
   const displayName = nickname || (user?.user_metadata?.nickname as string) || "유저";
   const mustResetNickname = Boolean(user && nickname && requiresNicknameReset(nickname));
+  const shouldReviewNickname = Boolean(
+    user &&
+    !mustResetNickname &&
+    user.user_metadata?.nickname_reviewed !== true
+  );
+  const showNicknameModal = mustResetNickname || shouldReviewNickname;
 
   return (
     <ToastProvider>
@@ -106,7 +132,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
         <Footer onDeleteAccount={handleDeleteAccount} />
       </div>
 
-      {mustResetNickname && (
+      {showNicknameModal && (
         <div
           role="dialog"
           aria-modal="true"
@@ -135,14 +161,24 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
             }}
           >
             <div id="nickname-reset-title" style={{ fontSize: 20, fontWeight: 800, color: "var(--text)", marginBottom: 10 }}>
-              닉네임 변경이 필요합니다
+              {mustResetNickname ? "닉네임 변경이 필요합니다" : "공개 닉네임을 확인해주세요"}
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.65, color: "var(--text-dim)", marginBottom: 20 }}>
-              현재 닉네임은 Newstock 운영 정책에 따라 변경이 필요합니다. 다른 사용자가 불편함 없이 서비스를 이용할 수 있도록 새로운 닉네임을 설정해 주세요.
+            <div style={{ fontSize: 13, lineHeight: 1.65, color: "var(--text-dim)", marginBottom: 16 }}>
+              {mustResetNickname
+                ? "현재 닉네임은 Newstock 운영 정책에 따라 변경이 필요합니다. 다른 사용자가 불편함 없이 서비스를 이용할 수 있도록 새로운 닉네임을 설정해 주세요."
+                : "Newstock은 이제 로그인 이메일과 공개 닉네임을 분리해서 관리합니다. 기존 닉네임을 그대로 사용하거나, 랭킹과 서비스 화면에 표시할 새 닉네임으로 바꿀 수 있습니다."}
             </div>
 
+            {!mustResetNickname && (
+              <div style={{ marginBottom: 16, padding: "10px 12px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", fontSize: 12, color: "var(--text-dim)", lineHeight: 1.6 }}>
+                현재 공개 닉네임: <b style={{ color: "var(--text)" }}>{displayName}</b>
+                <br />
+                이메일 주소와 비밀번호는 변경되지 않습니다.
+              </div>
+            )}
+
             <label htmlFor="required-nickname" style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 7 }}>
-              새 닉네임
+              {mustResetNickname ? "새 닉네임" : "새 공개 닉네임 (선택)"}
             </label>
             <input
               id="required-nickname"
@@ -152,7 +188,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
                 if (nicknameError) setNicknameError("");
               }}
               onKeyDown={(event) => {
-                if (event.key === "Enter" && !savingNickname) void handleNicknameReset();
+                if (event.key === "Enter" && newNickname.trim() && !savingNickname) void handleNicknameReset();
               }}
               autoFocus
               maxLength={20}
@@ -176,7 +212,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
             <button
               type="button"
               onClick={() => void handleNicknameReset()}
-              disabled={savingNickname}
+              disabled={savingNickname || (!mustResetNickname && !newNickname.trim())}
               style={{
                 width: "100%",
                 padding: 12,
@@ -186,29 +222,54 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
                 color: "#071013",
                 fontSize: 14,
                 fontWeight: 800,
-                cursor: savingNickname ? "default" : "pointer",
-                opacity: savingNickname ? 0.65 : 1,
+                cursor: savingNickname || (!mustResetNickname && !newNickname.trim()) ? "default" : "pointer",
+                opacity: savingNickname || (!mustResetNickname && !newNickname.trim()) ? 0.55 : 1,
               }}
             >
-              {savingNickname ? "변경 중..." : "닉네임 변경하기"}
+              {savingNickname ? "저장 중..." : "새 닉네임으로 변경"}
             </button>
-            <button
-              type="button"
-              onClick={() => void handleLogout()}
-              disabled={savingNickname}
-              style={{
-                width: "100%",
-                marginTop: 9,
-                padding: 9,
-                border: 0,
-                background: "transparent",
-                color: "var(--text-muted)",
-                fontSize: 12,
-                cursor: "pointer",
-              }}
-            >
-              로그아웃
-            </button>
+
+            {!mustResetNickname && (
+              <button
+                type="button"
+                onClick={() => void markNicknameReviewed()}
+                disabled={savingNickname}
+                style={{
+                  width: "100%",
+                  marginTop: 9,
+                  padding: 11,
+                  borderRadius: 999,
+                  border: "1px solid var(--border)",
+                  background: "var(--surface2)",
+                  color: "var(--text-dim)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: savingNickname ? "default" : "pointer",
+                }}
+              >
+                현재 닉네임 그대로 사용
+              </button>
+            )}
+
+            {mustResetNickname && (
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                disabled={savingNickname}
+                style={{
+                  width: "100%",
+                  marginTop: 9,
+                  padding: 9,
+                  border: 0,
+                  background: "transparent",
+                  color: "var(--text-muted)",
+                  fontSize: 12,
+                  cursor: "pointer",
+                }}
+              >
+                로그아웃
+              </button>
+            )}
           </div>
         </div>
       )}
