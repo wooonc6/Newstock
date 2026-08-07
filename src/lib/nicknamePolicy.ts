@@ -2,6 +2,7 @@ const BLOCKED_NICKNAME_FRAGMENTS = [
   // 운영 중 확인된 공개 닉네임 정책 위반 표현.
   // 비교 전 공백/구분자/대소문자를 정규화하므로 단순 우회 표기도 함께 차단됩니다.
   "nomuhyunuii",
+  "nomuhyununji",
 ];
 
 export function normalizeNicknameForPolicy(value: string) {
