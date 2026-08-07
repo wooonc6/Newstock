@@ -194,6 +194,27 @@ export default function GrowthTimeline({ points }: { points: TimelinePoint[] }) 
         </svg>
       </div>
 
+      <div
+        aria-label="거래 시점 범례"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "6px 12px",
+          marginTop: 8,
+          padding: "9px 11px",
+          borderRadius: 9,
+          background: "var(--surface2)",
+          fontSize: 11,
+          color: "var(--text-dim)",
+          lineHeight: 1.5,
+        }}
+      >
+        <span><strong style={{ color: "#2563eb" }}>B</strong> = 매수(Buy) 체결 시점</span>
+        <span><strong style={{ color: "#ef4444" }}>S</strong> = 매도(Sell) 체결 시점</span>
+        <span style={{ color: "var(--text-muted)" }}>본인의 거래 기록이며, 매수·매도 추천 신호가 아닙니다.</span>
+      </div>
+
       <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-dim)", minHeight: 38, lineHeight: 1.55 }}>
         {active ? (
           <span>

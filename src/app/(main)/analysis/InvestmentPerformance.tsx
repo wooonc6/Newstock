@@ -70,6 +70,7 @@ export default async function InvestmentPerformance() {
   );
 
   const analysis = analyzeTrades(trades);
+  const winTradeCount = analysis.realized.filter((trade) => trade.realizedProfit > 0).length;
   const holdings = summarizeHoldings(portfolio, priceMap, analysis.openLotsByTicker);
   const kpis = computeKpis({
     cash,
@@ -214,6 +215,21 @@ export default async function InvestmentPerformance() {
               <HabitStat label="평균 보유" value={`${analysis.averageHoldingDays.toFixed(1)}일`} />
               <HabitStat label="평균 수익" value={formatPct(analysis.avgWinPct)} tone="up" />
               <HabitStat label="평균 손실" value={formatPct(analysis.avgLossPct)} tone="down" />
+            </div>
+            <div
+              style={{
+                marginTop: 10,
+                padding: "9px 11px",
+                borderRadius: 9,
+                background: "var(--surface2)",
+                fontSize: 11,
+                color: "var(--text-muted)",
+                lineHeight: 1.6,
+              }}
+            >
+              승률 = 수익이 난 매도 {winTradeCount}건 ÷ 전체 매도 {analysis.realized.length}건 × 100
+              <br />
+              각 매도 체결을 1건으로 계산하며(부분 매도 포함), 손익이 0원인 거래는 승리에 포함하지 않습니다.
             </div>
             {habitLines.length > 0 ? (
               <ul style={{ margin: "14px 0 0", paddingLeft: 18, display: "grid", gap: 6 }}>
