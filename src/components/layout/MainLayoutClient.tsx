@@ -51,12 +51,11 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
           coins={coins}
           streak={streak}
           onLogout={handleLogout}
-          onDeleteAccount={handleDeleteAccount}
         />
         <NavTabs />
         <UpdateTicker />
         {children}
-        <Footer />
+        <Footer onDeleteAccount={handleDeleteAccount} />
       </div>
     </ToastProvider>
   );
