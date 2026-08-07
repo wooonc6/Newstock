@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardQuote } from "@/lib/yahoo";
+import { getPublicNickname } from "@/lib/nicknamePolicy";
 import { unstable_noStore as noStore } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -124,7 +125,7 @@ export async function GET(req: NextRequest) {
 
       return {
         id: row.id,
-        nickname: row.nickname,
+        nickname: getPublicNickname(row.nickname, row.id),
         current_coins: Math.round(currentCoins),
         total_earned_coins: Math.round(totalEarned),
         realized_profit: Math.round(realizedProfit),
