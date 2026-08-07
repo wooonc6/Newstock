@@ -193,8 +193,8 @@ export default async function InvestmentPerformance() {
 
       {/* 잘한 거래 / 아쉬운 거래 */}
       <div className="mobile-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <TradeHighlightCard title="👍 잘한 거래" trade={analysis.bestTrade} tone="up" />
-        <TradeHighlightCard title="👎 아쉬운 거래" trade={analysis.worstTrade} tone="down" />
+        <TradeHighlightCard title="👍 잘한 거래" trade={analysis.bestTrade} />
+        <TradeHighlightCard title="👎 아쉬운 거래" trade={analysis.worstTrade} />
       </div>
 
       {/* 투자 습관 */}
@@ -509,13 +509,15 @@ function LearningCompareCard({ label, value, tone }: { label: string; value: str
 function TradeHighlightCard({
   title,
   trade,
-  tone,
 }: {
   title: string;
   trade: { ticker: string; realizedProfit: number; returnPct: number; tradedAt: string } | null;
-  tone: "up" | "down";
 }) {
-  const color = tone === "up" ? "#ef4444" : "#2563eb";
+  const color = !trade || trade.realizedProfit === 0
+    ? "var(--text)"
+    : trade.realizedProfit > 0
+      ? "#ef4444"
+      : "#2563eb";
   const stock = trade ? getStock(trade.ticker) : null;
 
   return (

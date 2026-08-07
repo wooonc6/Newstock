@@ -1,7 +1,7 @@
 import { getStock } from "@/lib/stocks";
 import {
   AREA_LABELS,
-  findConceptByText,
+  findConceptsByText,
   getConcept,
   INVESTMENT_CONCEPTS,
   type ConceptArea,
@@ -18,6 +18,9 @@ export interface QuizSessionLite {
 export interface CuratedNewsLite {
   id: string;
   category: string | null;
+  title: string | null;
+  description: string | null;
+  company: string | null;
 }
 
 export interface QuizCoreStats {
@@ -46,24 +49,43 @@ export interface WeeklyAccuracyPoint {
   accuracyPct: number;
 }
 
-export function computeWeeklyAccuracy(sessions: QuizSessionLite[], weeks = 8): WeeklyAccuracyPoint[] {
-  const now = new Date();
+const DAY_MS = 86_400_000;
+const SEOUL_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+function toSeoulDay(date: Date): number {
+  const seoul = new Date(date.getTime() + SEOUL_OFFSET_MS);
+  return Date.UTC(seoul.getUTCFullYear(), seoul.getUTCMonth(), seoul.getUTCDate());
+}
+
+function formatMonthDay(day: number): string {
+  const date = new Date(day);
+  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}`;
+}
+
+export function computeWeeklyAccuracy(
+  sessions: QuizSessionLite[],
+  weeks = 8,
+  referenceDate = new Date()
+): WeeklyAccuracyPoint[] {
+  const today = toSeoulDay(referenceDate);
+  const currentDayOfWeek = new Date(today).getUTCDay();
+  const daysSinceMonday = (currentDayOfWeek + 6) % 7;
+  const currentWeekStart = today - daysSinceMonday * DAY_MS;
   const points: WeeklyAccuracyPoint[] = [];
+
   for (let i = weeks - 1; i >= 0; i -= 1) {
-    const end = new Date(now);
-    end.setHours(23, 59, 59, 999);
-    end.setDate(end.getDate() - i * 7);
-    const start = new Date(end);
-    start.setDate(start.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
+    const start = currentWeekStart - i * 7 * DAY_MS;
+    const endExclusive = start + 7 * DAY_MS;
     const inRange = sessions.filter((session) => {
-      const time = new Date(session.created_at).getTime();
-      return time >= start.getTime() && time <= end.getTime();
+      const time = new Date(session.created_at);
+      if (Number.isNaN(time.getTime())) return false;
+      const seoulDay = toSeoulDay(time);
+      return seoulDay >= start && seoulDay < endExclusive;
     });
     const correct = inRange.reduce((sum, session) => sum + Math.max(0, session.score ?? 0), 0);
     const total = inRange.reduce((sum, session) => sum + Math.max(1, session.total ?? 1), 0);
     points.push({
-      weekLabel: `${start.getMonth() + 1}/${start.getDate()}`,
+      weekLabel: `${formatMonthDay(start)}~${formatMonthDay(endExclusive - DAY_MS)}`,
       correct,
       total,
       accuracyPct: total > 0 ? (correct / total) * 100 : 0,
@@ -153,18 +175,30 @@ export interface CompetencyReport {
 
 const AREA_ORDER: CompetencyArea[] = ["company", "industry", "economy", "judgement"];
 
-function classify(category: string | null, ticker: string): { area: CompetencyArea; conceptId: string | null; conceptTitle: string } {
-  const text = `${category ?? ""} ${getStock(ticker)?.sector ?? ""}`;
-  const concept = findConceptByText(text);
-  if (concept) return { area: concept.area, conceptId: concept.id, conceptTitle: concept.title };
+function classifyNews(news: CuratedNewsLite | undefined): { area: CompetencyArea; conceptId: string | null; conceptTitle: string }[] {
+  if (!news) return [];
 
-  const sector = getStock(ticker)?.sector ?? "";
-  const sectorConcept = findConceptByText(sector);
-  if (sectorConcept) return { area: sectorConcept.area, conceptId: sectorConcept.id, conceptTitle: sectorConcept.title };
+  // 기사 제목과 요약에 실제로 등장한 개념만 찾습니다. 종목 산업군을 임의로
+  // 끼워 넣지 않으며, 한 기사에 여러 영역이 있으면 각 영역에 한 번씩 반영합니다.
+  const articleText = `${news.title ?? ""} ${news.description ?? ""}`.trim();
+  const byArea = new Map<CompetencyArea, ReturnType<typeof findConceptsByText>[number]>();
+  findConceptsByText(articleText).forEach((concept) => {
+    if (!byArea.has(concept.area)) byArea.set(concept.area, concept);
+  });
 
-  // 기존 데이터에 명시적 개념 태그가 없으면 기업 뉴스를 읽은 기록으로만 처리합니다.
-  // 무작위로 네 영역에 분산하지 않아 측정하지 않은 영역이 왜곡되지 않게 합니다.
-  return { area: "company", conceptId: null, conceptTitle: category?.trim() || "기업 뉴스 해석" };
+  if (byArea.size === 0) {
+    return [{
+      area: "company",
+      conceptId: null,
+      conceptTitle: news.category?.trim() || news.company?.trim() || "기업 뉴스 해석",
+    }];
+  }
+
+  return Array.from(byArea.values(), (concept) => ({
+    area: concept.area,
+    conceptId: concept.id,
+    conceptTitle: concept.title,
+  }));
 }
 
 function confidenceFor(total: number): CompetencyScore["confidence"] {
@@ -195,8 +229,8 @@ function missionFor(area: CompetencyArea, conceptId: string | null): LearningMis
     {
       kind: "news",
       title: "실제 뉴스에서 개념 찾아보기",
-      detail: "대시보드 뉴스에서 기업에 미치는 영향을 한 문장으로 정리하세요.",
-      href: "/dashboard",
+      detail: "최근 24시간 많이 언급된 종목의 뉴스에서 기업 영향을 한 문장으로 정리하세요.",
+      href: "/dashboard#trending-stocks",
     },
     {
       kind: "quiz",
@@ -217,7 +251,8 @@ export function computeCompetencyReport(
   sessions: QuizSessionLite[],
   newsById: Map<string, CuratedNewsLite>
 ): CompetencyReport {
-  const totalQuestions = sessions.reduce((sum, session) => sum + Math.max(1, session.total ?? 1), 0);
+  const linkedSessions = sessions.filter((session) => Boolean(session.news_id && newsById.has(session.news_id)));
+  const totalQuestions = linkedSessions.reduce((sum, session) => sum + Math.max(1, session.total ?? 1), 0);
   const recentSet = new Set(sessions.slice(-10));
   const aggregates = new Map<CompetencyArea, {
     correct: number;
@@ -236,24 +271,27 @@ export function computeCompetencyReport(
   }));
 
   sessions.forEach((session) => {
-    const category = session.news_id ? newsById.get(session.news_id)?.category ?? null : null;
-    const classification = classify(category, session.stock_ticker);
-    const item = aggregates.get(classification.area)!;
+    const news = session.news_id ? newsById.get(session.news_id) : undefined;
+    const classifications = classifyNews(news);
+    if (classifications.length === 0) return;
     const total = Math.max(1, session.total ?? 1);
     const correct = Math.max(0, Math.min(total, session.score ?? 0));
     const wrong = total - correct;
-    item.total += total;
-    item.correct += correct;
-    if (recentSet.has(session)) {
-      item.recentTotal += total;
-      item.recentCorrect += correct;
-    }
-    if (wrong > 0) {
-      const key = classification.conceptId ?? classification.conceptTitle;
-      const current = item.concepts.get(key) ?? { title: classification.conceptTitle, wrong: 0 };
-      current.wrong += wrong;
-      item.concepts.set(key, current);
-    }
+    classifications.forEach((classification) => {
+      const item = aggregates.get(classification.area)!;
+      item.total += total;
+      item.correct += correct;
+      if (recentSet.has(session)) {
+        item.recentTotal += total;
+        item.recentCorrect += correct;
+      }
+      if (wrong > 0) {
+        const key = classification.conceptId ?? classification.conceptTitle;
+        const current = item.concepts.get(key) ?? { title: classification.conceptTitle, wrong: 0 };
+        current.wrong += wrong;
+        item.concepts.set(key, current);
+      }
+    });
   });
 
   const scores = AREA_ORDER.map((area): CompetencyScore => {

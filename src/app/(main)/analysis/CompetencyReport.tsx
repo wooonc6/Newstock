@@ -23,7 +23,7 @@ export default function CompetencyReportSection({ report }: { report: Competency
       <div>
         <div style={{ fontSize: 15, fontWeight: 800 }}>📐 나의 뉴스 이해 리포트</div>
         <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.55 }}>
-          사용자가 분야를 직접 선택한 결과가 아니라, 지금까지 푼 뉴스의 카테고리와 정답 기록을 규칙에 따라 정리한 학습 참고 자료입니다.
+          실제 기사 제목·요약에 해당 개념이 확인된 문제만 반영합니다. 한 기사에 여러 요소가 있으면 각 영역에 함께 반영됩니다.
         </div>
       </div>
 

@@ -32,7 +32,7 @@ export default async function QuizAnalysis() {
 
   const newsIds = Array.from(new Set(sessions.map((session) => session.news_id).filter((id): id is string => Boolean(id))));
   const { data: newsData } = newsIds.length > 0
-    ? await supabase.from("curated_news").select("id, category").in("id", newsIds)
+    ? await supabase.from("curated_news").select("id, title, description, company, category").in("id", newsIds)
     : { data: [] as CuratedNewsLite[] };
   const newsById = new Map(((newsData ?? []) as CuratedNewsLite[]).map((news) => [news.id, news] as const));
 
@@ -77,7 +77,7 @@ export default async function QuizAnalysis() {
                   <span style={{ color: "var(--text-muted)" }}>{sector.correct}/{sector.total} · {Math.round(sector.accuracyPct)}%</span>
                 </div>
                 <div style={{ height: 8, borderRadius: 999, background: "var(--surface2)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${Math.min(100, sector.accuracyPct)}%`, borderRadius: 999, background: sector.accuracyPct >= 60 ? "var(--accent)" : "var(--danger)" }} />
+                  <div style={{ height: "100%", width: `${Math.min(100, sector.accuracyPct)}%`, borderRadius: 999, background: "var(--accent)" }} />
                 </div>
               </div>
             ))}

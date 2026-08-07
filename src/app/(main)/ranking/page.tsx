@@ -1,10 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useStockPrice } from "@/hooks/useStockPrice";
 import { getStock } from "@/lib/stocks";
 import { TradeHistoryList, type TradeHistoryItem } from "@/components/trading/TradeHistoryList";
+
+const RANKING_REFRESH_MS = 10_000;
 
 interface RankingUser {
   id: string;
@@ -128,28 +130,53 @@ export default function RankingPage() {
   const [selectedUser, setSelectedUser] = useState<RankingUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const requestSequence = useRef(0);
 
   const fetchRankings = useCallback(async () => {
+    const requestId = ++requestSequence.current;
     try {
-      const response = await fetch("/api/rankings?limit=50", { cache: "no-store" });
+      const query = new URLSearchParams({ limit: "50", refreshedAt: String(Date.now()) });
+      const response = await fetch(`/api/rankings?${query.toString()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data?.error ?? "랭킹 API 오류");
       }
+      if (requestId !== requestSequence.current) return;
 
-      setRankings((data.rankings as RankingUser[] | null) ?? []);
+      const nextRankings = (data.rankings as RankingUser[] | null) ?? [];
+      setRankings(nextRankings);
+      setSelectedUser((current) => current
+        ? nextRankings.find((ranking) => ranking.id === current.id) ?? current
+        : null
+      );
       setError("");
     } catch {
-      setError("랭킹을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      if (requestId === requestSequence.current) {
+        setError("랭킹을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      }
+    } finally {
+      if (requestId === requestSequence.current) setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     void fetchRankings();
-    const timer = window.setInterval(() => void fetchRankings(), 30_000);
-    return () => window.clearInterval(timer);
+    const timer = window.setInterval(() => void fetchRankings(), RANKING_REFRESH_MS);
+    const refreshOnFocus = () => void fetchRankings();
+    const refreshOnVisible = () => {
+      if (document.visibilityState === "visible") void fetchRankings();
+    };
+    window.addEventListener("focus", refreshOnFocus);
+    document.addEventListener("visibilitychange", refreshOnVisible);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refreshOnFocus);
+      document.removeEventListener("visibilitychange", refreshOnVisible);
+    };
   }, [fetchRankings]);
 
   return (

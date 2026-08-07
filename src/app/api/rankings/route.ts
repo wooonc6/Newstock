@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardQuote } from "@/lib/yahoo";
+import { unstable_noStore as noStore } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
 
 type RankingHolding = {
   ticker: string | null;
@@ -43,6 +48,7 @@ function parseHoldings(value: RankingRow["holdings"]) {
 }
 
 export async function GET(req: NextRequest) {
+  noStore();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -125,5 +131,8 @@ export async function GET(req: NextRequest) {
     )
     .slice(0, limit);
 
-  return NextResponse.json({ rankings });
+  return NextResponse.json(
+    { rankings },
+    { headers: { "Cache-Control": "private, no-store, no-cache, max-age=0, must-revalidate" } }
+  );
 }

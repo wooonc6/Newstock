@@ -44,7 +44,7 @@ export const INVESTMENT_CONCEPTS: InvestmentConcept[] = [
   { id: "inflation", area: "economy", title: "물가와 CPI", summary: "상품과 서비스 가격의 전반적인 상승 정도를 보여줍니다.", whyItMatters: "물가 상승은 금리 정책과 기업 비용, 소비 여력에 영향을 줍니다.", keywords: ["물가", "cpi", "인플레이션"] },
   { id: "gdp", area: "economy", title: "GDP", summary: "한 나라에서 일정 기간 생산된 재화와 서비스의 가치를 나타냅니다.", whyItMatters: "경기 성장 속도와 기업 매출 환경을 이해하는 기본 지표입니다.", keywords: ["gdp", "국내총생산", "경제성장률"] },
   { id: "business-cycle", area: "economy", title: "경기 순환", summary: "경제가 회복, 확장, 둔화, 침체를 반복하는 흐름입니다.", whyItMatters: "경기 단계에 따라 유리한 산업과 위험 요인이 달라질 수 있습니다.", keywords: ["경기", "경기침체", "경기회복", "불황"] },
-  { id: "bond-yield", area: "economy", title: "채권금리", summary: "채권에 투자했을 때 기대할 수 있는 수익률입니다.", whyItMatters: "채권금리가 오르면 미래 이익의 현재 가치가 낮아져 성장주에 부담이 될 수 있습니다.", keywords: ["채권금리", "국채금리", "수익률"] },
+  { id: "bond-yield", area: "economy", title: "채권금리", summary: "채권에 투자했을 때 기대할 수 있는 수익률입니다.", whyItMatters: "채권금리가 오르면 미래 이익의 현재 가치가 낮아져 성장주에 부담이 될 수 있습니다.", keywords: ["채권금리", "국채금리", "채권 수익률"] },
   { id: "fed-bok", area: "economy", title: "연준과 한국은행", summary: "미국과 한국의 통화정책을 담당하는 중앙은행입니다.", whyItMatters: "금리와 유동성 결정이 환율과 주식시장에 큰 영향을 줍니다.", keywords: ["연준", "fed", "한국은행", "금통위"] },
   { id: "oil-commodity", area: "economy", title: "원유와 원자재", summary: "생산에 사용되는 에너지와 기초 자원의 가격입니다.", whyItMatters: "가격 상승은 에너지 기업에 기회가 될 수 있지만 제조업 비용을 높입니다.", keywords: ["원유", "유가", "원자재", "천연가스"] },
   { id: "exports", area: "economy", title: "수출과 무역", summary: "국가 간 상품과 서비스를 거래하는 활동입니다.", whyItMatters: "수출 증가와 무역 규제는 관련 기업의 매출과 공급망에 영향을 줍니다.", keywords: ["수출", "무역", "관세"] },
@@ -55,12 +55,18 @@ export const INVESTMENT_CONCEPTS: InvestmentConcept[] = [
   { id: "stop-loss-profit", area: "judgement", title: "손절과 익절", summary: "손실이나 수익을 확정하기 위해 주식을 매도하는 판단입니다.", whyItMatters: "감정이 아니라 사전에 정한 기준으로 판단하는 연습이 중요합니다.", keywords: ["손절", "익절", "매도"] },
   { id: "long-short-term", area: "judgement", title: "장기와 단기 관점", summary: "투자 결과를 평가하는 시간 범위를 구분하는 것입니다.", whyItMatters: "단기 뉴스와 장기 성장 요인을 섞어 판단하면 전략이 흔들릴 수 있습니다.", keywords: ["장기투자", "단기투자", "보유기간"] },
   { id: "fomo", area: "judgement", title: "FOMO와 군중심리", summary: "상승에서 뒤처질까 두려워 다른 사람을 따라가는 심리입니다.", whyItMatters: "뉴스 직후의 추격 매수와 과열된 가격을 구분하는 데 필요합니다.", keywords: ["fomo", "군중심리", "추격매수", "과열"] },
-  { id: "bull-bear-factors", area: "judgement", title: "상승·하락 요인", summary: "하나의 뉴스에 포함된 긍정 요인과 부정 요인을 나누어 보는 방법입니다.", whyItMatters: "한쪽 정보만 보고 결론을 내리는 실수를 줄일 수 있습니다.", keywords: ["상승요인", "하락요인", "호재", "악재"] },
+  { id: "bull-bear-factors", area: "judgement", title: "상승·하락 요인", summary: "하나의 뉴스에 포함된 긍정 요인과 부정 요인을 나누어 보는 방법입니다.", whyItMatters: "한쪽 정보만 보고 결론을 내리는 실수를 줄일 수 있습니다.", keywords: ["상승요인", "하락요인", "호재", "악재", "목표주가", "투자의견"] },
 ];
 
 export function findConceptByText(text: string): InvestmentConcept | null {
+  return findConceptsByText(text)[0] ?? null;
+}
+
+export function findConceptsByText(text: string): InvestmentConcept[] {
   const normalized = text.toLowerCase();
-  return INVESTMENT_CONCEPTS.find((concept) => concept.keywords.some((keyword) => normalized.includes(keyword.toLowerCase()))) ?? null;
+  return INVESTMENT_CONCEPTS.filter((concept) =>
+    concept.keywords.some((keyword) => normalized.includes(keyword.toLowerCase()))
+  );
 }
 
 export function getConcept(id: string): InvestmentConcept | null {

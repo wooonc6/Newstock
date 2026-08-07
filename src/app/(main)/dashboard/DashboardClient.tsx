@@ -27,6 +27,7 @@ export default function DashboardClient() {
   return (
     <div style={{ display: "grid", gap: "18px" }}>
       <section
+        id="trending-stocks"
         className="mobile-section"
         style={{
           background: "var(--surface)",
