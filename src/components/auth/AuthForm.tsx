@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { validateNickname } from "@/lib/nicknamePolicy";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -56,21 +57,17 @@ const s = {
   link: { color: "var(--accent)", cursor: "pointer" },
 };
 
-function getEmailId(value: string) {
-  return value.trim().split("@")[0]?.trim() ?? "";
-}
-
 export default function AuthForm() {
   const [mode, setMode] = useState<Mode>("login");
   const [loginId, setLoginId] = useState("");
   const [email, setEmail] = useState("");
+  const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ? createClient() : null as any;
-  const emailId = getEmailId(email);
 
   function reset(nextMode: Mode) {
     setMode(nextMode);
@@ -87,7 +84,7 @@ export default function AuthForm() {
 
     const identifier = loginId.trim();
     if (!identifier || !password) {
-      setError("아이디 또는 이메일과 비밀번호를 입력해주세요.");
+      setError("이메일 또는 닉네임과 비밀번호를 입력해주세요.");
       return;
     }
 
@@ -101,7 +98,7 @@ export default function AuthForm() {
 
       if (lookupError || !data) {
         setLoading(false);
-        setError("아이디를 찾을 수 없습니다. 이메일로 로그인하거나 회원가입 정보를 확인해주세요.");
+        setError("닉네임을 찾을 수 없습니다. 가입 이메일로 로그인해주세요.");
         return;
       }
 
@@ -111,7 +108,7 @@ export default function AuthForm() {
     const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
     setLoading(false);
     if (error) {
-      setError("아이디 또는 비밀번호가 올바르지 않습니다.");
+      setError("이메일·닉네임 또는 비밀번호가 올바르지 않습니다.");
       return;
     }
     router.push("/dashboard");
@@ -126,14 +123,14 @@ export default function AuthForm() {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanNickname = getEmailId(cleanEmail);
+    const nicknameValidation = validateNickname(nickname);
 
     if (!cleanEmail.includes("@")) {
       setError("이메일을 올바르게 입력해주세요.");
       return;
     }
-    if (cleanNickname.length < 2) {
-      setError("이메일 @ 앞부분이 2자 이상이어야 아이디로 사용할 수 있습니다.");
+    if (!nicknameValidation.ok) {
+      setError(nicknameValidation.error);
       return;
     }
     if (password.length < 6) {
@@ -145,11 +142,17 @@ export default function AuthForm() {
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
-      options: { data: { nickname: cleanNickname, email: cleanEmail } },
+      options: {
+        data: {
+          nickname: nicknameValidation.nickname,
+          email: cleanEmail,
+          nickname_reviewed: true,
+        },
+      },
     });
     setLoading(false);
     if (error) {
-      setError(error.message.includes("duplicate") ? "이미 같은 아이디가 있습니다. 다른 이메일을 사용해주세요." : error.message);
+      setError(error.message.includes("duplicate") ? "이미 사용 중인 이메일 또는 닉네임입니다." : error.message);
       return;
     }
 
@@ -200,16 +203,19 @@ export default function AuthForm() {
 
       {mode === "login" && (
         <>
-          <label style={s.label}>아이디 또는 이메일</label>
+          <label style={s.label}>이메일 또는 닉네임</label>
           <input
             style={s.input}
             type="text"
-            placeholder="아이디 또는 이메일"
+            placeholder="가입 이메일 또는 닉네임"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
             onKeyDown={onKey}
             autoComplete="username"
           />
+          <div style={{ marginTop: "-7px", marginBottom: "14px", fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+            계정은 이메일로 관리되며, 공개 닉네임으로도 로그인할 수 있습니다.
+          </div>
           <label style={s.label}>비밀번호</label>
           <input
             style={s.input}
@@ -251,9 +257,21 @@ export default function AuthForm() {
             autoComplete="email"
           />
           <div style={{ marginTop: "-6px", marginBottom: "14px", padding: "10px 12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface2)", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.55 }}>
-            가입 아이디는 이메일의 <b style={{ color: "var(--text)" }}>@ 앞부분</b>으로 자동 생성됩니다.
-            <br />
-            현재 아이디: <b style={{ color: "var(--accent)" }}>{emailId || "이메일을 입력하면 표시됩니다"}</b>
+            이메일은 <b style={{ color: "var(--text)" }}>로그인·계정 복구용</b>으로 사용되며 공개되지 않습니다.
+          </div>
+          <label style={s.label}>공개 닉네임</label>
+          <input
+            style={s.input}
+            type="text"
+            placeholder="랭킹 등에 표시될 닉네임 (2~20자)"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            onKeyDown={onKey}
+            autoComplete="nickname"
+            maxLength={20}
+          />
+          <div style={{ marginTop: "-7px", marginBottom: "14px", fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+            닉네임은 이메일 주소와 별개이며 랭킹과 서비스 화면에 공개됩니다.
           </div>
           <label style={s.label}>비밀번호</label>
           <input
