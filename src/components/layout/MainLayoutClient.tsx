@@ -18,6 +18,19 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
     router.refresh();
   }
 
+  async function handleDeleteAccount() {
+    const response = await fetch("/api/account", { method: "DELETE" });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      throw new Error(result?.error ?? "회원 탈퇴에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+
+    await signOut();
+    router.replace("/login");
+    router.refresh();
+  }
+
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -33,7 +46,13 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
   return (
     <ToastProvider>
       <div className="app-shell">
-        <Header nickname={displayName} coins={coins} streak={streak} onLogout={handleLogout} />
+        <Header
+          nickname={displayName}
+          coins={coins}
+          streak={streak}
+          onLogout={handleLogout}
+          onDeleteAccount={handleDeleteAccount}
+        />
         <NavTabs />
         <UpdateTicker />
         {children}
