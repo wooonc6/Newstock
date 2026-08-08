@@ -189,9 +189,11 @@ export default function RankingPage() {
       <div style={{ marginBottom: "4px" }}>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 800, marginBottom: "6px" }}>RANKING</div>
         <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35, marginBottom: "7px" }}>🏆 랭킹</h1>
-        <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>총 계좌 자산, 총 획득 모의투자금, 총수익률을 함께 반영한 학습투자 점수 순</div>
+        <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>총 계좌 자산, 총 획득 모의투자금, 투자 성과를 함께 반영한 학습투자 점수 순</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>학습투자 점수는 실제 보유 금액이 아니라 랭킹 산정을 위한 점수입니다.</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>점수 = 총 계좌 자산 + 총 획득 모의투자금의 30% + 총 투자손익의 50% + 수익률 보너스</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산은 보유 모의현금과 보유 주식의 최신 평가금액을 더해 계산합니다.</div>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총수익률은 매도한 거래의 실현손익과 현재 보유 종목의 평가손익을 모두 합산하며, 과도한 수익률 쏠림을 막기 위해 보너스 범위를 제한합니다.</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>수익률 보너스는 과도한 수익률 쏠림을 막기 위해 반영 범위를 제한합니다.</div>
       </div>
 
       {loading ? <Panel>랭킹을 불러오는 중...</Panel> : error ? <Panel>{error}</Panel> : rankings.length === 0 ? <Panel>아직 랭킹 데이터가 없습니다.</Panel> : (
@@ -227,7 +229,7 @@ export default function RankingPage() {
                   <div style={{ width: "34px", height: "34px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: rank <= 3 ? "rgba(251,191,36,0.14)" : "var(--surface2)", color: rank <= 3 ? "var(--coin)" : "var(--text-muted)", fontFamily: "var(--font-ui)", fontSize: "13px", fontWeight: 900 }}>{rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : rank}</div>
                   <div style={{ minWidth: 0 }}><div style={{ fontSize: "14px", color: "var(--text)", fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}{isMe && <span style={{ color: "var(--accent)", marginLeft: "6px", fontSize: "12px", fontWeight: 800 }}>나</span>}</div><div style={{ marginTop: "4px", fontSize: "11px", color: "var(--text-muted)" }}>{isSelected ? "투자 현황 접기" : "이 순위에서 투자 현황 보기"} · 보유 종목 {holdingCount}개</div></div>
                   <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                    <div style={{ fontFamily: "var(--font-ui)", fontSize: "14px", fontWeight: 900, color: "var(--accent2)" }}>₩{learningInvestmentScore.toLocaleString()}</div><div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "3px" }}>학습투자 점수</div>
+                    <div style={{ fontFamily: "var(--font-ui)", fontSize: "14px", fontWeight: 900, color: "var(--accent2)" }}>{learningInvestmentScore.toLocaleString()}점</div><div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "3px" }}>학습투자 점수</div>
                     <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산 ₩{totalAccountAssets.toLocaleString()}</div>
                     <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>보유 현금 ₩{currentCoins.toLocaleString()}</div>
                     <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 획득 ₩{totalEarned.toLocaleString()}</div>
