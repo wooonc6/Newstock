@@ -9,6 +9,13 @@ export type ProductUpdate = {
 // 최신 업데이트가 앞에 오도록 한 줄씩 추가하면 상단 티커에 바로 반영됩니다.
 export const PRODUCT_UPDATES: ProductUpdate[] = [
   {
+    date: "08.08",
+    label: "개선",
+    title: "상단 모의현금 자산 연동",
+    summary: "우측 상단 모의현금이 각 사용자의 최신 자산과 자동으로 동기화되도록 개선했습니다",
+    href: "/assets",
+  },
+  {
     date: "08.07",
     label: "NEW",
     title: "이메일과 공개 닉네임 분리",
