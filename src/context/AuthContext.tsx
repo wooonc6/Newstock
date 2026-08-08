@@ -40,11 +40,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserData = useCallback(async (userId: string) => {
     if (!hasSupabase) return;
     const supabase = createClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("users")
       .select("nickname, coins, streak")
       .eq("id", userId)
       .single();
+
+    if (error) {
+      console.warn("[auth] failed to refresh user data:", error);
+      return;
+    }
+
     if (data) {
       setNickname(data.nickname ?? "");
       setCoins(data.coins ?? 0);
@@ -65,20 +71,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      if (session?.user) fetchUserData(session.user.id);
+      if (session?.user) void fetchUserData(session.user.id);
     });
 
     const {
-      data: { subscription },
+      data: { subscription: authSubscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      if (session?.user) fetchUserData(session.user.id);
+      if (session?.user) void fetchUserData(session.user.id);
     });
 
-    return () => subscription.unsubscribe();
+    return () => authSubscription.unsubscribe();
   }, [fetchUserData]);
+
+  useEffect(() => {
+    if (!hasSupabase || !user?.id) return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`user-balance-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "users",
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          const next = payload.new as { nickname?: string | null; coins?: number | null; streak?: number | null };
+          if (typeof next.nickname !== "undefined") setNickname(next.nickname ?? "");
+          if (typeof next.coins !== "undefined") setCoins(next.coins ?? 0);
+          if (typeof next.streak !== "undefined") setStreak(next.streak ?? 0);
+        }
+      )
+      .subscribe();
+
+    const refresh = () => void fetchUserData(user.id);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+
+    const intervalId = window.setInterval(refresh, 30_000);
+
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+      window.clearInterval(intervalId);
+      void supabase.removeChannel(channel);
+    };
+  }, [user?.id, fetchUserData]);
 
   async function signOut() {
     if (!hasSupabase) return;
