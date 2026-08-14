@@ -1,16 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Footer from "@/components/layout/Footer";
 
 export default function PasswordRecoveryConfirmPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const tokenHash = useMemo(() => searchParams.get("token_hash"), [searchParams]);
+  const [tokenHash, setTokenHash] = useState<string | null>(null);
+  const [paramsReady, setParamsReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setTokenHash(params.get("token_hash"));
+    setParamsReady(true);
+  }, []);
 
   async function continueRecovery() {
     if (!tokenHash || loading) return;
@@ -43,7 +49,9 @@ export default function PasswordRecoveryConfirmPage() {
           아래 버튼을 직접 누르면 재설정 링크를 확인하고 새 비밀번호 설정 화면으로 이동합니다.
         </p>
 
-        {tokenHash ? (
+        {!paramsReady ? (
+          <p style={{ color: "var(--text-dim)", fontSize: 13 }}>재설정 정보를 확인하고 있습니다...</p>
+        ) : tokenHash ? (
           <>
             {error && <p style={{ color: "var(--danger)", fontSize: 13, lineHeight: 1.6 }}>{error}</p>}
             <button disabled={loading} onClick={continueRecovery} style={{ width: "100%", padding: 13, borderRadius: 100, border: "none", background: "var(--accent)", color: "#071013", fontSize: 14, fontWeight: 700, cursor: loading ? "default" : "pointer", opacity: loading ? 0.65 : 1 }}>
