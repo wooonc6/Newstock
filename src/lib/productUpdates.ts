@@ -9,6 +9,34 @@ export type ProductUpdate = {
 // 최신 업데이트가 앞에 오도록 한 줄씩 추가하면 상단 티커에 바로 반영됩니다.
 export const PRODUCT_UPDATES: ProductUpdate[] = [
   {
+    date: "08.18",
+    label: "NEW",
+    title: "전체 랭킹 공개 여부 선택",
+    summary: "수업 참가 시 전체 랭킹 공개에 동의하면 전체·수업 랭킹에, 동의하지 않으면 수업 랭킹에만 표시됩니다",
+    href: "/ranking",
+  },
+  {
+    date: "08.18",
+    label: "NEW",
+    title: "수업별 전용 랭킹",
+    summary: "수업 코드로 참가한 뒤 전체 랭킹과 내가 속한 수업의 랭킹을 전환해 확인할 수 있습니다",
+    href: "/ranking",
+  },
+  {
+    date: "08.18",
+    label: "관리자",
+    title: "수업 학생 일괄 지급",
+    summary: "수업 관리자는 랭킹 화면에서 해당 수업의 모든 학생에게 원하는 모의금액을 한 번에 지급할 수 있습니다",
+    href: "/ranking",
+  },
+  {
+    date: "08.18",
+    label: "개선",
+    title: "랭킹 실명제 적용",
+    summary: "신규 가입자는 성과 이름으로 등록하며 기존 사용자에게도 실명 확인 및 변경 안내가 표시됩니다",
+    href: "/ranking",
+  },
+  {
     date: "08.08",
     label: "개선",
     title: "상단 모의현금 자산 연동",
