@@ -67,7 +67,7 @@ function HoldingSnapshot({ holding }: { holding: PublicHolding }) {
   );
 }
 
-function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => void }) {
+function PortfolioViewer({ user, classId, onClose }: { user: RankingUser; classId: string | null; onClose: () => void }) {
   const [holdings, setHoldings] = useState<PublicHolding[]>([]);
   const [trades, setTrades] = useState<TradeHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,9 +76,15 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
   const loadSnapshot = useCallback(async () => {
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
+    const portfolioRequest = classId
+      ? supabase.rpc("get_class_portfolio_snapshot", { p_user_id: user.id, p_class_id: classId })
+      : supabase.rpc("get_public_portfolio_snapshot", { p_user_id: user.id });
+    const tradeRequest = classId
+      ? supabase.rpc("get_class_trade_history", { p_user_id: user.id, p_class_id: classId, p_limit: null })
+      : supabase.rpc("get_public_trade_history", { p_user_id: user.id, p_limit: null });
     const [portfolioResult, tradeResult] = await Promise.all([
-      supabase.rpc("get_public_portfolio_snapshot", { p_user_id: user.id }),
-      supabase.rpc("get_public_trade_history", { p_user_id: user.id, p_limit: null }),
+      portfolioRequest,
+      tradeRequest,
     ]);
 
     if (portfolioResult.error || tradeResult.error) {
@@ -89,7 +95,7 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
       setError("");
     }
     setLoading(false);
-  }, [user.id]);
+  }, [classId, user.id]);
 
   useEffect(() => {
     void loadSnapshot();
@@ -356,7 +362,7 @@ export default function RankingPage() {
                 </button>
                 {isSelected && (
                   <div id={detailId}>
-                    <PortfolioViewer user={item} onClose={() => setSelectedUser(null)} />
+                    <PortfolioViewer user={item} classId={selectedClassId} onClose={() => setSelectedUser(null)} />
                   </div>
                 )}
               </div>
