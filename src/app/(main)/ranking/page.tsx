@@ -72,6 +72,7 @@ function PortfolioViewer({ user, classId, onClose }: { user: RankingUser; classI
   const [trades, setTrades] = useState<TradeHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [tradeError, setTradeError] = useState("");
 
   const loadSnapshot = useCallback(async () => {
     const { createClient } = await import("@/lib/supabase/client");
@@ -87,12 +88,18 @@ function PortfolioViewer({ user, classId, onClose }: { user: RankingUser; classI
       tradeRequest,
     ]);
 
-    if (portfolioResult.error || tradeResult.error) {
+    if (portfolioResult.error) {
       setError("투자 현황을 불러오지 못했습니다.");
     } else {
       setHoldings((portfolioResult.data as PublicHolding[] | null) ?? []);
-      setTrades((tradeResult.data as TradeHistoryItem[] | null) ?? []);
       setError("");
+    }
+    if (tradeResult.error) {
+      setTrades([]);
+      setTradeError("매수·매도 기록을 불러오지 못했습니다.");
+    } else {
+      setTrades((tradeResult.data as TradeHistoryItem[] | null) ?? []);
+      setTradeError("");
     }
     setLoading(false);
   }, [classId, user.id]);
@@ -127,14 +134,14 @@ function PortfolioViewer({ user, classId, onClose }: { user: RankingUser; classI
 
       {loading ? <Panel>투자 현황을 불러오는 중입니다.</Panel> : error ? <Panel>{error}</Panel> : activeHoldings.length === 0 ? <Panel>현재 보유 중인 종목이 없습니다.</Panel> : <div style={{ display: "grid", gap: "8px" }}>{activeHoldings.map((holding) => <HoldingSnapshot key={holding.ticker} holding={holding} />)}</div>}
 
-      {!loading && !error && (
+      {!loading && (
         <div style={{ display: "grid", gap: "8px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
             <div style={{ fontSize: "14px", color: "var(--text)", fontWeight: 800 }}>매수·매도 기록</div>
             <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>전체 {trades.length.toLocaleString()}건</div>
           </div>
           <div className="mobile-scroll-frame" style={{ maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
-            <TradeHistoryList trades={trades} emptyText="아직 공개할 매수·매도 기록이 없습니다." />
+            {tradeError ? <Panel>{tradeError}</Panel> : <TradeHistoryList trades={trades} emptyText="아직 공개할 매수·매도 기록이 없습니다." />}
           </div>
         </div>
       )}
