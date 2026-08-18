@@ -19,13 +19,19 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
 
-  const body = await req.json().catch(() => null) as { classCode?: unknown } | null;
+  const body = await req.json().catch(() => null) as { classCode?: unknown; globalRankingConsent?: unknown } | null;
   const classCode = typeof body?.classCode === "string" ? body.classCode.trim().toUpperCase() : "";
   if (!/^[A-Z0-9][A-Z0-9_-]{3,31}$/.test(classCode)) {
     return NextResponse.json({ error: "수업 코드를 확인해 주세요." }, { status: 400 });
   }
+  if (typeof body?.globalRankingConsent !== "boolean") {
+    return NextResponse.json({ error: "전체 랭킹 공개 여부를 선택해 주세요." }, { status: 400 });
+  }
 
-  const { data, error } = await supabase.rpc("join_class_by_code", { p_class_code: classCode });
+  const { data, error } = await supabase.rpc("join_class_by_code", {
+    p_class_code: classCode,
+    p_global_ranking_consent: body.globalRankingConsent,
+  });
   if (error || !data?.[0]) {
     const status = error?.code === "P0002" ? 404 : 500;
     return NextResponse.json({ error: status === 404 ? "유효하지 않은 수업 코드입니다." : "수업 참가를 처리하지 못했습니다." }, { status });

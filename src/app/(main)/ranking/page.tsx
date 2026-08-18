@@ -149,6 +149,7 @@ export default function RankingPage() {
   const [classes, setClasses] = useState<JoinedClass[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [classCode, setClassCode] = useState("");
+  const [pendingClassCode, setPendingClassCode] = useState<string | null>(null);
   const [joiningClass, setJoiningClass] = useState(false);
   const [classMessage, setClassMessage] = useState("");
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
@@ -207,20 +208,26 @@ export default function RankingPage() {
   const joinClass = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!classCode.trim() || joiningClass) return;
+    setPendingClassCode(classCode.trim().toUpperCase());
+  };
+
+  const confirmClassJoin = async (globalRankingConsent: boolean) => {
+    if (!pendingClassCode || joiningClass) return;
     setJoiningClass(true);
     setClassMessage("");
     try {
       const response = await fetch("/api/classes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classCode }),
+        body: JSON.stringify({ classCode: pendingClassCode, globalRankingConsent }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error ?? "수업 참가 오류");
       await fetchClasses();
       setSelectedClassId(data.class.id);
       setClassCode("");
-      setClassMessage(`${data.class.name} 수업에 참가했습니다.`);
+      setPendingClassCode(null);
+      setClassMessage(`${data.class.name} 수업에 참가했습니다. ${globalRankingConsent ? "전체 랭킹과 수업 랭킹에 모두 표시됩니다." : "수업 랭킹에만 표시됩니다."}`);
     } catch (joinError) {
       setClassMessage(joinError instanceof Error ? joinError.message : "수업 참가를 처리하지 못했습니다.");
     } finally {
@@ -420,6 +427,24 @@ export default function RankingPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {pendingClassCode && (
+        <div role="dialog" aria-modal="true" aria-labelledby="global-ranking-consent-title" style={{ position: "fixed", inset: 0, zIndex: 10020, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", background: "rgba(0,0,0,0.58)", backdropFilter: "blur(6px)" }}>
+          <div style={{ width: "100%", maxWidth: "430px", padding: "24px", borderRadius: "16px", border: "1px solid var(--border)", background: "var(--surface)", boxShadow: "0 24px 80px rgba(0,0,0,0.28)" }}>
+            <div id="global-ranking-consent-title" style={{ fontSize: "19px", fontWeight: 900, color: "var(--text)", marginBottom: "10px" }}>전체 랭킹 공개에 동의하시나요?</div>
+            <div style={{ fontSize: "13px", lineHeight: 1.65, color: "var(--text-dim)", marginBottom: "14px" }}>수업 참가 후 전체 랭킹에도 실명, 학습투자 점수, 계좌 자산과 수익률을 표시할지 선택해 주세요.</div>
+            <div style={{ padding: "11px 12px", borderRadius: "10px", background: "var(--surface2)", border: "1px solid var(--border)", fontSize: "12px", lineHeight: 1.65, color: "var(--text-dim)", marginBottom: "16px" }}>
+              <b style={{ color: "var(--text)" }}>동의</b>: 전체 랭킹과 수업 랭킹에 모두 표시<br />
+              <b style={{ color: "var(--text)" }}>동의하지 않음</b>: 수업 랭킹에만 표시
+            </div>
+            <div style={{ display: "grid", gap: "8px" }}>
+              <button type="button" onClick={() => void confirmClassJoin(true)} disabled={joiningClass} style={{ width: "100%", border: 0, borderRadius: "999px", background: "var(--accent)", color: "white", padding: "11px 14px", fontSize: "13px", fontWeight: 900, cursor: joiningClass ? "wait" : "pointer" }}>{joiningClass ? "참가 중..." : "동의하고 참가"}</button>
+              <button type="button" onClick={() => void confirmClassJoin(false)} disabled={joiningClass} style={{ width: "100%", border: "1px solid var(--border)", borderRadius: "999px", background: "var(--surface2)", color: "var(--text)", padding: "11px 14px", fontSize: "13px", fontWeight: 800, cursor: joiningClass ? "wait" : "pointer" }}>동의하지 않고 참가</button>
+              <button type="button" onClick={() => setPendingClassCode(null)} disabled={joiningClass} style={{ width: "100%", border: 0, background: "transparent", color: "var(--text-muted)", padding: "8px", fontSize: "12px", cursor: "pointer" }}>취소</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
