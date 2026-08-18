@@ -30,6 +30,8 @@ interface JoinedClass {
   id: string;
   name: string;
   joined_at: string;
+  is_admin: boolean;
+  class_code: string | null;
 }
 
 interface PublicHolding {
@@ -143,6 +145,8 @@ export default function RankingPage() {
   const [classCode, setClassCode] = useState("");
   const [joiningClass, setJoiningClass] = useState(false);
   const [classMessage, setClassMessage] = useState("");
+  const [editingClassId, setEditingClassId] = useState<string | null>(null);
+  const [editingClassName, setEditingClassName] = useState("");
   const [selectedUser, setSelectedUser] = useState<RankingUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -216,6 +220,27 @@ export default function RankingPage() {
     }
   };
 
+  const renameClass = async (event: React.FormEvent<HTMLFormElement>, classId: string) => {
+    event.preventDefault();
+    const name = editingClassName.trim();
+    if (!name) return;
+    setClassMessage("");
+    try {
+      const response = await fetch("/api/classes", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classId, name }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error ?? "수업 이름 변경 오류");
+      await fetchClasses();
+      setEditingClassId(null);
+      setClassMessage(`수업 이름을 ${data.class.name}(으)로 변경했습니다.`);
+    } catch (renameError) {
+      setClassMessage(renameError instanceof Error ? renameError.message : "수업 이름을 바꾸지 못했습니다.");
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     setSelectedUser(null);
@@ -269,6 +294,23 @@ export default function RankingPage() {
             {joiningClass ? "참가 중..." : "수업 참가"}
           </button>
         </form>
+        {classes.filter((joinedClass) => joinedClass.is_admin).map((joinedClass) => (
+          <div key={`admin-${joinedClass.id}`} style={{ display: "grid", gap: "8px", padding: "11px", borderRadius: "9px", background: "var(--surface2)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ fontSize: "12px", color: "var(--text-dim)" }}>
+                <strong style={{ color: "var(--text)" }}>{joinedClass.name}</strong> 관리자 · 수업 코드 <strong style={{ color: "var(--accent)", letterSpacing: "0.06em" }}>{joinedClass.class_code}</strong>
+              </div>
+              <button type="button" onClick={() => { setEditingClassId(joinedClass.id); setEditingClassName(joinedClass.name); }} style={{ border: "1px solid var(--border)", borderRadius: "7px", background: "var(--surface)", color: "var(--text-dim)", padding: "6px 9px", fontSize: "11px", fontWeight: 800, cursor: "pointer" }}>이름 변경</button>
+            </div>
+            {editingClassId === joinedClass.id && (
+              <form onSubmit={(event) => void renameClass(event, joinedClass.id)} style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <input value={editingClassName} onChange={(event) => setEditingClassName(event.target.value)} maxLength={100} aria-label="새 수업 이름" style={{ flex: "1 1 180px", minWidth: 0, border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface)", color: "var(--text)", padding: "9px 11px", fontSize: "12px" }} />
+                <button type="submit" style={{ border: 0, borderRadius: "8px", background: "var(--accent)", color: "white", padding: "9px 13px", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>저장</button>
+                <button type="button" onClick={() => setEditingClassId(null)} style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface)", color: "var(--text-dim)", padding: "9px 13px", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>취소</button>
+              </form>
+            )}
+          </div>
+        ))}
         {classMessage && <div role="status" style={{ fontSize: "12px", color: "var(--text-dim)" }}>{classMessage}</div>}
       </section>
 

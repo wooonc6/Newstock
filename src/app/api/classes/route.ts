@@ -8,19 +8,10 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
 
-  const { data, error } = await supabase
-    .from("class_members")
-    .select("joined_at, classes!inner(id, name)")
-    .eq("user_id", user.id)
-    .order("joined_at", { ascending: true });
+  const { data, error } = await supabase.rpc("get_my_classes");
 
   if (error) return NextResponse.json({ error: "수업 목록을 불러오지 못했습니다." }, { status: 500 });
-  const classes = (data ?? []).map((row) => ({
-    id: (row.classes as unknown as { id: string; name: string }).id,
-    name: (row.classes as unknown as { id: string; name: string }).name,
-    joined_at: row.joined_at,
-  }));
-  return NextResponse.json({ classes }, { headers: { "Cache-Control": "private, no-store" } });
+  return NextResponse.json({ classes: data ?? [] }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function POST(req: NextRequest) {
@@ -38,6 +29,26 @@ export async function POST(req: NextRequest) {
   if (error || !data?.[0]) {
     const status = error?.code === "P0002" ? 404 : 500;
     return NextResponse.json({ error: status === 404 ? "유효하지 않은 수업 코드입니다." : "수업 참가를 처리하지 못했습니다." }, { status });
+  }
+  return NextResponse.json({ class: data[0] });
+}
+
+export async function PATCH(req: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+
+  const body = await req.json().catch(() => null) as { classId?: unknown; name?: unknown } | null;
+  const classId = typeof body?.classId === "string" ? body.classId : "";
+  const name = typeof body?.name === "string" ? body.name.trim() : "";
+  if (!/^[0-9a-f-]{36}$/i.test(classId) || name.length < 1 || name.length > 100) {
+    return NextResponse.json({ error: "수업 이름을 1~100자로 입력해 주세요." }, { status: 400 });
+  }
+
+  const { data, error } = await supabase.rpc("rename_managed_class", { p_class_id: classId, p_name: name });
+  if (error || !data?.[0]) {
+    const status = error?.code === "42501" ? 403 : 500;
+    return NextResponse.json({ error: status === 403 ? "이 수업의 관리자만 이름을 바꿀 수 있습니다." : "수업 이름을 바꾸지 못했습니다." }, { status });
   }
   return NextResponse.json({ class: data[0] });
 }
