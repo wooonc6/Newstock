@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { validateNickname } from "@/lib/nicknamePolicy";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -61,7 +60,8 @@ export default function AuthForm() {
   const [mode, setMode] = useState<Mode>("login");
   const [loginId, setLoginId] = useState("");
   const [email, setEmail] = useState("");
-  const [nickname, setNickname] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -84,31 +84,19 @@ export default function AuthForm() {
 
     const identifier = loginId.trim();
     if (!identifier || !password) {
-      setError("이메일 또는 닉네임과 비밀번호를 입력해주세요.");
+      setError("이메일과 비밀번호를 입력해주세요.");
+      return;
+    }
+    if (!identifier.includes("@")) {
+      setError("가입한 이메일 주소를 입력해주세요.");
       return;
     }
 
     setLoading(true);
-
-    let loginEmail = identifier;
-    if (!identifier.includes("@")) {
-      const { data, error: lookupError } = await supabase.rpc("resolve_login_email", {
-        login_nickname: identifier,
-      });
-
-      if (lookupError || !data) {
-        setLoading(false);
-        setError("닉네임을 찾을 수 없습니다. 가입 이메일로 로그인해주세요.");
-        return;
-      }
-
-      loginEmail = data;
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: identifier.toLowerCase(), password });
     setLoading(false);
     if (error) {
-      setError("이메일·닉네임 또는 비밀번호가 올바르지 않습니다.");
+      setError("이메일 또는 비밀번호가 올바르지 않습니다.");
       return;
     }
     router.push("/dashboard");
@@ -123,14 +111,20 @@ export default function AuthForm() {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const nicknameValidation = validateNickname(nickname);
+    const cleanLastName = lastName.normalize("NFKC").trim();
+    const cleanFirstName = firstName.normalize("NFKC").trim();
+    const namePattern = /^[가-힣a-zA-Z]+(?:[ '-][가-힣a-zA-Z]+)*$/;
 
     if (!cleanEmail.includes("@")) {
       setError("이메일을 올바르게 입력해주세요.");
       return;
     }
-    if (!nicknameValidation.ok) {
-      setError(nicknameValidation.error);
+    if (!cleanLastName || !cleanFirstName) {
+      setError("성과 이름을 모두 입력해주세요.");
+      return;
+    }
+    if (cleanLastName.length > 20 || cleanFirstName.length > 20 || !namePattern.test(cleanLastName) || !namePattern.test(cleanFirstName)) {
+      setError("성과 이름은 한글 또는 영문으로 각각 20자 이하로 입력해주세요.");
       return;
     }
     if (password.length < 6) {
@@ -144,7 +138,9 @@ export default function AuthForm() {
       password,
       options: {
         data: {
-          nickname: nicknameValidation.nickname,
+          last_name: cleanLastName,
+          first_name: cleanFirstName,
+          nickname: `${cleanLastName}${cleanFirstName}`,
           email: cleanEmail,
           nickname_reviewed: true,
         },
@@ -203,18 +199,18 @@ export default function AuthForm() {
 
       {mode === "login" && (
         <>
-          <label style={s.label}>이메일 또는 닉네임</label>
+          <label style={s.label}>이메일</label>
           <input
             style={s.input}
             type="text"
-            placeholder="가입 이메일 또는 닉네임"
+            placeholder="가입 이메일"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
             onKeyDown={onKey}
             autoComplete="username"
           />
           <div style={{ marginTop: "-7px", marginBottom: "14px", fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>
-            계정은 이메일로 관리되며, 공개 닉네임으로도 로그인할 수 있습니다.
+            계정은 가입한 이메일 주소로 로그인할 수 있습니다.
           </div>
           <label style={s.label}>비밀번호</label>
           <input
@@ -259,19 +255,18 @@ export default function AuthForm() {
           <div style={{ marginTop: "-6px", marginBottom: "14px", padding: "10px 12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface2)", fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.55 }}>
             이메일은 <b style={{ color: "var(--text)" }}>로그인·계정 복구용</b>으로 사용되며 공개되지 않습니다.
           </div>
-          <label style={s.label}>공개 닉네임</label>
-          <input
-            style={s.input}
-            type="text"
-            placeholder="랭킹 등에 표시될 닉네임 (2~20자)"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            onKeyDown={onKey}
-            autoComplete="nickname"
-            maxLength={20}
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "10px" }}>
+            <div>
+              <label style={s.label}>성</label>
+              <input style={s.input} type="text" placeholder="예: 김" value={lastName} onChange={(e) => setLastName(e.target.value)} onKeyDown={onKey} autoComplete="family-name" maxLength={20} />
+            </div>
+            <div>
+              <label style={s.label}>이름</label>
+              <input style={s.input} type="text" placeholder="예: 민수" value={firstName} onChange={(e) => setFirstName(e.target.value)} onKeyDown={onKey} autoComplete="given-name" maxLength={20} />
+            </div>
+          </div>
           <div style={{ marginTop: "-7px", marginBottom: "14px", fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>
-            닉네임은 이메일 주소와 별개이며 랭킹과 서비스 화면에 공개됩니다.
+            성과 이름을 합친 본명이 랭킹과 서비스 화면에 표시됩니다.
           </div>
           <label style={s.label}>비밀번호</label>
           <input
