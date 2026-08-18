@@ -124,12 +124,12 @@ export async function GET(req: NextRequest) {
         ? (totalProfit / totalCostBasis) * 100
         : 0;
       const totalAccountAssets = currentCoins + portfolioMarketValue;
-      const returnBonus = totalEarned * (clamp(totalReturnRate, -30, 30) / 100) * 0.2;
+      const returnRateAdjustment = totalEarned * (clamp(totalReturnRate, -30, 30) / 100) * 0.2;
       const learningInvestmentScore =
         totalAccountAssets +
         totalEarned * 0.3 +
         totalProfit * 0.5 +
-        returnBonus;
+        returnRateAdjustment;
 
       return {
         id: row.id,

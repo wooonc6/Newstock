@@ -317,9 +317,11 @@ export default function RankingPage() {
         <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text)", lineHeight: 1.35, marginBottom: "7px" }}>🏆 랭킹</h1>
         <div style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6 }}>총 계좌 자산, 총 획득 모의투자금, 투자 성과를 함께 반영한 학습투자 점수 순</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>학습투자 점수는 실제 보유 금액이 아니라 랭킹 산정을 위한 점수입니다.</div>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>점수 = 총 계좌 자산 + 총 획득 모의투자금의 30% + 총 투자손익의 50% + 수익률 보너스</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>점수 = 총 계좌 자산의 100% + 총 획득 모의투자금의 30% + 총 투자손익의 50% + 수익률 연동 가감점</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산은 보유 모의현금과 보유 주식의 최신 평가금액을 더해 계산합니다.</div>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>수익률 보너스는 과도한 수익률 쏠림을 막기 위해 반영 범위를 제한합니다.</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 투자손익은 실현손익과 현재 보유 종목의 평가손익을 합산합니다.</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>수익률 연동 가감점 = 총 획득 모의투자금 × 적용 수익률 × 20%</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>적용 수익률은 총수익률을 최소 -30%, 최대 +30% 범위로 제한한 값이며, 음수이면 점수에서 차감합니다.</div>
       </div>
 
       <section style={{ display: "grid", gap: "12px", padding: "14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px" }}>
