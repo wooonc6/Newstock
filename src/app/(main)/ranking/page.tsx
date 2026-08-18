@@ -26,6 +26,12 @@ interface RankingUser {
   holding_count: number | string | null;
 }
 
+interface JoinedClass {
+  id: string;
+  name: string;
+  joined_at: string;
+}
+
 interface PublicHolding {
   nickname: string | null;
   current_coins: number | string | null;
@@ -132,15 +138,28 @@ function PortfolioViewer({ user, onClose }: { user: RankingUser; onClose: () => 
 export default function RankingPage() {
   const { user } = useAuth();
   const [rankings, setRankings] = useState<RankingUser[]>([]);
+  const [classes, setClasses] = useState<JoinedClass[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [classCode, setClassCode] = useState("");
+  const [joiningClass, setJoiningClass] = useState(false);
+  const [classMessage, setClassMessage] = useState("");
   const [selectedUser, setSelectedUser] = useState<RankingUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const requestSequence = useRef(0);
 
+  const fetchClasses = useCallback(async () => {
+    const response = await fetch("/api/classes", { cache: "no-store" });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error ?? "수업 목록 API 오류");
+    setClasses((data.classes as JoinedClass[] | null) ?? []);
+  }, []);
+
   const fetchRankings = useCallback(async () => {
     const requestId = ++requestSequence.current;
     try {
       const query = new URLSearchParams({ limit: "50", refreshedAt: String(Date.now()) });
+      if (selectedClassId) query.set("classId", selectedClassId);
       const response = await fetch(`/api/rankings?${query.toString()}`, {
         cache: "no-store",
         headers: { "Cache-Control": "no-cache" },
@@ -166,9 +185,40 @@ export default function RankingPage() {
     } finally {
       if (requestId === requestSequence.current) setLoading(false);
     }
-  }, []);
+  }, [selectedClassId]);
 
   useEffect(() => {
+    if (!user) return;
+    void fetchClasses().catch(() => setClassMessage("참가한 수업 목록을 불러오지 못했습니다."));
+  }, [fetchClasses, user]);
+
+  const joinClass = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!classCode.trim() || joiningClass) return;
+    setJoiningClass(true);
+    setClassMessage("");
+    try {
+      const response = await fetch("/api/classes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classCode }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error ?? "수업 참가 오류");
+      await fetchClasses();
+      setSelectedClassId(data.class.id);
+      setClassCode("");
+      setClassMessage(`${data.class.name} 수업에 참가했습니다.`);
+    } catch (joinError) {
+      setClassMessage(joinError instanceof Error ? joinError.message : "수업 참가를 처리하지 못했습니다.");
+    } finally {
+      setJoiningClass(false);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    setSelectedUser(null);
     void fetchRankings();
     const timer = window.setInterval(() => void fetchRankings(), RANKING_REFRESH_MS);
     const refreshOnFocus = () => void fetchRankings();
@@ -195,6 +245,32 @@ export default function RankingPage() {
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>총 계좌 자산은 보유 모의현금과 보유 주식의 최신 평가금액을 더해 계산합니다.</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>수익률 보너스는 과도한 수익률 쏠림을 막기 위해 반영 범위를 제한합니다.</div>
       </div>
+
+      <section style={{ display: "grid", gap: "12px", padding: "14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px" }}>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <button type="button" onClick={() => setSelectedClassId(null)} style={rankingTabStyle(selectedClassId === null)}>전체 랭킹</button>
+          {classes.map((joinedClass) => (
+            <button key={joinedClass.id} type="button" onClick={() => setSelectedClassId(joinedClass.id)} style={rankingTabStyle(selectedClassId === joinedClass.id)}>
+              {joinedClass.name}
+            </button>
+          ))}
+        </div>
+        <form onSubmit={joinClass} style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <input
+            value={classCode}
+            onChange={(event) => setClassCode(event.target.value.toUpperCase())}
+            placeholder="수업 코드 입력"
+            aria-label="수업 코드"
+            maxLength={32}
+            autoComplete="off"
+            style={{ flex: "1 1 180px", minWidth: 0, border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface2)", color: "var(--text)", padding: "10px 12px", fontSize: "13px" }}
+          />
+          <button type="submit" disabled={joiningClass || !classCode.trim()} style={{ border: 0, borderRadius: "8px", background: "var(--accent)", color: "white", padding: "10px 15px", fontSize: "13px", fontWeight: 800, cursor: joiningClass ? "wait" : "pointer", opacity: !classCode.trim() ? 0.55 : 1 }}>
+            {joiningClass ? "참가 중..." : "수업 참가"}
+          </button>
+        </form>
+        {classMessage && <div role="status" style={{ fontSize: "12px", color: "var(--text-dim)" }}>{classMessage}</div>}
+      </section>
 
       {loading ? <Panel>랭킹을 불러오는 중...</Panel> : error ? <Panel>{error}</Panel> : rankings.length === 0 ? <Panel>아직 랭킹 데이터가 없습니다.</Panel> : (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -252,3 +328,4 @@ export default function RankingPage() {
 
 function Metric({ label, value }: { label: string; value: string }) { return <div style={{ padding: "11px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "9px" }}><div style={{ fontSize: "10px", color: "var(--text-muted)", marginBottom: "5px" }}>{label}</div><div style={{ fontSize: "14px", fontWeight: 800, whiteSpace: "nowrap" }}>{value}</div></div>; }
 function Panel({ children }: { children: React.ReactNode }) { return <div style={{ padding: "24px", textAlign: "center", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "13px", color: "var(--text-muted)" }}>{children}</div>; }
+function rankingTabStyle(active: boolean): React.CSSProperties { return { border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`, borderRadius: "999px", background: active ? "rgba(0,168,120,0.1)" : "var(--surface2)", color: active ? "var(--accent)" : "var(--text-dim)", padding: "8px 12px", fontSize: "12px", fontWeight: 800, cursor: "pointer" }; }

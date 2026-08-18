@@ -59,12 +59,20 @@ export async function GET(req: NextRequest) {
 
   const requestedLimit = Number(req.nextUrl.searchParams.get("limit") ?? 50);
   const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? requestedLimit : 50, 1), 100);
+  const requestedClassId = req.nextUrl.searchParams.get("classId");
+  const classId = requestedClassId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedClassId)
+    ? requestedClassId
+    : null;
+  if (requestedClassId && !classId) {
+    return NextResponse.json({ error: "잘못된 수업입니다." }, { status: 400 });
+  }
 
-  const { data, error } = await supabase.rpc("get_learning_rankings", { p_limit: 500 });
+  const { data, error } = await supabase.rpc("get_learning_rankings", { p_limit: 500, p_class_id: classId });
 
   if (error) {
     console.error("[GET /api/rankings] ranking rpc error:", error);
-    return NextResponse.json({ error: "랭킹을 불러오지 못했습니다." }, { status: 500 });
+    const status = error.code === "42501" ? 403 : 500;
+    return NextResponse.json({ error: status === 403 ? "이 수업 랭킹에 접근할 수 없습니다." : "랭킹을 불러오지 못했습니다." }, { status });
   }
 
   const rows = ((data ?? []) as RankingRow[]).map((row) => ({
