@@ -153,6 +153,8 @@ export default function RankingPage() {
   const [classMessage, setClassMessage] = useState("");
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
   const [editingClassName, setEditingClassName] = useState("");
+  const [grantAmounts, setGrantAmounts] = useState<Record<string, string>>({});
+  const [grantingClassId, setGrantingClassId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<RankingUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -247,6 +249,35 @@ export default function RankingPage() {
     }
   };
 
+  const grantClassCoins = async (event: React.FormEvent<HTMLFormElement>, joinedClass: JoinedClass) => {
+    event.preventDefault();
+    const amount = Number(grantAmounts[joinedClass.id]);
+    if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100_000_000) {
+      setClassMessage("지급 금액은 1원 이상 1억원 이하의 정수로 입력해 주세요.");
+      return;
+    }
+    if (!window.confirm(`${joinedClass.name} 학생 전원에게 ${amount.toLocaleString()}원을 지급할까요? 이 작업은 즉시 반영됩니다.`)) return;
+
+    setGrantingClassId(joinedClass.id);
+    setClassMessage("");
+    try {
+      const response = await fetch("/api/classes/grants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classId: joinedClass.id, amount }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error ?? "모의투자금 지급 오류");
+      setGrantAmounts((current) => ({ ...current, [joinedClass.id]: "" }));
+      setClassMessage(`${joinedClass.name} 학생 ${Number(data.grant.recipient_count).toLocaleString()}명에게 ${amount.toLocaleString()}원씩 지급했습니다.`);
+      void fetchRankings();
+    } catch (grantError) {
+      setClassMessage(grantError instanceof Error ? grantError.message : "모의투자금 지급을 처리하지 못했습니다.");
+    } finally {
+      setGrantingClassId(null);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     setSelectedUser(null);
@@ -315,6 +346,27 @@ export default function RankingPage() {
                 <button type="button" onClick={() => setEditingClassId(null)} style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface)", color: "var(--text-dim)", padding: "9px 13px", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>취소</button>
               </form>
             )}
+            <form onSubmit={(event) => void grantClassCoins(event, joinedClass)} style={{ display: "grid", gap: "8px", paddingTop: "9px", borderTop: "1px solid var(--border)" }}>
+              <div style={{ fontSize: "12px", fontWeight: 800, color: "var(--text)" }}>학생 전원 모의투자금 지급</div>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>현재 수업에 참가한 학생 전원에게 같은 금액을 지급합니다. 관리자 본인은 지급 대상에서 제외되며 지급 기록이 남습니다.</div>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <input
+                  type="number"
+                  min={1}
+                  max={100000000}
+                  step={1}
+                  inputMode="numeric"
+                  value={grantAmounts[joinedClass.id] ?? ""}
+                  onChange={(event) => setGrantAmounts((current) => ({ ...current, [joinedClass.id]: event.target.value }))}
+                  placeholder="학생 1명당 지급 금액"
+                  aria-label={`${joinedClass.name} 학생 1명당 지급 금액`}
+                  style={{ flex: "1 1 190px", minWidth: 0, border: "1px solid var(--border)", borderRadius: "8px", background: "var(--surface)", color: "var(--text)", padding: "9px 11px", fontSize: "12px" }}
+                />
+                <button type="submit" disabled={grantingClassId === joinedClass.id || !(grantAmounts[joinedClass.id] ?? "").trim()} style={{ border: 0, borderRadius: "8px", background: "var(--accent)", color: "white", padding: "9px 13px", fontSize: "12px", fontWeight: 800, cursor: grantingClassId === joinedClass.id ? "wait" : "pointer", opacity: !(grantAmounts[joinedClass.id] ?? "").trim() ? 0.55 : 1 }}>
+                  {grantingClassId === joinedClass.id ? "지급 중..." : "학생 전원에게 지급"}
+                </button>
+              </div>
+            </form>
           </div>
         ))}
         {classMessage && <div role="status" style={{ fontSize: "12px", color: "var(--text-dim)" }}>{classMessage}</div>}
