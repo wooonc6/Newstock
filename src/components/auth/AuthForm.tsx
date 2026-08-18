@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { validateRealName } from "@/lib/realName";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -111,20 +112,14 @@ export default function AuthForm() {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanLastName = lastName.normalize("NFKC").trim();
-    const cleanFirstName = firstName.normalize("NFKC").trim();
-    const namePattern = /^[가-힣a-zA-Z]+(?:[ '-][가-힣a-zA-Z]+)*$/;
+    const realName = validateRealName(lastName, firstName);
 
     if (!cleanEmail.includes("@")) {
       setError("이메일을 올바르게 입력해주세요.");
       return;
     }
-    if (!cleanLastName || !cleanFirstName) {
-      setError("성과 이름을 모두 입력해주세요.");
-      return;
-    }
-    if (cleanLastName.length > 20 || cleanFirstName.length > 20 || !namePattern.test(cleanLastName) || !namePattern.test(cleanFirstName)) {
-      setError("성과 이름은 한글 또는 영문으로 각각 20자 이하로 입력해주세요.");
+    if (!realName.ok) {
+      setError(realName.error);
       return;
     }
     if (password.length < 6) {
@@ -138,11 +133,12 @@ export default function AuthForm() {
       password,
       options: {
         data: {
-          last_name: cleanLastName,
-          first_name: cleanFirstName,
-          nickname: `${cleanLastName}${cleanFirstName}`,
+          last_name: realName.lastName,
+          first_name: realName.firstName,
+          nickname: realName.displayName,
           email: cleanEmail,
           nickname_reviewed: true,
+          real_name_version: 1,
         },
       },
     });
