@@ -36,9 +36,9 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthPage =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/reset-password");
+  const isLoginPage = request.nextUrl.pathname.startsWith("/login");
+  const isResetPasswordPage = request.nextUrl.pathname.startsWith("/reset-password");
+  const isAuthPage = isLoginPage || isResetPasswordPage;
   const isProtected = !isAuthPage && request.nextUrl.pathname !== "/";
 
   if (!user && isProtected) {
@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  if (user && isLoginPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
